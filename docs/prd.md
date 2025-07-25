@@ -51,7 +51,7 @@ Enable users to track their watch progress across movies and shows using the TMD
 
 - **Package Manager:** pnpm (preferred)
 - **CI/CD & Hosting:** Vercel
-- **Testing:** Jest, @testing-library/react, Playwright
+- **Testing:** Jest, @testing-library/react
 - **Linting:** ESLint, Prettier, Tailwind plugin
 - **Caching (optional):** Upstash Redis (rate-limiting, session/metadata cache)
 

@@ -5,6 +5,7 @@ import superjson from 'superjson'
 import { ZodError } from 'zod'
 
 import { db } from '@/server/db'
+import { toTRPCError, logError } from '@/lib/errors'
 
 type CreateContextOptions = {
   session: Awaited<ReturnType<typeof auth>>
@@ -29,6 +30,9 @@ export const createTRPCContext = async (_opts: CreateNextContextOptions) => {
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
+    // Log all errors for debugging
+    logError(error.cause || error, 'tRPC')
+    
     return {
       ...shape,
       data: {
