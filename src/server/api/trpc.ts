@@ -64,9 +64,9 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
     create: {
       clerkId: ctx.session.userId,
       username: `user_${ctx.session.userId}`, // Better temporary username
-      email: ctx.session.emailAddresses?.[0]?.emailAddress || `${ctx.session.userId}@temp.com`,
-      name: ctx.session.fullName || null,
-      avatar: ctx.session.imageUrl || null,
+      email: `${ctx.session.userId}@temp.com`, // Use temporary email for now
+      name: null, // Will be updated when user profile is available
+      avatar: null, // Will be updated when user profile is available
     },
   })
 

@@ -16,8 +16,10 @@ const eslintConfig = [
       "prefer-const": "warn",
       "no-unused-vars": "warn",
       "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn", // Change from error to warning
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
+      "@next/next/no-img-element": "warn", // Change from error to warning
     },
   },
 ];

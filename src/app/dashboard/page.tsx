@@ -60,12 +60,15 @@ export default function Dashboard() {
 
   const handleAddMedia = async (media: { id: number; media_type: string; title?: string; name?: string; poster_path?: string; release_date?: string; first_air_date?: string }) => {
     try {
+      const dateString = media.release_date || media.first_air_date
+      const releaseDate = dateString ? new Date(dateString) : undefined
+      
       await createWatchedItem.mutateAsync({
         tmdbId: media.id,
         mediaType: media.media_type === 'movie' ? 'MOVIE' : 'TV',
-        title: media.title || media.name,
+        title: media.title || media.name || 'Unknown Title',
         poster: media.poster_path,
-        releaseDate: media.release_date || media.first_air_date ? new Date(media.release_date || media.first_air_date) : undefined,
+        releaseDate,
         totalRuntime: media.media_type === 'movie' ? 120 : undefined, // Mock runtime
         totalEpisodes: media.media_type === 'tv' ? 24 : undefined, // Mock episode count
         totalSeasons: media.media_type === 'tv' ? 2 : undefined, // Mock season count
@@ -218,7 +221,7 @@ export default function Dashboard() {
               {recentItems?.items.map((item) => (
                 <WatchedItemCard
                   key={item.id}
-                  item={item as any}
+                  item={item}
                   onUpdate={handleUpdateItem}
                   onDelete={handleDeleteItem}
                 />

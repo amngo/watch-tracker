@@ -4,7 +4,13 @@ import { useState, useMemo } from 'react'
 import { Search, Plus, Film, Tv } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -41,34 +47,38 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
     }
 
     setIsSearching(true)
-    
+
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     // Mock results - replace with actual TMDB API call
     const mockResults: TMDBResult[] = [
       {
         id: 550,
         title: 'Fight Club',
-        overview: 'A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression...',
+        overview:
+          'A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression...',
         poster_path: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
         release_date: '1999-10-15',
-        media_type: 'movie',
-        vote_average: 8.4
+        media_type: 'movie' as const,
+        vote_average: 8.4,
       },
       {
         id: 1399,
         name: 'Game of Thrones',
-        overview: 'Seven noble families fight for control of the mythical land of Westeros...',
+        overview:
+          'Seven noble families fight for control of the mythical land of Westeros...',
         poster_path: '/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg',
         first_air_date: '2011-04-17',
-        media_type: 'tv',
-        vote_average: 9.3
-      }
-    ].filter(item => 
-      (item.title || item.name)?.toLowerCase().includes(searchQuery.toLowerCase())
+        media_type: 'tv' as const,
+        vote_average: 9.3,
+      },
+    ].filter(item =>
+      (item.title || item.name)
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase())
     )
-    
+
     setResults(mockResults)
     setIsSearching(false)
   }
@@ -91,7 +101,7 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
         <Input
           placeholder="Search movies and TV shows..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={e => setQuery(e.target.value)}
           className="pl-10"
         />
       </div>
@@ -118,8 +128,11 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
             </div>
           ) : results.length > 0 ? (
             <div className="space-y-3">
-              {results.map((media) => (
-                <Card key={media.id} className="transition-shadow hover:shadow-md">
+              {results.map(media => (
+                <Card
+                  key={media.id}
+                  className="transition-shadow hover:shadow-md"
+                >
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="relative h-24 w-16 rounded bg-muted flex items-center justify-center">
@@ -131,11 +144,15 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
                           />
                         ) : (
                           <div className="text-muted-foreground">
-                            {media.media_type === 'movie' ? <Film className="h-8 w-8" /> : <Tv className="h-8 w-8" />}
+                            {media.media_type === 'movie' ? (
+                              <Film className="h-8 w-8" />
+                            ) : (
+                              <Tv className="h-8 w-8" />
+                            )}
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
@@ -143,8 +160,16 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
                               {media.title || media.name}
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <Badge variant={media.media_type === 'movie' ? 'default' : 'secondary'}>
-                                {media.media_type === 'movie' ? 'Movie' : 'TV Show'}
+                              <Badge
+                                variant={
+                                  media.media_type === 'movie'
+                                    ? 'default'
+                                    : 'secondary'
+                                }
+                              >
+                                {media.media_type === 'movie'
+                                  ? 'Movie'
+                                  : 'TV Show'}
                               </Badge>
                               <span className="text-sm text-muted-foreground">
                                 {media.release_date || media.first_air_date}
@@ -154,7 +179,7 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
                               </Badge>
                             </div>
                           </div>
-                          
+
                           <Button
                             onClick={() => handleAddMedia(media)}
                             size="sm"
@@ -163,7 +188,7 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
-                        
+
                         {media.overview && (
                           <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                             {media.overview}

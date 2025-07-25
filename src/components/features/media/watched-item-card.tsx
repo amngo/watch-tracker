@@ -27,19 +27,19 @@ interface WatchedItem {
   tmdbId: number
   mediaType: MediaType
   title: string
-  poster?: string
-  releaseDate?: Date
+  poster: string | null
+  releaseDate: Date | null
   status: WatchStatus
-  rating?: number
-  startDate?: Date
-  finishDate?: Date
-  currentSeason?: number
-  currentEpisode?: number
-  totalSeasons?: number
-  totalEpisodes?: number
-  currentRuntime?: number
-  totalRuntime?: number
-  notes: { id: string; content: string; timestamp?: string; createdAt: Date }[]
+  rating: number | null
+  startDate: Date | null
+  finishDate: Date | null
+  currentSeason: number | null
+  currentEpisode: number | null
+  totalSeasons: number | null
+  totalEpisodes: number | null
+  currentRuntime: number | null
+  totalRuntime: number | null
+  notes: { id: string; content: string; timestamp: string | null; createdAt: Date; isPublic: boolean; hasSpoilers: boolean; updatedAt: Date; userId: string; watchedItemId: string }[]
   _count: { notes: number }
 }
 

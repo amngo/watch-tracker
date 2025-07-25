@@ -38,7 +38,13 @@ interface DashboardLayoutProps {
   }
 }
 
-const navigation = [
+interface NavigationItem {
+  name: string
+  href: string
+  icon: any
+}
+
+const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Search & Add', href: '/dashboard/search', icon: Search },
   { name: 'Movies', href: '/dashboard/movies', icon: Film },
@@ -150,7 +156,7 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
 }
 
 function DesktopNavigation({ navigation, pathname, stats }: {
-  navigation: typeof navigation
+  navigation: NavigationItem[]
   pathname: string
   stats?: DashboardLayoutProps['stats']
 }) {
@@ -210,7 +216,7 @@ function DesktopNavigation({ navigation, pathname, stats }: {
 }
 
 function MobileNavigation({ navigation, pathname, stats, onItemClick }: {
-  navigation: typeof navigation
+  navigation: NavigationItem[]
   pathname: string
   stats?: DashboardLayoutProps['stats']
   onItemClick: () => void
