@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - linked to Clerk authentication
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  username  String   @unique
+  email     String   @unique
+  name      String?
+  avatar    String?
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  watchedItems WatchedItem[]
+  notes        Note[]
+  profiles     Profile[]
+
+  @@map("users")
+}
+
+// Profile model for public sharing
+model Profile {
+  id          String  @id @default(cuid())
+  userId      String
+  isPublic    Boolean @default(false)
+  showSpoilers Boolean @default(false)
+  bio         String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("profiles")
+}
+
+// Media items being tracked (movies/shows)
+model WatchedItem {
+  id          String      @id @default(cuid())
+  userId      String
+  tmdbId      Int
+  mediaType   MediaType
+  title       String
+  poster      String?
+  releaseDate DateTime?
+  status      WatchStatus @default(PLANNED)
+  rating      Int?        @db.SmallInt // 1-10 rating
+  startDate   DateTime?
+  finishDate  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // For TV shows - track season/episode progress
+  currentSeason  Int? @db.SmallInt
+  currentEpisode Int? @db.SmallInt
+  totalSeasons   Int? @db.SmallInt
+  totalEpisodes  Int? @db.SmallInt
+
+  // For movies - track runtime progress
+  currentRuntime Int? // in minutes
+  totalRuntime   Int? // in minutes
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes Note[]
+
+  @@unique([userId, tmdbId, mediaType])
+  @@map("watched_items")
+}
+
+// Notes with timestamps for specific episodes/time points
+model Note {
+  id            String   @id @default(cuid())
+  userId        String
+  watchedItemId String
+  content       String
+  timestamp     String?  // For movies: "01:23:45", for shows: "S02E05" or "S02E05 12:34"
+  isPublic      Boolean  @default(false)
+  hasSpoilers   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchedItem WatchedItem @relation(fields: [watchedItemId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+enum MediaType {
+  MOVIE
+  TV
+}
+
+enum WatchStatus {
+  PLANNED
+  WATCHING
+  COMPLETED
+  PAUSED
+  DROPPED
+}

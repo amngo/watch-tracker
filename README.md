@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📺 Watch Tracker
 
-## Getting Started
+A modern web application for tracking your movie and TV show progress with timestamped notes and social sharing features.
 
-First, run the development server:
+## ✨ Features
 
+- **Progress Tracking**: Track movies by runtime and TV shows by episodes
+- **Timestamped Notes**: Add detailed notes with specific timestamps
+- **Personal Statistics**: Visualize your viewing data and habits
+- **Public Profiles**: Share your watch list with spoiler controls
+- **Mobile-Friendly**: Responsive design with focus mode
+- **TMDB Integration**: Rich metadata from The Movie Database
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Next.js 15** with App Router and Turbopack
+- **TypeScript** for type safety
+- **TailwindCSS** with ShadCN UI components
+- **Zustand** for state management
+
+### Backend
+- **tRPC** for type-safe API routes
+- **Prisma** ORM with PostgreSQL
+- **Clerk** for authentication
+- **Zod** for validation
+
+### Development
+- **ESLint + Prettier** for code quality
+- **Jest + Testing Library** for unit tests
+- **pnpm** for package management
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+- PostgreSQL database
+
+### Environment Setup
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd watch-tracker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+```bash
+cp .env.local.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Fill in your environment variables:
+- `DATABASE_URL`: PostgreSQL connection string
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Clerk public key
+- `CLERK_SECRET_KEY`: Clerk secret key
+- `NEXT_PUBLIC_TMDB_API_KEY`: The Movie Database API key
 
-## Learn More
+4. Set up the database:
+```bash
+pnpm db:push
+pnpm db:generate
+```
 
-To learn more about Next.js, take a look at the following resources:
+5. Run the development server:
+```bash
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   ├── dashboard/         # Dashboard pages
+│   ├── sign-in/          # Authentication pages
+│   └── globals.css       # Global styles
+├── components/           # React components
+│   ├── ui/              # ShadCN UI components
+│   ├── layout/          # Layout components
+│   ├── features/        # Feature-specific components
+│   └── common/          # Shared components
+├── server/              # Server-side code
+│   ├── api/            # tRPC routers
+│   └── db.ts          # Database connection
+├── trpc/               # tRPC configuration
+├── lib/                # Utility functions
+├── hooks/              # Custom React hooks
+├── stores/             # Zustand stores
+├── types/              # TypeScript types
+└── middleware.ts       # Next.js middleware
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Testing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Unit Tests**: `pnpm test`
+- **Test Coverage**: `pnpm test:coverage`
+
+## 📋 Available Scripts
+
+```bash
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm lint         # Run ESLint
+pnpm format       # Format code with Prettier
+pnpm test         # Run unit tests
+pnpm db:push      # Push schema to database
+pnpm db:migrate   # Run database migrations
+pnpm db:studio    # Open Prisma Studio
+```
+
+## 🚀 Deployment
+
+This project is optimized for deployment on Vercel:
+
+1. Connect your repository to Vercel
+2. Configure environment variables
+3. Deploy!
+
+## 📖 Documentation
+
+For detailed documentation, see the [docs/](./docs/) directory:
+- [PRD (Product Requirements Document)](./docs/prd.md)
+- [API Documentation](./docs/api.md)
+- [Component Library](./docs/components.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
