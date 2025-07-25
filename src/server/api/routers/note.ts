@@ -11,19 +11,11 @@ export const noteRouter = createTRPCRouter({
       hasSpoilers: z.boolean().default(false),
     }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       // Verify the watched item belongs to the user
       const watchedItem = await ctx.db.watchedItem.findFirst({
         where: {
           id: input.watchedItemId,
-          userId: user.id,
+          userId: ctx.user.id,
         },
       })
 
@@ -33,7 +25,7 @@ export const noteRouter = createTRPCRouter({
 
       return ctx.db.note.create({
         data: {
-          userId: user.id,
+          userId: ctx.user.id,
           ...input,
         },
       })
@@ -46,18 +38,10 @@ export const noteRouter = createTRPCRouter({
       cursor: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       const notes = await ctx.db.note.findMany({
         where: {
           watchedItemId: input.watchedItemId,
-          userId: user.id,
+          userId: ctx.user.id,
         },
         orderBy: { createdAt: 'desc' },
         take: input.limit + 1,
@@ -88,20 +72,12 @@ export const noteRouter = createTRPCRouter({
       hasSpoilers: z.boolean().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       const { id, ...updateData } = input
 
       return ctx.db.note.update({
         where: {
           id,
-          userId: user.id,
+          userId: ctx.user.id,
         },
         data: updateData,
       })
@@ -110,18 +86,10 @@ export const noteRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       return ctx.db.note.delete({
         where: {
           id: input.id,
-          userId: user.id,
+          userId: ctx.user.id,
         },
       })
     }),

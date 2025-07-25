@@ -50,16 +50,31 @@ export const createTRPCRouter = t.router
 
 export const publicProcedure = t.procedure
 
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.session.userId) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
     })
   }
+
+  // Ensure user exists in database - use upsert to handle race conditions
+  const user = await ctx.db.user.upsert({
+    where: { clerkId: ctx.session.userId },
+    update: {}, // Don't update existing users automatically
+    create: {
+      clerkId: ctx.session.userId,
+      username: `user_${ctx.session.userId}`, // Better temporary username
+      email: ctx.session.emailAddresses?.[0]?.emailAddress || `${ctx.session.userId}@temp.com`,
+      name: ctx.session.fullName || null,
+      avatar: ctx.session.imageUrl || null,
+    },
+  })
+
   return next({
     ctx: {
       // infers the `session` as non-nullable
       session: { ...ctx.session, userId: ctx.session.userId },
+      user, // Add user to context
       db: ctx.db,
     },
   })

@@ -217,15 +217,15 @@ export const userRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.user.update({
-        where: { clerkId: ctx.session.userId },
+        where: { id: ctx.user.id },
         data: input,
       })
     }),
 
   getStats: protectedProcedure
     .query(async ({ ctx }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
+      const userWithCounts = await ctx.db.user.findUnique({
+        where: { id: ctx.user.id },
         include: {
           _count: {
             select: {
@@ -236,29 +236,25 @@ export const userRouter = createTRPCRouter({
         },
       })
 
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       const completedCount = await ctx.db.watchedItem.count({
         where: {
-          userId: user.id,
+          userId: ctx.user.id,
           status: 'COMPLETED',
         },
       })
 
       const currentlyWatching = await ctx.db.watchedItem.count({
         where: {
-          userId: user.id,
+          userId: ctx.user.id,
           status: 'WATCHING',
         },
       })
 
       return {
-        totalItems: user._count.watchedItems,
+        totalItems: userWithCounts?._count.watchedItems || 0,
         completedItems: completedCount,
         currentlyWatching,
-        totalNotes: user._count.notes,
+        totalNotes: userWithCounts?._count.notes || 0,
       }
     }),
 })

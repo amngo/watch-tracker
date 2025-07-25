@@ -17,17 +17,9 @@ export const watchedItemRouter = createTRPCRouter({
       totalRuntime: z.number().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       return ctx.db.watchedItem.create({
         data: {
-          userId: user.id,
+          userId: ctx.user.id,
           ...input,
         },
       })
@@ -41,17 +33,9 @@ export const watchedItemRouter = createTRPCRouter({
       cursor: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       const items = await ctx.db.watchedItem.findMany({
         where: {
-          userId: user.id,
+          userId: ctx.user.id,
           ...(input.status && { status: input.status }),
           ...(input.mediaType && { mediaType: input.mediaType }),
         },
@@ -87,18 +71,10 @@ export const watchedItemRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       return ctx.db.watchedItem.findFirst({
         where: {
           id: input.id,
-          userId: user.id,
+          userId: ctx.user.id,
         },
         include: {
           notes: {
@@ -120,20 +96,12 @@ export const watchedItemRouter = createTRPCRouter({
       finishDate: z.date().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       const { id, ...updateData } = input
 
       return ctx.db.watchedItem.update({
         where: {
           id,
-          userId: user.id,
+          userId: ctx.user.id,
         },
         data: updateData,
       })
@@ -142,18 +110,10 @@ export const watchedItemRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.session.userId },
-      })
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
       return ctx.db.watchedItem.delete({
         where: {
           id: input.id,
-          userId: user.id,
+          userId: ctx.user.id,
         },
       })
     }),
