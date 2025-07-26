@@ -13,7 +13,7 @@ export const TMDBMovieSchema = z.object({
   original_title: z.string().nullish(),
   overview: z.string().nullish(),
   poster_path: z.string().nullish(),
-  //   media_type: z.literal('movie'),
+  media_type: z.string().nullish().default('movie'),
   original_language: z.string().nullish(),
   genre_ids: z.array(z.number()).nullish(),
   popularity: z.number().optional(),
@@ -31,7 +31,7 @@ export const TMDBTVSchema = z.object({
   original_name: z.string().nullish(),
   overview: z.string().nullish(),
   poster_path: z.string().nullish(),
-  //   media_type: z.literal('tv'),
+  media_type: z.string().nullish().default('tv'),
   original_language: z.string().nullish(),
   genre_ids: z.array(z.number()).nullish(),
   popularity: z.number(),
@@ -237,9 +237,7 @@ export const TMDBPersonSchema = z.object({
     .optional(),
 })
 
-const MultiResultItemsSchema = z.array(
-  z.union([TMDBMovieSchema, TMDBTVSchema, TMDBPersonSchema])
-)
+const MultiResultItemsSchema = z.array(z.union([TMDBMovieSchema, TMDBTVSchema]))
 
 export const TMDBSearchResultSchema = z.object({
   page: z.number(),

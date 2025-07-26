@@ -16,6 +16,7 @@ export interface UIStoreState {
   searchQuery: string
   searchResults: TMDBSearchResultItem[]
   searchLoading: boolean
+  searchType: 'movie' | 'tv'
   
   // Filters and sorting
   viewMode: 'grid' | 'list'
@@ -41,6 +42,7 @@ export interface UIStoreState {
   setSearchQuery: (query: string) => void
   setSearchResults: (results: TMDBSearchResultItem[]) => void
   setSearchLoading: (loading: boolean) => void
+  setSearchType: (type: 'movie' | 'tv') => void
   clearSearch: () => void
   
   setViewMode: (mode: 'grid' | 'list') => void
@@ -70,6 +72,7 @@ const initialState = {
   searchQuery: '',
   searchResults: [],
   searchLoading: false,
+  searchType: 'movie' as const,
   
   // Filters and sorting
   viewMode: 'grid' as const,
@@ -124,6 +127,9 @@ export const useUIStore = create<UIStoreState>()(
 
       setSearchLoading: (loading: boolean) =>
         set({ searchLoading: loading }, false, 'ui/setSearchLoading'),
+
+      setSearchType: (type: 'movie' | 'tv') =>
+        set({ searchType: type }, false, 'ui/setSearchType'),
 
       clearSearch: () =>
         set(

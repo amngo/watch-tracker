@@ -12,7 +12,7 @@ export function useSearch() {
 
   // Search API call
   const { data, isLoading, error } = api.search.search.useQuery(
-    { query: debouncedQuery, type: 'multi', page: 1 },
+    { query: debouncedQuery, type: ui.searchType, page: 1 },
     {
       enabled: !!debouncedQuery && debouncedQuery.length > 0,
     }
@@ -53,6 +53,14 @@ export function useSearch() {
     media.setSearchError(null)
   }, [])
 
+  const setSearchType = useCallback((type: 'movie' | 'tv') => {
+    ui.setSearchType(type)
+    // Clear results when switching search type to trigger new search
+    if (debouncedQuery) {
+      media.clearSearchResults()
+    }
+  }, [debouncedQuery])
+
   const openSearchModal = useCallback(() => {
     ui.openSearchModal()
   }, [])
@@ -70,10 +78,12 @@ export function useSearch() {
     isLoading: ui.searchLoading,
     error: media.searchError,
     isModalOpen: ui.isSearchModalOpen,
+    searchType: ui.searchType,
 
     // Actions
     setQuery,
     clearSearch,
+    setSearchType,
     openSearchModal,
     closeSearchModal,
 

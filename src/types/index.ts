@@ -102,7 +102,7 @@ export interface TMDBPersonItem {
   vote_average?: never
 }
 
-export type TMDBSearchResultItem = TMDBMovieItem | TMDBTVItem | TMDBPersonItem
+export type TMDBSearchResultItem = TMDBMovieItem | TMDBTVItem
 
 // Helper type for media items only (excluding person results)
 export type TMDBMediaItem = TMDBMovieItem | TMDBTVItem
