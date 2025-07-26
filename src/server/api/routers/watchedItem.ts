@@ -88,12 +88,12 @@ export const watchedItemRouter = createTRPCRouter({
     .input(z.object({
       id: z.string(),
       status: WatchStatusEnum.optional(),
-      rating: z.number().min(1).max(10).optional(),
-      currentSeason: z.number().optional(),
-      currentEpisode: z.number().optional(),
-      currentRuntime: z.number().optional(),
-      startDate: z.date().optional(),
-      finishDate: z.date().optional(),
+      rating: z.number().min(1).max(10).nullable().optional(),
+      currentSeason: z.number().nullable().optional(),
+      currentEpisode: z.number().nullable().optional(),
+      currentRuntime: z.number().nullable().optional(),
+      startDate: z.date().nullable().optional(),
+      finishDate: z.date().nullable().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input

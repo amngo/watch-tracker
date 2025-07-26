@@ -25,7 +25,7 @@ import { ErrorDisplay } from '@/components/common/error-boundary'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { calculateProgress } from '@/lib/utils'
-import type { TMDBSearchResultItem, WatchedItem } from '@/types'
+import type { TMDBMediaItem, WatchedItem } from '@/types'
 
 export default function Dashboard() {
   const {
@@ -99,15 +99,12 @@ export default function Dashboard() {
     setItemsLoading(itemsDataLoading)
   }, [recentItems, itemsDataLoading, setWatchedItems, setItemsLoading])
 
-  const handleAddMedia = async (media: TMDBSearchResultItem) => {
+  const handleAddMedia = async (media: TMDBMediaItem) => {
     await addMedia(media)
     closeSearchModal()
   }
 
-  const handleUpdateItem = async (
-    id: string,
-    data: Partial<WatchedItem>
-  ) => {
+  const handleUpdateItem = async (id: string, data: Partial<WatchedItem>) => {
     await updateItem(id, data)
   }
 
@@ -239,7 +236,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {watchedItems.slice(0, 6).map(item => (
                 <WatchedItemCard
                   key={item.id}

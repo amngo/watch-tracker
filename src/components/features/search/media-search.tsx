@@ -1,28 +1,23 @@
 'use client'
 
-import { Search, Plus, Film, Tv } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+import { MediaPoster } from '@/components/ui/media-poster'
+import { MediaTypeBadge, VoteAverageBadge } from '@/components/ui/media-badges'
+import { cn, getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { TMDBSearchResultItem } from '@/lib/tmdb'
 import { useSearch } from '@/hooks/use-search'
 import { useEffect } from 'react'
-import type { MediaSearchProps } from '@/types'
+import type { MediaSearchProps, TMDBMediaItem } from '@/types'
 
 export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
   const { query, results, isLoading, error, setQuery, clearSearch } =
     useSearch()
 
-  const handleAddMedia = (media: TMDBSearchResultItem) => {
+  const handleAddMedia = (media: TMDBMediaItem) => {
     onAddMedia(media)
     clearSearch()
   }
@@ -67,65 +62,34 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
             </div>
           ) : results.length > 0 ? (
             <div className="space-y-3">
-              {results.map(
-                media =>
-                  media.media_type !== 'person' && (
-                    <Card
-                      key={media.id}
-                      className="transition-shadow hover:shadow-md p-0"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex gap-4">
-                          <div className="relative h-24 w-16 rounded bg-muted flex items-center justify-center">
-                            {media.poster_path ? (
-                              <img
-                                src={`https://image.tmdb.org/t/p/w92${media.poster_path}`}
-                                alt={
-                                  media.media_type === 'movie'
-                                    ? media.title
-                                    : media.name
-                                }
-                                className="h-full w-full object-cover rounded"
-                              />
-                            ) : (
-                              <div className="text-muted-foreground">
-                                {media.media_type === 'movie' ? (
-                                  <Film className="h-8 w-8" />
-                                ) : (
-                                  <Tv className="h-8 w-8" />
-                                )}
-                              </div>
-                            )}
-                          </div>
+              {results
+                .filter((media): media is TMDBMediaItem => media.media_type !== 'person')
+                .map(media => (
+                  <Card
+                    key={media.id}
+                    className="transition-shadow hover:shadow-md p-0"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        <MediaPoster
+                          src={media.poster_path}
+                          alt={getTMDBTitle(media)}
+                          mediaType={media.media_type}
+                          size="md"
+                        />
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <h3 className="font-semibold text-lg leading-tight">
-                                  {media.media_type === 'movie'
-                                    ? media.title
-                                    : media.name}
-                                </h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-lg leading-tight">
+                                {getTMDBTitle(media)}
+                              </h3>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <Badge
-                                    variant={
-                                      media.media_type === 'movie'
-                                        ? 'default'
-                                        : 'secondary'
-                                    }
-                                  >
-                                    {media.media_type === 'movie'
-                                      ? 'Movie'
-                                      : 'TV Show'}
-                                  </Badge>
+                                  <MediaTypeBadge mediaType={media.media_type} />
                                   <span className="text-xs text-muted-foreground">
-                                    {media.media_type === 'movie'
-                                      ? media.release_date
-                                      : media.first_air_date}
+                                    {getTMDBReleaseDate(media)}
                                   </span>
-                                  <Badge variant="outline">
-                                    ⭐ {media.vote_average.toFixed(1)}
-                                  </Badge>
+                                  <VoteAverageBadge rating={media.vote_average} />
                                 </div>
                               </div>
 

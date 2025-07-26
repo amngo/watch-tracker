@@ -2,9 +2,9 @@ import { useCallback } from 'react'
 import { useMediaStore } from '@/stores/media-store'
 import { api } from '@/trpc/react'
 import { showToast } from '@/components/common/toast-provider'
-import { calculateProgress } from '@/lib/utils'
+import { calculateProgress, convertTMDBMediaType, getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { logError } from '@/lib/logger'
-import type { TMDBSearchResultItem, UpdateWatchedItemData } from '@/types'
+import type { TMDBMediaItem, UpdateWatchedItemData } from '@/types'
 
 export function useMedia() {
   const store = useMediaStore()
@@ -102,17 +102,17 @@ export function useMedia() {
     },
   })
 
-  const addMedia = useCallback(async (media: TMDBSearchResultItem) => {
+  const addMedia = useCallback(async (media: TMDBMediaItem) => {
     try {
-      const dateString = media.release_date || media.first_air_date
-      const releaseDate = dateString ? new Date(dateString) : undefined
+      const releaseDate = getTMDBReleaseDate(media)
+      const parsedReleaseDate = releaseDate ? new Date(releaseDate) : undefined
 
       await createMutation.mutateAsync({
         tmdbId: media.id,
-        mediaType: media.media_type === 'movie' ? 'MOVIE' : 'TV',
-        title: media.title || media.name || 'Unknown Title',
+        mediaType: convertTMDBMediaType(media.media_type),
+        title: getTMDBTitle(media),
         poster: media.poster_path || undefined,
-        releaseDate,
+        releaseDate: parsedReleaseDate,
         totalRuntime: media.media_type === 'movie' ? 120 : undefined,
         totalEpisodes: media.media_type === 'tv' ? 24 : undefined,
         totalSeasons: media.media_type === 'tv' ? 2 : undefined,

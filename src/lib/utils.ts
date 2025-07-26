@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { WatchStatus } from "@/types"
+import type { WatchStatus, TMDBMediaItem } from "@/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -68,4 +68,25 @@ export function formatEpisodeCount(current?: number | null, total?: number | nul
   if (!current) return `/ ${total}`
   if (!total) return `${current}`
   return `${current} / ${total}`
+}
+
+/**
+ * Convert TMDB media type to database MediaType enum
+ */
+export function convertTMDBMediaType(tmdbType: 'movie' | 'tv'): 'MOVIE' | 'TV' {
+  return tmdbType === 'movie' ? 'MOVIE' : 'TV'
+}
+
+/**
+ * Extract title from TMDB media item (handles both movies and TV shows)
+ */
+export function getTMDBTitle(media: TMDBMediaItem): string {
+  return media.media_type === 'movie' ? media.title : media.name
+}
+
+/**
+ * Extract release date from TMDB media item (handles both movies and TV shows)
+ */
+export function getTMDBReleaseDate(media: TMDBMediaItem): string | null {
+  return media.media_type === 'movie' ? media.release_date || null : media.first_air_date || null
 }

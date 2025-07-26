@@ -4,7 +4,7 @@ export interface WatchedItem {
   tmdbId: number
   mediaType: 'MOVIE' | 'TV'
   title: string
-  poster?: string | null
+  poster: string | null
   releaseDate: Date | null
   status: WatchStatus
   rating: number | null
@@ -28,8 +28,12 @@ export type WatchStatus = 'PLANNED' | 'WATCHING' | 'PAUSED' | 'COMPLETED' | 'DRO
 export interface Note {
   id: string
   content: string
+  timestamp: string | null
   createdAt: Date
+  isPublic: boolean
+  hasSpoilers: boolean
   updatedAt: Date
+  userId: string
   watchedItemId: string
 }
 
@@ -41,18 +45,48 @@ export interface UserStats {
   totalHoursWatched?: number
 }
 
-// TMDB API types
-export interface TMDBSearchResultItem {
+// TMDB API types (these match TMDB's actual response format)
+export interface TMDBMovieItem {
   id: number
-  media_type: 'movie' | 'tv' | 'person'
-  title?: string
-  name?: string
+  media_type: 'movie'
+  title: string
   poster_path?: string | null
   release_date?: string
+  overview?: string | null
+  vote_average: number
+  adult: boolean
+  vote_count: number
+}
+
+export interface TMDBTVItem {
+  id: number
+  media_type: 'tv'  
+  name: string
+  poster_path?: string | null
   first_air_date?: string | null
   overview?: string | null
   vote_average: number
+  adult: boolean
+  vote_count: number
 }
+
+export interface TMDBPersonItem {
+  id: number
+  media_type: 'person'
+  name: string
+  profile_path?: string | null
+  popularity: number
+  adult: boolean
+  gender?: number | null
+  known_for_department?: string | null
+  // Person items don't have vote_average, so we make it optional for the union
+  vote_average?: never
+}
+
+export type TMDBSearchResultItem = TMDBMovieItem | TMDBTVItem | TMDBPersonItem
+
+// Helper type for media items only (excluding person results)
+export type TMDBMediaItem = TMDBMovieItem | TMDBTVItem
 
 export interface TMDBSearchResponse {
   page: number
@@ -63,14 +97,14 @@ export interface TMDBSearchResponse {
 
 // Component prop types
 export interface MediaSearchProps {
-  onAddMedia: (media: TMDBSearchResultItem) => void
+  onAddMedia: (media: TMDBMediaItem) => void
   className?: string
 }
 
 export interface WatchedItemCardProps {
   item: WatchedItem
-  onUpdate: (id: string, data: Partial<WatchedItem>) => Promise<void>
-  onDelete: (id: string) => Promise<void>
+  onUpdate: (id: string, data: Partial<WatchedItem>) => Promise<void> | void
+  onDelete: (id: string) => Promise<void> | void
 }
 
 export interface DashboardLayoutProps {
