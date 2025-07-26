@@ -433,49 +433,51 @@ export default function TVDetailPage() {
             <h2 className="text-2xl font-bold mb-6">Seasons</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {tvDetails.seasons.map(season => (
-                <Card key={season.id} className="p-0">
-                  <CardContent className="p-4">
-                    <div className="flex gap-3">
-                      {season.poster_path ? (
-                        <div className="w-16 h-20 relative rounded overflow-hidden flex-shrink-0">
-                          <img
-                            src={
-                              TMDBService.getPosterUrl(
-                                season.poster_path,
-                                'w185'
-                              ) || ''
-                            }
-                            alt={season.name}
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-20 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                          <Tv2 className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm leading-tight mb-1">
-                          {season.name}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {season.episode_count} episodes
-                        </p>
-                        {season.air_date && (
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(season.air_date).toLocaleDateString(
-                              'en-US',
-                              {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
+                <Card key={season.id} className="p-0 hover:shadow-md transition-shadow cursor-pointer">
+                  <Link href={`/tv/${tvId}/season/${season.season_number}`}>
+                    <CardContent className="p-4">
+                      <div className="flex gap-3">
+                        {season.poster_path ? (
+                          <div className="w-16 h-20 relative rounded overflow-hidden flex-shrink-0">
+                            <img
+                              src={
+                                TMDBService.getPosterUrl(
+                                  season.poster_path,
+                                  'w185'
+                                ) || ''
                               }
-                            )}
-                          </p>
+                              alt={season.name}
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-20 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                            <Tv2 className="h-6 w-6 text-muted-foreground" />
+                          </div>
                         )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm leading-tight mb-1 hover:text-primary transition-colors">
+                            {season.name}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {season.episode_count} episodes
+                          </p>
+                          {season.air_date && (
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(season.air_date).toLocaleDateString(
+                                'en-US',
+                                {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                }
+                              )}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  </Link>
                 </Card>
               ))}
             </div>

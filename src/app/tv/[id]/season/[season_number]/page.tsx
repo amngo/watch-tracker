@@ -1,0 +1,465 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import {
+  ArrowLeft,
+  Star,
+  Calendar,
+  Clock,
+  Play,
+  Eye,
+  EyeOff,
+  Tv2,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { api } from '@/trpc/react'
+import { LoadingCard } from '@/components/common/loading-spinner'
+import { useMedia } from '@/hooks/use-media'
+import { TMDBService } from '@/lib/tmdb'
+import Link from 'next/link'
+import type { TMDBSeasonDetailsItem, TMDBEpisodeItem } from '@/types'
+
+export default function TVSeasonPage() {
+  const params = useParams()
+  const tvId = params.id as string
+  const seasonNumber = parseInt(params.season_number as string)
+  
+  const [seasonDetails, setSeasonDetails] = useState<TMDBSeasonDetailsItem | null>(null)
+  const [tvShowTitle, setTvShowTitle] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [spoilerMode, setSpoilerMode] = useState(false)
+
+  const { watchedItems, stats, setStats, setStatsLoading } = useMedia()
+
+  // Fetch user stats
+  const { data: statsData, isLoading: statsDataLoading } =
+    api.user.getStats.useQuery()
+
+  // Get user's watch information for this TV show
+  const userWatchedItem = watchedItems.find(
+    item => item.tmdbId === parseInt(tvId) && item.mediaType === 'TV'
+  )
+
+  // Fetch TV show basic details for title
+  const { data: tvDetailsData } = api.search.details.useQuery(
+    {
+      id: parseInt(tvId),
+      type: 'tv',
+    },
+    {
+      enabled: !!tvId && !isNaN(parseInt(tvId)),
+    }
+  )
+
+  // Fetch season details
+  const {
+    data: seasonDetailsData,
+    isLoading: seasonLoading,
+    error: seasonError,
+  } = api.search.seasonDetails.useQuery(
+    {
+      tvId: parseInt(tvId),
+      seasonNumber: seasonNumber,
+    },
+    {
+      enabled: !!tvId && !isNaN(parseInt(tvId)) && !isNaN(seasonNumber),
+    }
+  )
+
+  // Sync stats
+  useEffect(() => {
+    if (statsData) {
+      setStats(statsData)
+    }
+    setStatsLoading(statsDataLoading)
+  }, [statsData, statsDataLoading, setStats, setStatsLoading])
+
+  // Set TV show title
+  useEffect(() => {
+    if (tvDetailsData) {
+      // TVDetails has 'name' property, not 'title'
+      const title = (tvDetailsData as { name?: string; title?: string }).name || 
+                   (tvDetailsData as { name?: string; title?: string }).title || 
+                   'Unknown Show'
+      setTvShowTitle(title)
+    }
+  }, [tvDetailsData])
+
+  // Set season details
+  useEffect(() => {
+    if (seasonDetailsData) {
+      setSeasonDetails(seasonDetailsData as TMDBSeasonDetailsItem)
+      setIsLoading(false)
+    }
+  }, [seasonDetailsData])
+
+  useEffect(() => {
+    if (seasonError) {
+      setError('Failed to load season details')
+      setIsLoading(false)
+    }
+  }, [seasonError])
+
+  useEffect(() => {
+    setIsLoading(seasonLoading)
+  }, [seasonLoading])
+
+  const formatRuntime = (minutes: number | null): string => {
+    if (!minutes) return 'Unknown'
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+  }
+
+  const formatAirDate = (dateString: string | null): string => {
+    if (!dateString) return 'TBA'
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
+
+  const isEpisodeWatched = (episodeNumber: number): boolean => {
+    if (!userWatchedItem?.currentEpisode || !userWatchedItem?.currentSeason) {
+      return false
+    }
+    
+    if (userWatchedItem.currentSeason > seasonNumber) {
+      return true
+    }
+    
+    if (userWatchedItem.currentSeason === seasonNumber) {
+      return episodeNumber <= userWatchedItem.currentEpisode
+    }
+    
+    return false
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout stats={stats || undefined}>
+        <div className="space-y-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/tv/${tvId}`}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Show
+              </Link>
+            </Button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <LoadingCard key={i} />
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error || !seasonDetails) {
+    return (
+      <DashboardLayout stats={stats || undefined}>
+        <div className="space-y-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/tv/${tvId}`}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Show
+              </Link>
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Season not found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {error || 'Unable to load season details'}
+                </p>
+                <Button asChild>
+                  <Link href={`/tv/${tvId}`}>Return to Show</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  const posterUrl = seasonDetails.poster_path
+    ? TMDBService.getPosterUrl(seasonDetails.poster_path, 'w500')
+    : null
+
+  return (
+    <DashboardLayout stats={stats || undefined}>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/tv/${tvId}`}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Show
+              </Link>
+            </Button>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Link href="/tv" className="hover:text-foreground">
+                TV Shows
+              </Link>
+              <span>/</span>
+              <Link href={`/tv/${tvId}`} className="hover:text-foreground">
+                {tvShowTitle}
+              </Link>
+              <span>/</span>
+              <span className="text-foreground font-medium">
+                {seasonDetails.name}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSpoilerMode(!spoilerMode)}
+          >
+            {spoilerMode ? (
+              <>
+                <EyeOff className="h-4 w-4 mr-2" />
+                Hide Spoilers
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4 mr-2" />
+                Show Spoilers
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Season Header */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Season Poster */}
+          <div className="lg:col-span-1">
+            {posterUrl ? (
+              <div className="aspect-[2/3] relative rounded-lg overflow-hidden">
+                <img
+                  src={posterUrl}
+                  alt={seasonDetails.name}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            ) : (
+              <div className="aspect-[2/3] bg-muted rounded-lg flex items-center justify-center">
+                <Tv2 className="h-16 w-16 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+
+          {/* Season Info */}
+          <div className="lg:col-span-3 space-y-6">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">{seasonDetails.name}</h1>
+              <div className="flex flex-wrap items-center gap-4 mb-4">
+                {seasonDetails.air_date && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      {formatAirDate(seasonDetails.air_date)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Play className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {seasonDetails.episodes.length} episodes
+                  </span>
+                </div>
+                {seasonDetails.vote_average && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      {seasonDetails.vote_average.toFixed(1)}/10
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              {seasonDetails.overview && (
+                <p className="text-muted-foreground leading-relaxed">
+                  {seasonDetails.overview}
+                </p>
+              )}
+            </div>
+
+            {/* User Progress */}
+            {userWatchedItem && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Your Progress</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <Badge variant="outline">{userWatchedItem.status}</Badge>
+                  </div>
+                  {userWatchedItem.currentSeason &&
+                    userWatchedItem.currentEpisode && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Current Episode
+                        </span>
+                        <span className="text-sm font-medium">
+                          S{userWatchedItem.currentSeason}E
+                          {userWatchedItem.currentEpisode}
+                        </span>
+                      </div>
+                    )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Season Progress
+                    </span>
+                    <span className="text-sm font-medium">
+                      {(userWatchedItem.currentSeason ?? 0) === seasonNumber
+                        ? `${userWatchedItem.currentEpisode ?? 0}/${seasonDetails.episodes.length}`
+                        : (userWatchedItem.currentSeason ?? 0) > seasonNumber
+                        ? `${seasonDetails.episodes.length}/${seasonDetails.episodes.length} (Completed)`
+                        : '0/' + seasonDetails.episodes.length}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {/* Episodes List */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6">Episodes</h2>
+          <div className="space-y-4">
+            {seasonDetails.episodes.map((episode: TMDBEpisodeItem) => {
+              const episodeWatched = isEpisodeWatched(episode.episode_number)
+              const stillUrl = episode.still_path
+                ? TMDBService.getImageUrl(episode.still_path, 'w500')
+                : null
+
+              return (
+                <Card key={episode.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
+                      {/* Episode Still */}
+                      <div className="md:col-span-1">
+                        {stillUrl ? (
+                          <div className="aspect-video relative">
+                            <img
+                              src={stillUrl}
+                              alt={episode.name}
+                              className="object-cover w-full h-full"
+                            />
+                            {episodeWatched && (
+                              <div className="absolute top-2 right-2">
+                                <Badge variant="default">Watched</Badge>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="aspect-video bg-muted flex items-center justify-center">
+                            <Tv2 className="h-8 w-8 text-muted-foreground" />
+                            {episodeWatched && (
+                              <div className="absolute top-2 right-2">
+                                <Badge variant="default">Watched</Badge>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Episode Details */}
+                      <div className="md:col-span-3 p-6">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="text-lg font-semibold mb-1">
+                              {episode.episode_number}. {episode.name}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
+                              {episode.air_date && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>{formatAirDate(episode.air_date)}</span>
+                                </div>
+                              )}
+                              {episode.runtime && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  <span>{formatRuntime(episode.runtime)}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-1">
+                                <Star className="h-4 w-4" />
+                                <span>{episode.vote_average.toFixed(1)}/10</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Episode Overview */}
+                        {episode.overview && (
+                          <div className="mb-4">
+                            {spoilerMode || episodeWatched ? (
+                              <p className="text-muted-foreground text-sm leading-relaxed">
+                                {episode.overview}
+                              </p>
+                            ) : (
+                              <div className="relative">
+                                <p className="text-muted-foreground text-sm leading-relaxed blur-sm select-none">
+                                  {episode.overview}
+                                </p>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Badge variant="outline">
+                                    Spoiler Hidden
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Guest Stars */}
+                        {episode.guest_stars && episode.guest_stars.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                              GUEST STARS
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {episode.guest_stars.slice(0, 5).map(guest => (
+                                <Badge key={guest.id} variant="secondary">
+                                  {guest.name}
+                                </Badge>
+                              ))}
+                              {episode.guest_stars.length > 5 && (
+                                <Badge variant="outline">
+                                  +{episode.guest_stars.length - 5} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  )
+}

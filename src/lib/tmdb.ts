@@ -192,6 +192,36 @@ export const TMDBCreditsSchema = z.object({
   crew: z.array(TMDBCrewMemberSchema),
 })
 
+// Episode and Season schemas
+export const TMDBEpisodeSchema = z.object({
+  air_date: z.string().nullish(),
+  episode_number: z.number(),
+  id: z.number(),
+  name: z.string(),
+  overview: z.string(),
+  production_code: z.string().nullish(),
+  runtime: z.number().nullish(),
+  season_number: z.number(),
+  show_id: z.number(),
+  still_path: z.string().nullish(),
+  vote_average: z.number(),
+  vote_count: z.number(),
+  crew: z.array(TMDBCrewMemberSchema).optional(),
+  guest_stars: z.array(TMDBCastMemberSchema).optional(),
+})
+
+export const TMDBSeasonDetailsSchema = z.object({
+  _id: z.string(),
+  air_date: z.string().nullish(),
+  episodes: z.array(TMDBEpisodeSchema),
+  name: z.string(),
+  overview: z.string(),
+  id: z.number(),
+  poster_path: z.string().nullish(),
+  season_number: z.number(),
+  vote_average: z.number().optional(),
+})
+
 export const TMDBPersonSchema = z.object({
   adult: z.boolean(),
   id: z.number(),
@@ -208,11 +238,7 @@ export const TMDBPersonSchema = z.object({
 })
 
 const MultiResultItemsSchema = z.array(
-  z.discriminatedUnion('media_type', [
-    TMDBMovieSchema,
-    TMDBTVSchema,
-    TMDBPersonSchema,
-  ])
+  z.union([TMDBMovieSchema, TMDBTVSchema, TMDBPersonSchema])
 )
 
 export const TMDBSearchResultSchema = z.object({
@@ -232,6 +258,8 @@ export type TMDBProductionCompany = z.infer<typeof TMDBProductionCompanySchema>
 export type TMDBCastMember = z.infer<typeof TMDBCastMemberSchema>
 export type TMDBCrewMember = z.infer<typeof TMDBCrewMemberSchema>
 export type TMDBCredits = z.infer<typeof TMDBCreditsSchema>
+export type TMDBEpisode = z.infer<typeof TMDBEpisodeSchema>
+export type TMDBSeasonDetails = z.infer<typeof TMDBSeasonDetailsSchema>
 export type TMDBSearchResult = z.infer<typeof TMDBSearchResultSchema>
 export type TMDBSearchResultItems = z.infer<typeof MultiResultItemsSchema>
 export type TMDBSearchResultItem = z.infer<
@@ -335,6 +363,25 @@ export class TMDBService {
   async getTVCredits(id: number): Promise<TMDBCredits> {
     const data = await this.makeRequest(`/tv/${id}/credits`)
     return TMDBCreditsSchema.parse(data)
+  }
+
+  async getTVSeasonDetails(
+    tvId: number,
+    seasonNumber: number
+  ): Promise<TMDBSeasonDetails> {
+    const data = await this.makeRequest(`/tv/${tvId}/season/${seasonNumber}`)
+    return TMDBSeasonDetailsSchema.parse(data)
+  }
+
+  async getTVEpisodeDetails(
+    tvId: number,
+    seasonNumber: number,
+    episodeNumber: number
+  ): Promise<TMDBEpisode> {
+    const data = await this.makeRequest(
+      `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`
+    )
+    return TMDBEpisodeSchema.parse(data)
   }
 
   // Helper methods for image URLs

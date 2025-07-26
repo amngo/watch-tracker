@@ -27,6 +27,11 @@ const MediaDetailsInputSchema = z.object({
   type: z.enum(['movie', 'tv']),
 })
 
+const SeasonDetailsInputSchema = z.object({
+  tvId: z.number(),
+  seasonNumber: z.number(),
+})
+
 export const searchRouter = createTRPCRouter({
   // Public search endpoint - anyone can search for content
   search: publicProcedure
@@ -284,6 +289,21 @@ export const searchRouter = createTRPCRouter({
         throw toTRPCError(
           createError.externalAPI('TMDB', 'Failed to fetch popular content')
         )
+      }
+    }),
+
+  // Get TV season details with all episodes
+  seasonDetails: publicProcedure
+    .input(SeasonDetailsInputSchema)
+    .query(async ({ input }) => {
+      try {
+        const { tvId, seasonNumber } = input
+        return await tmdbService.getTVSeasonDetails(tvId, seasonNumber)
+      } catch (error) {
+        if (error instanceof TMDBError) {
+          throw toTRPCError(createError.externalAPI('TMDB', error.message))
+        }
+        throw toTRPCError(error)
       }
     }),
 

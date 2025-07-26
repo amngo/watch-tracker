@@ -93,6 +93,61 @@ export type TMDBSearchResultItem = TMDBMovieItem | TMDBTVItem | TMDBPersonItem
 // Helper type for media items only (excluding person results)
 export type TMDBMediaItem = TMDBMovieItem | TMDBTVItem
 
+// Episode and Season types
+export interface TMDBEpisodeItem {
+  air_date: string | null
+  episode_number: number
+  id: number
+  name: string
+  overview: string
+  production_code: string | null
+  runtime: number | null
+  season_number: number
+  show_id: number
+  still_path: string | null
+  vote_average: number
+  vote_count: number
+  crew?: Array<{
+    adult: boolean
+    gender: number | null
+    id: number
+    known_for_department: string
+    name: string
+    original_name: string
+    popularity: number
+    profile_path: string | null
+    credit_id: string
+    department: string
+    job: string
+  }>
+  guest_stars?: Array<{
+    adult: boolean
+    gender: number | null
+    id: number
+    known_for_department: string
+    name: string
+    original_name: string
+    popularity: number
+    profile_path: string | null
+    cast_id?: number
+    character: string
+    credit_id: string
+    order: number
+  }>
+}
+
+export interface TMDBSeasonDetailsItem {
+  _id: string
+  air_date: string | null
+  episodes: TMDBEpisodeItem[]
+  name: string
+  overview: string
+  id: number
+  poster_path: string | null
+  season_number: number
+  vote_average?: number
+}
+
 export interface TMDBSearchResponse {
   page: number
   results: TMDBSearchResultItem[]
