@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { Search, Plus, Film, Tv } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,39 +12,30 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDebounce } from '@/hooks/use-debounce'
-import { api } from '@/trpc/react'
 import { cn } from '@/lib/utils'
-import { TMDBSearchResultItem, TMDBSearchResultItems } from '@/lib/tmdb'
+import { TMDBSearchResultItem } from '@/lib/tmdb'
+import { useSearch } from '@/hooks/use-search'
+import { useEffect } from 'react'
 
 interface MediaSearchProps {
-  onAddMedia: (media: TMDBSearchResultItem) => void
+  onAddMedia: (media: any) => void
   className?: string
 }
 
 export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<TMDBSearchResultItems>([])
-  const debouncedQuery = useDebounce(query, 300)
+  const { query, results, isLoading, error, setQuery, clearSearch } =
+    useSearch()
 
-  const { data, isLoading } = api.search.search.useQuery(
-    { query: debouncedQuery, type: 'multi', page: 1 },
-    {
-      enabled: !!debouncedQuery,
-    }
-  )
-
-  useMemo(() => {
-    if (data) {
-      setResults(data.results)
-    }
-  }, [data])
-
-  const handleAddMedia = (media: TMDBSearchResultItem) => {
+  const handleAddMedia = (media: any) => {
     onAddMedia(media)
-    setQuery('')
-    setResults([])
+    clearSearch()
   }
+
+  useEffect(() => {
+    return () => {
+      clearSearch()
+    }
+  }, [])
 
   return (
     <div className={cn(className, 'h-[600px] overflow-y-auto')}>

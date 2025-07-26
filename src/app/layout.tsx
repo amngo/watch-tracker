@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { TRPCReactProvider } from '@/trpc/react'
 import { ToastProvider } from '@/components/common/toast-provider'
+import { StoreProvider } from '@/components/providers/store-provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -32,8 +33,10 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
         >
           <TRPCReactProvider>
-            {children}
-            <ToastProvider />
+            <StoreProvider>
+              {children}
+              <ToastProvider />
+            </StoreProvider>
           </TRPCReactProvider>
         </body>
       </html>

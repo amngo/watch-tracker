@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,111 +18,105 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { ErrorDisplay } from '@/components/common/error-boundary'
-import { showToast } from '@/components/common/toast-provider'
+import { useMedia } from '@/hooks/use-media'
+import { useUI } from '@/hooks/use-ui'
 
 export default function Dashboard() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-
-  // Fetch user stats
-  const { data: stats, isLoading: statsLoading } = api.user.getStats.useQuery()
-
-  // Fetch recent watched items
   const {
-    data: recentItems,
-    isLoading: itemsLoading,
-    refetch: refetchItems,
-  } = api.watchedItem.getAll.useQuery({
-    limit: 6,
-  })
+    watchedItems,
+    stats,
+    itemsLoading,
+    statsLoading,
+    addMedia,
+    updateItem,
+    deleteItem,
+    setStats,
+    setWatchedItems,
+    setItemsLoading,
+    setStatsLoading,
+  } = useMedia()
 
-  // Create watched item mutation
-  const createWatchedItem = api.watchedItem.create.useMutation({
-    onSuccess: () => {
-      refetchItems()
-      setIsSearchOpen(false)
-      showToast.success('Media added successfully!')
-    },
-    onError: error => {
-      showToast.error('Failed to add media', error.message)
-    },
-  })
+  const { isSearchModalOpen, openSearchModal, closeSearchModal } = useUI()
 
-  // Update watched item mutation
-  const updateWatchedItem = api.watchedItem.update.useMutation({
-    onSuccess: () => {
-      refetchItems()
-      showToast.success('Progress updated!')
-    },
-    onError: error => {
-      showToast.error('Failed to update progress', error.message)
-    },
-  })
+  // Fetch user stats and sync with store
+  const { data: statsData, isLoading: statsDataLoading } =
+    api.user.getStats.useQuery()
 
-  // Delete watched item mutation
-  const deleteWatchedItem = api.watchedItem.delete.useMutation({
-    onSuccess: () => {
-      refetchItems()
-      showToast.success('Item removed')
-    },
-    onError: error => {
-      showToast.error('Failed to remove item', error.message)
-    },
-  })
+  // Fetch recent watched items and sync with store
+  const { data: recentItems, isLoading: itemsDataLoading } =
+    api.watchedItem.getAll.useQuery({
+      limit: 6,
+    })
 
-  const handleAddMedia = async (media: {
-    id: number
-    media_type: string
-    title?: string
-    name?: string
-    poster_path?: string
-    release_date?: string
-    first_air_date?: string
-  }) => {
-    try {
-      const dateString = media.release_date || media.first_air_date
-      const releaseDate = dateString ? new Date(dateString) : undefined
-
-      await createWatchedItem.mutateAsync({
-        tmdbId: media.id,
-        mediaType: media.media_type === 'movie' ? 'MOVIE' : 'TV',
-        title: media.title || media.name || 'Unknown Title',
-        poster: media.poster_path,
-        releaseDate,
-        totalRuntime: media.media_type === 'movie' ? 120 : undefined, // Mock runtime
-        totalEpisodes: media.media_type === 'tv' ? 24 : undefined, // Mock episode count
-        totalSeasons: media.media_type === 'tv' ? 2 : undefined, // Mock season count
-      })
-    } catch (error) {
-      console.error('Error adding media:', error)
+  // Sync fetched data with Zustand stores
+  useEffect(() => {
+    if (statsData) {
+      setStats(statsData)
     }
+    setStatsLoading(statsDataLoading)
+  }, [statsData, statsDataLoading, setStats, setStatsLoading])
+
+  useEffect(() => {
+    if (recentItems?.items) {
+      setWatchedItems(
+        recentItems.items.map(item => ({
+          id: item.id,
+          tmdbId: item.tmdbId,
+          mediaType: item.mediaType,
+          title: item.title,
+          poster: item.poster,
+          releaseDate: item.releaseDate,
+          status: item.status,
+          rating: item.rating,
+          currentEpisode: item.currentEpisode,
+          totalEpisodes: item.totalEpisodes,
+          currentSeason: item.currentSeason,
+          totalSeasons: item.totalSeasons,
+          currentRuntime: item.currentRuntime,
+          totalRuntime: item.totalRuntime,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          startDate: item.startDate,
+          finishDate: item.finishDate,
+          notes: item.notes || [],
+          _count: item._count,
+          // Calculate progress - for now using a simple calculation
+          progress:
+            item.status === 'COMPLETED'
+              ? 100
+              : item.status === 'WATCHING'
+                ? 50
+                : item.status === 'PAUSED'
+                  ? 25
+                  : 0,
+        }))
+      )
+    }
+    setItemsLoading(itemsDataLoading)
+  }, [recentItems, itemsDataLoading, setWatchedItems, setItemsLoading])
+
+  const handleAddMedia = async (media: any) => {
+    await addMedia(media)
+    closeSearchModal()
   }
 
   const handleUpdateItem = async (
     id: string,
     data: Record<string, unknown>
   ) => {
-    try {
-      await updateWatchedItem.mutateAsync({ id, ...data })
-    } catch (error) {
-      console.error('Error updating item:', error)
-    }
+    await updateItem(id, data)
   }
 
   const handleDeleteItem = async (id: string) => {
-    try {
-      await deleteWatchedItem.mutateAsync({ id })
-    } catch (error) {
-      console.error('Error deleting item:', error)
-    }
+    await deleteItem(id)
   }
 
   return (
-    <DashboardLayout stats={stats}>
+    <DashboardLayout stats={stats || undefined}>
       <div className="space-y-8">
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
@@ -133,13 +127,14 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Media
-              </Button>
-            </DialogTrigger>
+          <Dialog
+            open={isSearchModalOpen}
+            onOpenChange={open => !open && closeSearchModal()}
+          >
+            <Button onClick={openSearchModal}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Media
+            </Button>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Search & Add Media</DialogTitle>
@@ -216,7 +211,7 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Recent Activity</h2>
-            <Button variant="outline" onClick={() => setIsSearchOpen(true)}>
+            <Button variant="outline" onClick={openSearchModal}>
               <Plus className="h-4 w-4 mr-2" />
               Add More
             </Button>
@@ -228,7 +223,7 @@ export default function Dashboard() {
                 <LoadingCard key={i} />
               ))}
             </div>
-          ) : recentItems?.items.length === 0 ? (
+          ) : watchedItems.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center">
@@ -236,7 +231,7 @@ export default function Dashboard() {
                   <p className="text-muted-foreground mb-4">
                     Start by adding your first movie or TV show
                   </p>
-                  <Button onClick={() => setIsSearchOpen(true)}>
+                  <Button onClick={openSearchModal}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Item
                   </Button>
@@ -245,7 +240,7 @@ export default function Dashboard() {
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {recentItems?.items.map(item => (
+              {watchedItems.slice(0, 6).map(item => (
                 <WatchedItemCard
                   key={item.id}
                   item={item}
