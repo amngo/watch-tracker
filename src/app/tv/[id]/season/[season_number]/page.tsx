@@ -11,6 +11,8 @@ import {
   Eye,
   EyeOff,
   Tv2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,14 +23,21 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { TMDBService } from '@/lib/tmdb'
 import Link from 'next/link'
-import type { TMDBSeasonDetailsItem, TMDBEpisodeItem } from '@/types'
+import type {
+  TMDBSeasonDetailsItem,
+  TMDBEpisodeItem,
+  TMDBTVDetailsExtended,
+} from '@/types'
 
 export default function TVSeasonPage() {
   const params = useParams()
   const tvId = params.id as string
   const seasonNumber = parseInt(params.season_number as string)
-  
-  const [seasonDetails, setSeasonDetails] = useState<TMDBSeasonDetailsItem | null>(null)
+
+  const [seasonDetails, setSeasonDetails] =
+    useState<TMDBSeasonDetailsItem | null>(null)
+  const [tvShowDetails, setTvShowDetails] =
+    useState<TMDBTVDetailsExtended | null>(null)
   const [tvShowTitle, setTvShowTitle] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,8 +54,8 @@ export default function TVSeasonPage() {
     item => item.tmdbId === parseInt(tvId) && item.mediaType === 'TV'
   )
 
-  // Fetch TV show basic details for title
-  const { data: tvDetailsData } = api.search.details.useQuery(
+  // Fetch TV show detailed information (including seasons list)
+  const { data: tvDetailsData } = api.search.detailsExtended.useQuery(
     {
       id: parseInt(tvId),
       type: 'tv',
@@ -79,14 +88,12 @@ export default function TVSeasonPage() {
     setStatsLoading(statsDataLoading)
   }, [statsData, statsDataLoading, setStats, setStatsLoading])
 
-  // Set TV show title
+  // Set TV show details and title
   useEffect(() => {
     if (tvDetailsData) {
-      // TVDetails has 'name' property, not 'title'
-      const title = (tvDetailsData as { name?: string; title?: string }).name || 
-                   (tvDetailsData as { name?: string; title?: string }).title || 
-                   'Unknown Show'
-      setTvShowTitle(title)
+      const tvData = tvDetailsData as TMDBTVDetailsExtended
+      setTvShowDetails(tvData)
+      setTvShowTitle(tvData.name || 'Unknown Show')
     }
   }, [tvDetailsData])
 
@@ -129,17 +136,49 @@ export default function TVSeasonPage() {
     if (!userWatchedItem?.currentEpisode || !userWatchedItem?.currentSeason) {
       return false
     }
-    
+
     if (userWatchedItem.currentSeason > seasonNumber) {
       return true
     }
-    
+
     if (userWatchedItem.currentSeason === seasonNumber) {
       return episodeNumber <= userWatchedItem.currentEpisode
     }
-    
+
     return false
   }
+
+  // Season navigation logic
+  const getSeasonNavigation = () => {
+    if (!tvShowDetails?.seasons) {
+      return {
+        hasPrevious: false,
+        hasNext: false,
+        previousSeason: null,
+        nextSeason: null,
+      }
+    }
+
+    // Filter out special seasons (season 0) and sort by season number
+    const validSeasons = tvShowDetails.seasons
+      .filter(season => season.season_number > 0)
+      .sort((a, b) => a.season_number - b.season_number)
+
+    const currentIndex = validSeasons.findIndex(
+      season => season.season_number === seasonNumber
+    )
+
+    const hasPrevious = currentIndex > 0
+    const hasNext = currentIndex < validSeasons.length - 1
+
+    const previousSeason = hasPrevious ? validSeasons[currentIndex - 1] : null
+    const nextSeason = hasNext ? validSeasons[currentIndex + 1] : null
+
+    return { hasPrevious, hasNext, previousSeason, nextSeason }
+  }
+
+  const { hasPrevious, hasNext, previousSeason, nextSeason } =
+    getSeasonNavigation()
 
   if (isLoading) {
     return (
@@ -209,7 +248,7 @@ export default function TVSeasonPage() {
                 Back to Show
               </Link>
             </Button>
-            
+
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link href="/tv" className="hover:text-foreground">
                 TV Shows
@@ -225,20 +264,71 @@ export default function TVSeasonPage() {
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSpoilerMode(!spoilerMode)}
+            >
+              {spoilerMode ? (
+                <>
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  Hide Spoilers
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Show Spoilers
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Season Navigation */}
+        <div className="grid grid-cols-5 gap-4 items-center">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setSpoilerMode(!spoilerMode)}
+            disabled={!hasPrevious}
+            asChild={hasPrevious}
+            className="col-span-2"
           >
-            {spoilerMode ? (
-              <>
-                <EyeOff className="h-4 w-4 mr-2" />
-                Hide Spoilers
-              </>
+            {hasPrevious ? (
+              <Link
+                href={`/tv/${tvId}/season/${previousSeason?.season_number}`}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                {previousSeason?.name}
+              </Link>
             ) : (
               <>
-                <Eye className="h-4 w-4 mr-2" />
-                Show Spoilers
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Previous Season
+              </>
+            )}
+          </Button>
+
+          <p className="text-sm text-muted-foreground text-center col-span-1">
+            Season {seasonNumber} of {tvShowDetails?.number_of_seasons || '?'}
+          </p>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!hasNext}
+            asChild={hasNext}
+            className="col-span-2"
+          >
+            {hasNext ? (
+              <Link href={`/tv/${tvId}/season/${nextSeason?.season_number}`}>
+                {nextSeason?.name}
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Link>
+            ) : (
+              <>
+                Next Season
+                <ChevronRight className="h-4 w-4 ml-2" />
               </>
             )}
           </Button>
@@ -291,7 +381,7 @@ export default function TVSeasonPage() {
                   </div>
                 )}
               </div>
-              
+
               {seasonDetails.overview && (
                 <p className="text-muted-foreground leading-relaxed">
                   {seasonDetails.overview}
@@ -307,7 +397,9 @@ export default function TVSeasonPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Status</span>
+                    <span className="text-sm text-muted-foreground">
+                      Status
+                    </span>
                     <Badge variant="outline">{userWatchedItem.status}</Badge>
                   </div>
                   {userWatchedItem.currentSeason &&
@@ -330,8 +422,8 @@ export default function TVSeasonPage() {
                       {(userWatchedItem.currentSeason ?? 0) === seasonNumber
                         ? `${userWatchedItem.currentEpisode ?? 0}/${seasonDetails.episodes.length}`
                         : (userWatchedItem.currentSeason ?? 0) > seasonNumber
-                        ? `${seasonDetails.episodes.length}/${seasonDetails.episodes.length} (Completed)`
-                        : '0/' + seasonDetails.episodes.length}
+                          ? `${seasonDetails.episodes.length}/${seasonDetails.episodes.length} (Completed)`
+                          : '0/' + seasonDetails.episodes.length}
                     </span>
                   </div>
                 </CardContent>
@@ -403,7 +495,9 @@ export default function TVSeasonPage() {
                               )}
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4" />
-                                <span>{episode.vote_average.toFixed(1)}/10</span>
+                                <span>
+                                  {episode.vote_average.toFixed(1)}/10
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -432,25 +526,26 @@ export default function TVSeasonPage() {
                         )}
 
                         {/* Guest Stars */}
-                        {episode.guest_stars && episode.guest_stars.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                              GUEST STARS
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {episode.guest_stars.slice(0, 5).map(guest => (
-                                <Badge key={guest.id} variant="secondary">
-                                  {guest.name}
-                                </Badge>
-                              ))}
-                              {episode.guest_stars.length > 5 && (
-                                <Badge variant="outline">
-                                  +{episode.guest_stars.length - 5} more
-                                </Badge>
-                              )}
+                        {episode.guest_stars &&
+                          episode.guest_stars.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                                GUEST STARS
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {episode.guest_stars.slice(0, 5).map(guest => (
+                                  <Badge key={guest.id} variant="secondary">
+                                    {guest.name}
+                                  </Badge>
+                                ))}
+                                {episode.guest_stars.length > 5 && (
+                                  <Badge variant="outline">
+                                    +{episode.guest_stars.length - 5} more
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </div>
                     </div>
                   </CardContent>
