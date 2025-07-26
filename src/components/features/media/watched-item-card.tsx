@@ -61,7 +61,7 @@ export function WatchedItemCard({
     })
   }
 
-  const handleRatingChange = (rating: number) => {
+  const handleRatingChange = (rating: number | null) => {
     onUpdate(item.id, { rating })
     setIsEditingRating(false)
   }
@@ -188,7 +188,10 @@ export function WatchedItemCard({
               ))}
             </div>
             {item.rating && (
-              <Button variant="outline" onClick={() => handleRatingChange(0)}>
+              <Button
+                variant="outline"
+                onClick={() => handleRatingChange(null)}
+              >
                 Remove Rating
               </Button>
             )}
