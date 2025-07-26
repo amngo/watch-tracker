@@ -36,7 +36,7 @@ interface SeasonOverviewProps {
 }
 
 interface SeasonCardProps {
-  season: TMDBTVDetailsExtended['seasons'][0]
+  season: NonNullable<TMDBTVDetailsExtended['seasons']>[number]
   watchedItem: WatchedItem
   tvId: string
   onUpdateProgress: (data: { currentSeason: number; currentEpisode: number }) => void
@@ -92,9 +92,17 @@ function SeasonCard({ season, watchedItem, tvId, onUpdateProgress }: SeasonCardP
   }
 
   const handleMarkCompleted = () => {
+    // Check if this is the last season to determine if the entire show should be marked complete
+    const isLastSeason = season.season_number === (watchedItem.totalSeasons || season.season_number)
+    
     onUpdateProgress({
       currentSeason: season.season_number,
       currentEpisode: season.episode_count,
+      // If this is the last season, mark the entire show as completed
+      ...(isLastSeason && { 
+        status: 'COMPLETED' as const,
+        finishDate: new Date()
+      })
     })
   }
 

@@ -3,12 +3,7 @@
 import { useEffect } from 'react'
 import { Plus, Tv } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { MediaSearch } from '@/components/features/search/media-search'
 import { TVShowCard } from '@/components/features/tv/tv-show-card'
@@ -52,6 +47,8 @@ export default function TVPage() {
       limit: 100,
     })
 
+  console.log('TV items fetched:', tvItems)
+
   // Sync fetched data with Zustand stores
   useEffect(() => {
     if (statsData) {
@@ -84,6 +81,7 @@ export default function TVPage() {
           finishDate: item.finishDate,
           notes: item.notes || [],
           _count: item._count,
+          watchedEpisodes: item.watchedEpisodes || [],
           progress: calculateProgress(
             item.status,
             item.currentEpisode,
@@ -173,7 +171,8 @@ export default function TVPage() {
               <div className="text-2xl font-bold">
                 {itemsLoading
                   ? '...'
-                  : tvWatchlistItems.filter(item => item.status === 'COMPLETED').length}
+                  : tvWatchlistItems.filter(item => item.status === 'COMPLETED')
+                      .length}
               </div>
               <p className="text-xs text-muted-foreground">Shows finished</p>
             </CardContent>
@@ -188,9 +187,12 @@ export default function TVPage() {
               <div className="text-2xl font-bold">
                 {itemsLoading
                   ? '...'
-                  : tvWatchlistItems.filter(item => item.status === 'WATCHING').length}
+                  : tvWatchlistItems.filter(item => item.status === 'WATCHING')
+                      .length}
               </div>
-              <p className="text-xs text-muted-foreground">Currently watching</p>
+              <p className="text-xs text-muted-foreground">
+                Currently watching
+              </p>
             </CardContent>
           </Card>
 
@@ -203,7 +205,8 @@ export default function TVPage() {
               <div className="text-2xl font-bold">
                 {itemsLoading
                   ? '...'
-                  : tvWatchlistItems.filter(item => item.status === 'PLANNED').length}
+                  : tvWatchlistItems.filter(item => item.status === 'PLANNED')
+                      .length}
               </div>
               <p className="text-xs text-muted-foreground">Want to watch</p>
             </CardContent>
@@ -231,9 +234,12 @@ export default function TVPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center">
                   <Tv className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No TV shows yet</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No TV shows yet
+                  </h3>
                   <p className="text-muted-foreground mb-4">
-                    Start building your TV show collection by adding your first series
+                    Start building your TV show collection by adding your first
+                    series
                   </p>
                   <Button onClick={openSearchModal}>
                     <Plus className="h-4 w-4 mr-2" />

@@ -21,6 +21,7 @@ export interface WatchedItem {
   notes: Note[]
   _count: { notes: number }
   progress: number
+  watchedEpisodes?: WatchedEpisode[]
 }
 
 export type WatchStatus =
@@ -29,6 +30,19 @@ export type WatchStatus =
   | 'PAUSED'
   | 'COMPLETED'
   | 'DROPPED'
+
+export type EpisodeWatchStatus = 'UNWATCHED' | 'WATCHED' | 'SKIPPED'
+
+export interface WatchedEpisode {
+  id: string
+  seasonNumber: number
+  episodeNumber: number
+  status: EpisodeWatchStatus
+  watchedAt: Date | null
+  watchedItemId: string
+  createdAt: Date
+  updatedAt: Date
+}
 
 export interface Note {
   id: string
@@ -193,6 +207,7 @@ export interface UpdateWatchedItemData {
   startDate?: Date | null
   finishDate?: Date | null
   progress?: number
+  watchedEpisodes?: WatchedEpisode[]
 }
 
 export interface CreateNoteData {

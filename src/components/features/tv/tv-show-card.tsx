@@ -97,11 +97,11 @@ export function TVShowCard({
     if (item.currentSeason && item.currentEpisode) {
       return `S${item.currentSeason}E${item.currentEpisode}`
     }
-    
+
     if (item.currentEpisode && item.totalEpisodes) {
       return `${item.currentEpisode}/${item.totalEpisodes} episodes`
     }
-    
+
     return 'In progress'
   }
 
@@ -111,9 +111,10 @@ export function TVShowCard({
     return Math.min((item.currentSeason / item.totalSeasons) * 100, 100)
   }
 
-  const nextEpisode = item.currentSeason && item.currentEpisode 
-    ? `S${item.currentSeason}E${item.currentEpisode + 1}`
-    : 'S1E1'
+  const nextEpisode =
+    item.currentSeason && item.currentEpisode
+      ? `S${item.currentSeason}E${item.currentEpisode + 1}`
+      : 'S1E1'
 
   return (
     <Card className="group transition-shadow hover:shadow-md p-0">
@@ -217,7 +218,7 @@ export function TVShowCard({
                     <div className="font-medium">
                       {item.currentEpisode || 0}
                     </div>
-                    <div className="text-muted-foreground">Episode</div>
+                    <div className="text-muted-foreground">Episodes</div>
                   </div>
                   <div className="text-center">
                     <div className="font-medium text-primary">
@@ -273,7 +274,7 @@ export function TVShowCard({
                 min="1"
                 max={item.totalSeasons || undefined}
                 value={newSeason}
-                onChange={(e) => setNewSeason(parseInt(e.target.value) || 1)}
+                onChange={e => setNewSeason(parseInt(e.target.value) || 1)}
               />
               {item.totalSeasons && (
                 <p className="text-xs text-muted-foreground">
@@ -288,7 +289,7 @@ export function TVShowCard({
                 type="number"
                 min="1"
                 value={newEpisode}
-                onChange={(e) => setNewEpisode(parseInt(e.target.value) || 1)}
+                onChange={e => setNewEpisode(parseInt(e.target.value) || 1)}
               />
               {item.totalEpisodes && (
                 <p className="text-xs text-muted-foreground">
@@ -304,9 +305,7 @@ export function TVShowCard({
             >
               Cancel
             </Button>
-            <Button onClick={handleProgressUpdate}>
-              Update Progress
-            </Button>
+            <Button onClick={handleProgressUpdate}>Update Progress</Button>
           </div>
         </DialogContent>
       </Dialog>

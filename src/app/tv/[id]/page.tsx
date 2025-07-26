@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { MediaSearch } from '@/components/features/search/media-search'
-import { SeasonOverview } from '@/components/features/tv/season-overview'
+import { FlexibleSeasonOverview } from '@/components/features/tv/flexible-season-overview'
 import {
   Dialog,
   DialogContent,
@@ -27,8 +27,14 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { TMDBService } from '@/lib/tmdb'
+import { calculateProgress } from '@/lib/utils'
 import Link from 'next/link'
-import type { TMDBTVDetailsExtended, TMDBMediaItem } from '@/types'
+import type {
+  TMDBTVDetailsExtended,
+  TMDBMediaItem,
+  EpisodeWatchStatus,
+  WatchStatus,
+} from '@/types'
 
 export default function TVDetailPage() {
   const params = useParams()
@@ -37,14 +43,28 @@ export default function TVDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { watchedItems, stats, addMedia, updateItem, setStats, setStatsLoading } =
-    useMedia()
+  const {
+    watchedItems,
+    stats,
+    addMedia,
+    updateItem,
+    setStats,
+    setStatsLoading,
+    setWatchedItems,
+    setItemsLoading,
+  } = useMedia()
 
   const { isSearchModalOpen, openSearchModal, closeSearchModal } = useUI()
 
   // Fetch user stats
   const { data: statsData, isLoading: statsDataLoading } =
     api.user.getStats.useQuery()
+
+  // Fetch user's watched items to ensure we have the latest data
+  const { data: watchedItemsData, isLoading: watchedItemsLoading } =
+    api.watchedItem.getAll.useQuery({
+      limit: 100,
+    })
 
   // Get user's watch information for this TV show
   const userWatchedItem = watchedItems.find(
@@ -58,6 +78,45 @@ export default function TVDetailPage() {
     }
     setStatsLoading(statsDataLoading)
   }, [statsData, statsDataLoading, setStats, setStatsLoading])
+
+  // Sync watched items
+  useEffect(() => {
+    if (watchedItemsData?.items) {
+      setWatchedItems(
+        watchedItemsData.items.map(item => ({
+          id: item.id,
+          tmdbId: item.tmdbId,
+          mediaType: item.mediaType,
+          title: item.title,
+          poster: item.poster,
+          releaseDate: item.releaseDate,
+          status: item.status,
+          rating: item.rating,
+          currentEpisode: item.currentEpisode,
+          totalEpisodes: item.totalEpisodes,
+          currentSeason: item.currentSeason,
+          totalSeasons: item.totalSeasons,
+          currentRuntime: item.currentRuntime,
+          totalRuntime: item.totalRuntime,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          startDate: item.startDate,
+          finishDate: item.finishDate,
+          notes: item.notes || [],
+          _count: item._count,
+          watchedEpisodes: item.watchedEpisodes || [],
+          progress: calculateProgress(
+            item.status,
+            item.currentEpisode,
+            item.totalEpisodes,
+            item.currentRuntime,
+            item.totalRuntime
+          ),
+        }))
+      )
+    }
+    setItemsLoading(watchedItemsLoading)
+  }, [watchedItemsData, watchedItemsLoading, setWatchedItems, setItemsLoading])
 
   // Fetch detailed TV show information with cast/crew
   const {
@@ -97,10 +156,106 @@ export default function TVDetailPage() {
     closeSearchModal()
   }
 
-  const handleUpdateProgress = async (data: { currentSeason: number; currentEpisode: number }) => {
+  const handleUpdateProgress = async (data: {
+    currentSeason: number
+    currentEpisode: number
+    status?: WatchStatus
+    finishDate?: Date
+  }) => {
     if (userWatchedItem) {
       await updateItem(userWatchedItem.id, data)
     }
+  }
+
+  const handleUpdateEpisodeStatus = async (
+    seasonNumber: number,
+    episodeNumber: number,
+    status: EpisodeWatchStatus
+  ) => {
+    if (!userWatchedItem) return
+
+    // For now, we'll update the existing watched episodes array manually
+    // This should be replaced with a proper TRPC mutation
+    const updatedWatchedEpisodes = [...(userWatchedItem.watchedEpisodes || [])]
+
+    // Find existing episode or create new one
+    const existingIndex = updatedWatchedEpisodes.findIndex(
+      ep =>
+        ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
+    )
+
+    if (existingIndex >= 0) {
+      // Update existing episode
+      updatedWatchedEpisodes[existingIndex] = {
+        ...updatedWatchedEpisodes[existingIndex],
+        status,
+        watchedAt: status === 'WATCHED' ? new Date() : null,
+      }
+    } else {
+      // Add new episode
+      updatedWatchedEpisodes.push({
+        id: `temp-${seasonNumber}-${episodeNumber}`,
+        seasonNumber,
+        episodeNumber,
+        status,
+        watchedAt: status === 'WATCHED' ? new Date() : null,
+        watchedItemId: userWatchedItem.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+    }
+
+    // Update the watched item with new episodes array
+    await updateItem(userWatchedItem.id, {
+      watchedEpisodes: updatedWatchedEpisodes,
+    } as any)
+  }
+
+  const handleBulkUpdateEpisodes = async (
+    episodes: {
+      seasonNumber: number
+      episodeNumber: number
+      status: EpisodeWatchStatus
+    }[]
+  ) => {
+    if (!userWatchedItem) return
+
+    // Start with a copy of existing watched episodes
+    const updatedWatchedEpisodes = [...(userWatchedItem.watchedEpisodes || [])]
+
+    // Process all episode updates in memory first
+    episodes.forEach(({ seasonNumber, episodeNumber, status }) => {
+      const existingIndex = updatedWatchedEpisodes.findIndex(
+        ep =>
+          ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
+      )
+
+      if (existingIndex >= 0) {
+        // Update existing episode
+        updatedWatchedEpisodes[existingIndex] = {
+          ...updatedWatchedEpisodes[existingIndex],
+          status,
+          watchedAt: status === 'WATCHED' ? new Date() : null,
+        }
+      } else {
+        // Add new episode
+        updatedWatchedEpisodes.push({
+          id: `temp-${seasonNumber}-${episodeNumber}`,
+          seasonNumber,
+          episodeNumber,
+          status,
+          watchedAt: status === 'WATCHED' ? new Date() : null,
+          watchedItemId: userWatchedItem.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      }
+    })
+
+    // Make a single API call to update all episodes at once
+    await updateItem(userWatchedItem.id, {
+      watchedEpisodes: updatedWatchedEpisodes,
+    } as any)
   }
 
   const formatRuntime = (minutes: number[] | undefined): string => {
@@ -435,70 +590,78 @@ export default function TVDetailPage() {
         </div>
 
         {/* Seasons */}
-        {userWatchedItem && tvDetails.seasons && tvDetails.seasons.length > 0 && (
-          <SeasonOverview
-            watchedItem={userWatchedItem}
-            tvDetails={tvDetails}
-            onUpdateProgress={handleUpdateProgress}
-          />
-        )}
+        {userWatchedItem &&
+          tvDetails.seasons &&
+          tvDetails.seasons.length > 0 && (
+            <FlexibleSeasonOverview
+              watchedItem={userWatchedItem}
+              tvDetails={tvDetails}
+              onUpdateEpisodeStatus={handleUpdateEpisodeStatus}
+              onBulkUpdateEpisodes={handleBulkUpdateEpisodes}
+            />
+          )}
 
         {/* Basic Seasons List (for non-tracked shows) */}
-        {!userWatchedItem && tvDetails.seasons && tvDetails.seasons.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Seasons</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {tvDetails.seasons.map(season => (
-                <Card key={season.id} className="p-0 hover:shadow-md transition-shadow cursor-pointer">
-                  <Link href={`/tv/${tvId}/season/${season.season_number}`}>
-                    <CardContent className="p-4">
-                      <div className="flex gap-3">
-                        {season.poster_path ? (
-                          <div className="w-16 h-20 relative rounded overflow-hidden flex-shrink-0">
-                            <img
-                              src={
-                                TMDBService.getPosterUrl(
-                                  season.poster_path,
-                                  'w185'
-                                ) || ''
-                              }
-                              alt={season.name}
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-16 h-20 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                            <Tv2 className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm leading-tight mb-1 hover:text-primary transition-colors">
-                            {season.name}
-                          </h4>
-                          <p className="text-xs text-muted-foreground mb-2">
-                            {season.episode_count} episodes
-                          </p>
-                          {season.air_date && (
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(season.air_date).toLocaleDateString(
-                                'en-US',
-                                {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
+        {!userWatchedItem &&
+          tvDetails.seasons &&
+          tvDetails.seasons.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Seasons</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {tvDetails.seasons.map(season => (
+                  <Card
+                    key={season.id}
+                    className="p-0 hover:shadow-md transition-shadow cursor-pointer"
+                  >
+                    <Link href={`/tv/${tvId}/season/${season.season_number}`}>
+                      <CardContent className="p-4">
+                        <div className="flex gap-3">
+                          {season.poster_path ? (
+                            <div className="w-16 h-20 relative rounded overflow-hidden flex-shrink-0">
+                              <img
+                                src={
+                                  TMDBService.getPosterUrl(
+                                    season.poster_path,
+                                    'w185'
+                                  ) || ''
                                 }
-                              )}
-                            </p>
+                                alt={season.name}
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-20 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                              <Tv2 className="h-6 w-6 text-muted-foreground" />
+                            </div>
                           )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm leading-tight mb-1 hover:text-primary transition-colors">
+                              {season.name}
+                            </h4>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              {season.episode_count} episodes
+                            </p>
+                            {season.air_date && (
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(season.air_date).toLocaleDateString(
+                                  'en-US',
+                                  {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Link>
-                </Card>
-              ))}
+                      </CardContent>
+                    </Link>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Cast */}
         {mainCast.length > 0 && (

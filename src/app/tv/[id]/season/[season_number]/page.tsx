@@ -18,16 +18,19 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { EpisodeTracker } from '@/components/features/tv/episode-tracker'
+import { FlexibleEpisodeTracker } from '@/components/features/tv/flexible-episode-tracker'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { TMDBService } from '@/lib/tmdb'
+import { calculateProgress } from '@/lib/utils'
 import Link from 'next/link'
 import type {
   TMDBSeasonDetailsItem,
   TMDBEpisodeItem,
   TMDBTVDetailsExtended,
+  EpisodeWatchStatus,
+  WatchStatus,
 } from '@/types'
 
 export default function TVSeasonPage() {
@@ -44,11 +47,26 @@ export default function TVSeasonPage() {
   const [error, setError] = useState<string | null>(null)
   const [spoilerMode, setSpoilerMode] = useState(false)
 
-  const { watchedItems, stats, updateItem, setStats, setStatsLoading } = useMedia()
+  const {
+    watchedItems,
+    stats,
+    updateItem,
+    setStats,
+    setStatsLoading,
+    setWatchedItems,
+    setItemsLoading,
+  } = useMedia()
+  console.log('watchedItems', watchedItems)
 
   // Fetch user stats
   const { data: statsData, isLoading: statsDataLoading } =
     api.user.getStats.useQuery()
+
+  // Fetch user's watched items to ensure we have the latest data
+  const { data: watchedItemsData, isLoading: watchedItemsLoading } =
+    api.watchedItem.getAll.useQuery({
+      limit: 100,
+    })
 
   // Get user's watch information for this TV show
   const userWatchedItem = watchedItems.find(
@@ -88,6 +106,45 @@ export default function TVSeasonPage() {
     }
     setStatsLoading(statsDataLoading)
   }, [statsData, statsDataLoading, setStats, setStatsLoading])
+
+  // Sync watched items
+  useEffect(() => {
+    if (watchedItemsData?.items) {
+      setWatchedItems(
+        watchedItemsData.items.map(item => ({
+          id: item.id,
+          tmdbId: item.tmdbId,
+          mediaType: item.mediaType,
+          title: item.title,
+          poster: item.poster,
+          releaseDate: item.releaseDate,
+          status: item.status,
+          rating: item.rating,
+          currentEpisode: item.currentEpisode,
+          totalEpisodes: item.totalEpisodes,
+          currentSeason: item.currentSeason,
+          totalSeasons: item.totalSeasons,
+          currentRuntime: item.currentRuntime,
+          totalRuntime: item.totalRuntime,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          startDate: item.startDate,
+          finishDate: item.finishDate,
+          notes: item.notes || [],
+          _count: item._count,
+          watchedEpisodes: item.watchedEpisodes || [],
+          progress: calculateProgress(
+            item.status,
+            item.currentEpisode,
+            item.totalEpisodes,
+            item.currentRuntime,
+            item.totalRuntime
+          ),
+        }))
+      )
+    }
+    setItemsLoading(watchedItemsLoading)
+  }, [watchedItemsData, watchedItemsLoading, setWatchedItems, setItemsLoading])
 
   // Set TV show details and title
   useEffect(() => {
@@ -133,7 +190,6 @@ export default function TVSeasonPage() {
     })
   }
 
-
   // Season navigation logic
   const getSeasonNavigation = () => {
     if (!tvShowDetails?.seasons) {
@@ -166,10 +222,106 @@ export default function TVSeasonPage() {
   const { hasPrevious, hasNext, previousSeason, nextSeason } =
     getSeasonNavigation()
 
-  const handleUpdateProgress = async (data: { currentSeason: number; currentEpisode: number }) => {
+  const handleUpdateProgress = async (data: {
+    currentSeason: number
+    currentEpisode: number
+    status?: WatchStatus
+    finishDate?: Date
+  }) => {
     if (userWatchedItem) {
       await updateItem(userWatchedItem.id, data)
     }
+  }
+
+  const handleUpdateEpisodeStatus = async (
+    seasonNumber: number,
+    episodeNumber: number,
+    status: EpisodeWatchStatus
+  ) => {
+    if (!userWatchedItem) return
+
+    // For now, we'll update the existing watched episodes array manually
+    // This should be replaced with a proper TRPC mutation
+    const updatedWatchedEpisodes = [...(userWatchedItem.watchedEpisodes || [])]
+
+    // Find existing episode or create new one
+    const existingIndex = updatedWatchedEpisodes.findIndex(
+      ep =>
+        ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
+    )
+
+    if (existingIndex >= 0) {
+      // Update existing episode
+      updatedWatchedEpisodes[existingIndex] = {
+        ...updatedWatchedEpisodes[existingIndex],
+        status,
+        watchedAt: status === 'WATCHED' ? new Date() : null,
+      }
+    } else {
+      // Add new episode
+      updatedWatchedEpisodes.push({
+        id: `temp-${seasonNumber}-${episodeNumber}`,
+        seasonNumber,
+        episodeNumber,
+        status,
+        watchedAt: status === 'WATCHED' ? new Date() : null,
+        watchedItemId: userWatchedItem.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+    }
+
+    // Update the watched item with new episodes array
+    await updateItem(userWatchedItem.id, {
+      watchedEpisodes: updatedWatchedEpisodes,
+    } as any)
+  }
+
+  const handleBulkUpdateEpisodes = async (
+    episodes: {
+      seasonNumber: number
+      episodeNumber: number
+      status: EpisodeWatchStatus
+    }[]
+  ) => {
+    if (!userWatchedItem) return
+
+    // Start with a copy of existing watched episodes
+    const updatedWatchedEpisodes = [...(userWatchedItem.watchedEpisodes || [])]
+
+    // Process all episode updates in memory first
+    episodes.forEach(({ seasonNumber, episodeNumber, status }) => {
+      const existingIndex = updatedWatchedEpisodes.findIndex(
+        ep =>
+          ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
+      )
+
+      if (existingIndex >= 0) {
+        // Update existing episode
+        updatedWatchedEpisodes[existingIndex] = {
+          ...updatedWatchedEpisodes[existingIndex],
+          status,
+          watchedAt: status === 'WATCHED' ? new Date() : null,
+        }
+      } else {
+        // Add new episode
+        updatedWatchedEpisodes.push({
+          id: `temp-${seasonNumber}-${episodeNumber}`,
+          seasonNumber,
+          episodeNumber,
+          status,
+          watchedAt: status === 'WATCHED' ? new Date() : null,
+          watchedItemId: userWatchedItem.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      }
+    })
+
+    // Make a single API call to update all episodes at once
+    await updateItem(userWatchedItem.id, {
+      watchedEpisodes: updatedWatchedEpisodes,
+    } as any)
   }
 
   if (isLoading) {
@@ -426,10 +578,11 @@ export default function TVSeasonPage() {
 
         {/* Episode Tracker */}
         {userWatchedItem && (
-          <EpisodeTracker
+          <FlexibleEpisodeTracker
             watchedItem={userWatchedItem}
             seasonDetails={seasonDetails}
-            onUpdateProgress={handleUpdateProgress}
+            onUpdateEpisodeStatus={handleUpdateEpisodeStatus}
+            onBulkUpdateEpisodes={handleBulkUpdateEpisodes}
           />
         )}
 
@@ -475,13 +628,17 @@ export default function TVSeasonPage() {
                                 {episode.air_date && (
                                   <div className="flex items-center gap-1">
                                     <Calendar className="h-4 w-4" />
-                                    <span>{formatAirDate(episode.air_date)}</span>
+                                    <span>
+                                      {formatAirDate(episode.air_date)}
+                                    </span>
                                   </div>
                                 )}
                                 {episode.runtime && (
                                   <div className="flex items-center gap-1">
                                     <Clock className="h-4 w-4" />
-                                    <span>{formatRuntime(episode.runtime)}</span>
+                                    <span>
+                                      {formatRuntime(episode.runtime)}
+                                    </span>
                                   </div>
                                 )}
                                 <div className="flex items-center gap-1">
@@ -524,11 +681,13 @@ export default function TVSeasonPage() {
                                   GUEST STARS
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
-                                  {episode.guest_stars.slice(0, 5).map(guest => (
-                                    <Badge key={guest.id} variant="secondary">
-                                      {guest.name}
-                                    </Badge>
-                                  ))}
+                                  {episode.guest_stars
+                                    .slice(0, 5)
+                                    .map(guest => (
+                                      <Badge key={guest.id} variant="secondary">
+                                        {guest.name}
+                                      </Badge>
+                                    ))}
                                   {episode.guest_stars.length > 5 && (
                                     <Badge variant="outline">
                                       +{episode.guest_stars.length - 5} more
