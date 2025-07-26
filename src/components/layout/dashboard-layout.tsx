@@ -3,41 +3,40 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  Home, 
-  Search, 
-  Film, 
-  Tv, 
-  BarChart3, 
-  User, 
-  Settings, 
+import {
+  Home,
+  Search,
+  Film,
+  Tv,
+  BarChart3,
+  User,
+  Settings,
   Menu,
   X,
   Bell,
-  Plus
+  Plus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/sheet'
 import { UserButton } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
 import type { DashboardLayoutProps, NavigationItem } from '@/types'
 
-
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Search & Add', href: '/dashboard/search', icon: Search },
-  { name: 'Movies', href: '/dashboard/movies', icon: Film },
-  { name: 'TV Shows', href: '/dashboard/tv', icon: Tv },
-  { name: 'Statistics', href: '/dashboard/stats', icon: BarChart3 },
-  { name: 'Profile', href: '/dashboard/profile', icon: User },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Search & Add', href: '/search', icon: Search },
+  { name: 'Movies', href: '/movies', icon: Film },
+  { name: 'TV Shows', href: '/tv', icon: Tv },
+  { name: 'Statistics', href: '/stats', icon: BarChart3 },
+  { name: 'Profile', href: '/profile', icon: User },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
@@ -62,8 +61,8 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
                     📺 Watch Tracker
                   </SheetTitle>
                 </SheetHeader>
-                <MobileNavigation 
-                  navigation={navigation} 
+                <MobileNavigation
+                  navigation={navigation}
                   pathname={pathname}
                   stats={stats}
                   onItemClick={() => setIsMobileMenuOpen(false)}
@@ -92,9 +91,9 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
             <div className="flex items-center flex-shrink-0 px-4">
               <h1 className="text-xl font-bold">📺 Watch Tracker</h1>
             </div>
-            
-            <DesktopNavigation 
-              navigation={navigation} 
+
+            <DesktopNavigation
+              navigation={navigation}
               pathname={pathname}
               stats={stats}
             />
@@ -109,20 +108,21 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
               <div className="flex h-16 items-center justify-between px-6">
                 <div className="flex items-center gap-4">
                   <h2 className="font-semibold text-lg">
-                    {navigation.find(item => item.href === pathname)?.name || 'Dashboard'}
+                    {navigation.find(item => item.href === pathname)?.name ||
+                      'Dashboard'}
                   </h2>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Media
                   </Button>
-                  
+
                   <Button variant="ghost" size="sm">
                     <Bell className="h-4 w-4" />
                   </Button>
-                  
+
                   <UserButton />
                 </div>
               </div>
@@ -131,9 +131,7 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
 
           {/* Page Content */}
           <main className="flex-1">
-            <div className="py-6 px-4 lg:px-6">
-              {children}
-            </div>
+            <div className="py-6 px-4 lg:px-6">{children}</div>
           </main>
         </div>
       </div>
@@ -141,7 +139,11 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
   )
 }
 
-function DesktopNavigation({ navigation, pathname, stats }: {
+function DesktopNavigation({
+  navigation,
+  pathname,
+  stats,
+}: {
   navigation: NavigationItem[]
   pathname: string
   stats?: DashboardLayoutProps['stats']
@@ -149,7 +151,7 @@ function DesktopNavigation({ navigation, pathname, stats }: {
   return (
     <div className="mt-8 flex-grow flex flex-col">
       <nav className="flex-1 space-y-1 px-2">
-        {navigation.map((item) => {
+        {navigation.map(item => {
           const isActive = pathname === item.href
           return (
             <Link
@@ -201,7 +203,12 @@ function DesktopNavigation({ navigation, pathname, stats }: {
   )
 }
 
-function MobileNavigation({ navigation, pathname, stats, onItemClick }: {
+function MobileNavigation({
+  navigation,
+  pathname,
+  stats,
+  onItemClick,
+}: {
   navigation: NavigationItem[]
   pathname: string
   stats?: DashboardLayoutProps['stats']
@@ -210,7 +217,7 @@ function MobileNavigation({ navigation, pathname, stats, onItemClick }: {
   return (
     <div className="mt-6 flex-grow flex flex-col">
       <nav className="flex-1 space-y-1">
-        {navigation.map((item) => {
+        {navigation.map(item => {
           const isActive = pathname === item.href
           return (
             <Link
@@ -244,11 +251,15 @@ function MobileNavigation({ navigation, pathname, stats, onItemClick }: {
                 <div className="text-xs text-muted-foreground">Total</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-semibold">{stats.completedItems}</div>
+                <div className="text-lg font-semibold">
+                  {stats.completedItems}
+                </div>
                 <div className="text-xs text-muted-foreground">Completed</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-semibold">{stats.currentlyWatching}</div>
+                <div className="text-lg font-semibold">
+                  {stats.currentlyWatching}
+                </div>
                 <div className="text-xs text-muted-foreground">Watching</div>
               </div>
               <div className="text-center">
