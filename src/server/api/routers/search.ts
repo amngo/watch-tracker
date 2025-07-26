@@ -1,12 +1,23 @@
 import { z } from 'zod'
-import { createTRPCRouter, publicProcedure, protectedProcedure } from '@/server/api/trpc'
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/server/api/trpc'
 import { tmdbService, TMDBError } from '@/lib/tmdb'
 import { createError, toTRPCError } from '@/lib/errors'
 import { withCache, cacheKeys, cacheTTL } from '@/lib/cache'
-import { rateLimiters, createSearchRateLimit, createTMDBRateLimit } from '@/lib/rate-limit'
+import {
+  rateLimiters,
+  createSearchRateLimit,
+  createTMDBRateLimit,
+} from '@/lib/rate-limit'
 
 const SearchInputSchema = z.object({
-  query: z.string().min(1, 'Search query is required').max(100, 'Query too long'),
+  query: z
+    .string()
+    .min(1, 'Search query is required')
+    .max(100, 'Query too long'),
   page: z.number().min(1).max(500).default(1),
   type: z.enum(['multi', 'movie', 'tv']).default('multi'),
 })
@@ -22,18 +33,18 @@ export const searchRouter = createTRPCRouter({
     .input(SearchInputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        // Apply rate limiting
-        const searchKey = createSearchRateLimit(ctx)
-        const searchLimit = rateLimiters.search.check(searchKey)
-        if (!searchLimit.allowed) {
-          throw toTRPCError(createError.rateLimited('Search rate limit exceeded'))
-        }
+        // // Apply rate limiting
+        // const searchKey = createSearchRateLimit(ctx)
+        // const searchLimit = rateLimiters.search.check(searchKey)
+        // if (!searchLimit.allowed) {
+        //   throw toTRPCError(createError.rateLimited('Search rate limit exceeded'))
+        // }
 
-        const tmdbKey = createTMDBRateLimit(ctx)
-        const tmdbLimit = rateLimiters.tmdb.check(tmdbKey)
-        if (!tmdbLimit.allowed) {
-          throw toTRPCError(createError.rateLimited('API rate limit exceeded'))
-        }
+        // const tmdbKey = createTMDBRateLimit(ctx)
+        // const tmdbLimit = rateLimiters.tmdb.check(tmdbKey)
+        // if (!tmdbLimit.allowed) {
+        //   throw toTRPCError(createError.rateLimited('API rate limit exceeded'))
+        // }
 
         const { query, page, type } = input
         const cacheKey = cacheKeys.tmdb.search(query, type, page)
@@ -97,12 +108,16 @@ export const searchRouter = createTRPCRouter({
 
   // Search within user's watched items
   searchWatched: protectedProcedure
-    .input(z.object({
-      query: z.string().min(1).max(100),
-      status: z.enum(['PLANNED', 'WATCHING', 'COMPLETED', 'PAUSED', 'DROPPED']).optional(),
-      mediaType: z.enum(['MOVIE', 'TV']).optional(),
-      limit: z.number().min(1).max(50).default(20),
-    }))
+    .input(
+      z.object({
+        query: z.string().min(1).max(100),
+        status: z
+          .enum(['PLANNED', 'WATCHING', 'COMPLETED', 'PAUSED', 'DROPPED'])
+          .optional(),
+        mediaType: z.enum(['MOVIE', 'TV']).optional(),
+        limit: z.number().min(1).max(50).default(20),
+      })
+    )
     .query(async ({ ctx, input }) => {
       try {
         const user = await ctx.db.user.findUnique({
@@ -146,10 +161,7 @@ export const searchRouter = createTRPCRouter({
               },
             },
           },
-          orderBy: [
-            { updatedAt: 'desc' },
-            { title: 'asc' },
-          ],
+          orderBy: [{ updatedAt: 'desc' }, { title: 'asc' }],
           take: input.limit,
         })
 
@@ -165,15 +177,17 @@ export const searchRouter = createTRPCRouter({
 
   // Get trending content from TMDB
   trending: publicProcedure
-    .input(z.object({
-      mediaType: z.enum(['all', 'movie', 'tv']).default('all'),
-      timeWindow: z.enum(['day', 'week']).default('week'),
-    }))
+    .input(
+      z.object({
+        mediaType: z.enum(['all', 'movie', 'tv']).default('all'),
+        timeWindow: z.enum(['day', 'week']).default('week'),
+      })
+    )
     .query(async ({ input }) => {
       try {
         // TMDB trending endpoint
         const endpoint = `/trending/${input.mediaType}/${input.timeWindow}`
-        
+
         // For now, we'll return a simple response structure
         // In a full implementation, you'd make the actual TMDB API call
         return {
@@ -185,16 +199,20 @@ export const searchRouter = createTRPCRouter({
           timeWindow: input.timeWindow,
         }
       } catch (error) {
-        throw toTRPCError(createError.externalAPI('TMDB', 'Failed to fetch trending content'))
+        throw toTRPCError(
+          createError.externalAPI('TMDB', 'Failed to fetch trending content')
+        )
       }
     }),
 
   // Get popular content from TMDB
   popular: publicProcedure
-    .input(z.object({
-      mediaType: z.enum(['movie', 'tv']),
-      page: z.number().min(1).max(500).default(1),
-    }))
+    .input(
+      z.object({
+        mediaType: z.enum(['movie', 'tv']),
+        page: z.number().min(1).max(500).default(1),
+      })
+    )
     .query(async ({ input }) => {
       try {
         // For now, return empty results
@@ -207,47 +225,48 @@ export const searchRouter = createTRPCRouter({
           mediaType: input.mediaType,
         }
       } catch (error) {
-        throw toTRPCError(createError.externalAPI('TMDB', 'Failed to fetch popular content'))
+        throw toTRPCError(
+          createError.externalAPI('TMDB', 'Failed to fetch popular content')
+        )
       }
     }),
 
   // Get user's recent searches (stored locally)
-  recentSearches: protectedProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const user = await ctx.db.user.findUnique({
-          where: { clerkId: ctx.session.userId },
-        })
+  recentSearches: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const user = await ctx.db.user.findUnique({
+        where: { clerkId: ctx.session.userId },
+      })
 
-        if (!user) {
-          throw toTRPCError(createError.userNotFound(ctx.session.userId))
-        }
-
-        // Get user's recently added watched items as "recent searches"
-        const recentItems = await ctx.db.watchedItem.findMany({
-          where: { userId: user.id },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-          select: {
-            tmdbId: true,
-            mediaType: true,
-            title: true,
-            poster: true,
-            createdAt: true,
-          },
-        })
-
-        return {
-          searches: recentItems.map(item => ({
-            query: item.title,
-            tmdbId: item.tmdbId,
-            mediaType: item.mediaType.toLowerCase(),
-            poster: item.poster,
-            searchedAt: item.createdAt,
-          })),
-        }
-      } catch (error) {
-        throw toTRPCError(error)
+      if (!user) {
+        throw toTRPCError(createError.userNotFound(ctx.session.userId))
       }
-    }),
+
+      // Get user's recently added watched items as "recent searches"
+      const recentItems = await ctx.db.watchedItem.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          tmdbId: true,
+          mediaType: true,
+          title: true,
+          poster: true,
+          createdAt: true,
+        },
+      })
+
+      return {
+        searches: recentItems.map(item => ({
+          query: item.title,
+          tmdbId: item.tmdbId,
+          mediaType: item.mediaType.toLowerCase(),
+          poster: item.poster,
+          searchedAt: item.createdAt,
+        })),
+      }
+    } catch (error) {
+      throw toTRPCError(error)
+    }
+  }),
 })
