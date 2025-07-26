@@ -23,7 +23,12 @@ export interface WatchedItem {
   progress: number
 }
 
-export type WatchStatus = 'PLANNED' | 'WATCHING' | 'PAUSED' | 'COMPLETED' | 'DROPPED'
+export type WatchStatus =
+  | 'PLANNED'
+  | 'WATCHING'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'DROPPED'
 
 export interface Note {
   id: string
@@ -60,7 +65,7 @@ export interface TMDBMovieItem {
 
 export interface TMDBTVItem {
   id: number
-  media_type: 'tv'  
+  media_type: 'tv'
   name: string
   poster_path?: string | null
   first_air_date?: string | null
@@ -199,4 +204,94 @@ export interface NavigationItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   active?: boolean
+}
+
+// Extended TMDB types for detailed pages
+export interface TMDBGenre {
+  id: number
+  name: string
+}
+
+export interface TMDBProductionCompany {
+  id: number
+  logo_path?: string | null
+  name: string
+  origin_country: string
+}
+
+export interface TMDBCastMember {
+  id: number
+  name: string
+  character: string
+  profile_path?: string | null
+  order: number
+  known_for_department: string
+}
+
+export interface TMDBCrewMember {
+  id: number
+  name: string
+  job: string
+  department: string
+  profile_path?: string | null
+  known_for_department: string
+}
+
+export interface TMDBCredits {
+  cast: TMDBCastMember[]
+  crew: TMDBCrewMember[]
+}
+
+export interface TMDBMovieDetailsExtended extends TMDBMovieItem {
+  belongs_to_collection?: {
+    id: number
+    name: string
+    poster_path?: string | null
+    backdrop_path?: string | null
+  } | null
+  budget?: number
+  genres?: TMDBGenre[]
+  homepage?: string | null
+  imdb_id?: string | null
+  production_companies?: TMDBProductionCompany[]
+  revenue?: number
+  runtime?: number | null
+  status?: string
+  tagline?: string | null
+  backdrop_path?: string | null
+  credits?: TMDBCredits
+}
+
+export interface TMDBTVDetailsExtended extends TMDBTVItem {
+  created_by?: Array<{
+    id: number
+    name: string
+    profile_path?: string | null
+  }>
+  episode_run_time?: number[]
+  genres?: TMDBGenre[]
+  homepage?: string | null
+  number_of_episodes?: number
+  number_of_seasons?: number
+  last_air_date?: string | null
+  seasons?: Array<{
+    air_date?: string | null
+    episode_count: number
+    id: number
+    name: string
+    overview: string
+    poster_path?: string | null
+    season_number: number
+  }>
+  status?: string
+  tagline?: string | null
+  type?: string
+  backdrop_path?: string | null
+  credits?: TMDBCredits
+  networks?: Array<{
+    id: number
+    name: string
+    logo_path?: string | null
+    origin_country: string
+  }>
 }

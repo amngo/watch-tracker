@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { MediaPoster } from '@/components/ui/media-poster'
+import Link from 'next/link'
 import {
   StatusBadge,
   MediaTypeBadge,
@@ -66,24 +67,32 @@ export function WatchedItemCard({
     setIsEditingRating(false)
   }
 
+  const detailUrl = item.mediaType === 'MOVIE' 
+    ? `/movie/${item.tmdbId}`
+    : `/tv/${item.tmdbId}`
+
   return (
     <Card className="group transition-shadow hover:shadow-md p-0">
       <CardContent className="p-4">
         <div className="flex gap-4">
-          <MediaPoster
-            src={item.poster}
-            alt={item.title}
-            mediaType={item.mediaType}
-            size="md"
-          />
+          <Link href={detailUrl} className="flex-shrink-0">
+            <MediaPoster
+              src={item.poster}
+              alt={item.title}
+              mediaType={item.mediaType}
+              size="md"
+            />
+          </Link>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm leading-tight truncate">
-                  {item.title}
-                </h3>
+                <Link href={detailUrl} className="block">
+                  <h3 className="font-semibold text-sm leading-tight truncate hover:text-primary transition-colors">
+                    {item.title}
+                  </h3>
+                </Link>
 
                 <div className="flex items-center gap-2 mt-2">
                   <MediaTypeBadge mediaType={item.mediaType} />

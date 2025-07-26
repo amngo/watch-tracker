@@ -106,6 +106,62 @@ export const searchRouter = createTRPCRouter({
       }
     }),
 
+  // Get extended detailed information with genres, companies, etc.
+  detailsExtended: publicProcedure
+    .input(MediaDetailsInputSchema)
+    .query(async ({ input }) => {
+      try {
+        const { id, type } = input
+
+        if (type === 'movie') {
+          const [movie, credits] = await Promise.all([
+            tmdbService.getMovieDetailsExtended(id),
+            tmdbService.getMovieCredits(id),
+          ])
+          return {
+            ...movie,
+            media_type: 'movie' as const,
+            credits,
+          }
+        } else {
+          const [tv, credits] = await Promise.all([
+            tmdbService.getTVDetailsExtended(id),
+            tmdbService.getTVCredits(id),
+          ])
+          return {
+            ...tv,
+            media_type: 'tv' as const,
+            credits,
+          }
+        }
+      } catch (error) {
+        if (error instanceof TMDBError) {
+          throw toTRPCError(createError.externalAPI('TMDB', error.message))
+        }
+        throw toTRPCError(error)
+      }
+    }),
+
+  // Get cast and crew information for a movie or TV show
+  credits: publicProcedure
+    .input(MediaDetailsInputSchema)
+    .query(async ({ input }) => {
+      try {
+        const { id, type } = input
+
+        if (type === 'movie') {
+          return await tmdbService.getMovieCredits(id)
+        } else {
+          return await tmdbService.getTVCredits(id)
+        }
+      } catch (error) {
+        if (error instanceof TMDBError) {
+          throw toTRPCError(createError.externalAPI('TMDB', error.message))
+        }
+        throw toTRPCError(error)
+      }
+    }),
+
   // Search within user's watched items
   searchWatched: protectedProcedure
     .input(

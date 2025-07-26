@@ -13,7 +13,7 @@ export const TMDBMovieSchema = z.object({
   original_title: z.string().nullish(),
   overview: z.string().nullish(),
   poster_path: z.string().nullish(),
-  media_type: z.literal('movie'),
+  //   media_type: z.literal('movie'),
   original_language: z.string().nullish(),
   genre_ids: z.array(z.number()).nullish(),
   popularity: z.number().optional(),
@@ -31,7 +31,7 @@ export const TMDBTVSchema = z.object({
   original_name: z.string().nullish(),
   overview: z.string().nullish(),
   poster_path: z.string().nullish(),
-  media_type: z.literal('tv'),
+  //   media_type: z.literal('tv'),
   original_language: z.string().nullish(),
   genre_ids: z.array(z.number()).nullish(),
   popularity: z.number(),
@@ -39,6 +39,157 @@ export const TMDBTVSchema = z.object({
   vote_average: z.number(),
   vote_count: z.number(),
   original_country: z.array(z.string().nullish()).nullish(),
+})
+
+// Extended schemas for detailed information
+export const TMDBGenreSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+})
+
+export const TMDBProductionCompanySchema = z.object({
+  id: z.number(),
+  logo_path: z.string().nullish(),
+  name: z.string(),
+  origin_country: z.string(),
+})
+
+export const TMDBProductionCountrySchema = z.object({
+  iso_3166_1: z.string(),
+  name: z.string(),
+})
+
+export const TMDBSpokenLanguageSchema = z.object({
+  english_name: z.string(),
+  iso_639_1: z.string(),
+  name: z.string(),
+})
+
+export const TMDBMovieDetailsSchema = TMDBMovieSchema.extend({
+  belongs_to_collection: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      poster_path: z.string().nullish(),
+      backdrop_path: z.string().nullish(),
+    })
+    .nullish(),
+  budget: z.number().optional(),
+  genres: z.array(TMDBGenreSchema).optional(),
+  homepage: z.string().nullish(),
+  imdb_id: z.string().nullish(),
+  production_companies: z.array(TMDBProductionCompanySchema).optional(),
+  production_countries: z.array(TMDBProductionCountrySchema).optional(),
+  revenue: z.number().optional(),
+  runtime: z.number().nullish(),
+  spoken_languages: z.array(TMDBSpokenLanguageSchema).optional(),
+  status: z.string().optional(),
+  tagline: z.string().nullish(),
+})
+
+export const TMDBTVDetailsSchema = TMDBTVSchema.extend({
+  created_by: z
+    .array(
+      z.object({
+        id: z.number(),
+        credit_id: z.string(),
+        name: z.string(),
+        gender: z.number().nullish(),
+        profile_path: z.string().nullish(),
+      })
+    )
+    .optional(),
+  episode_run_time: z.array(z.number()).optional(),
+  genres: z.array(TMDBGenreSchema).optional(),
+  homepage: z.string().nullish(),
+  in_production: z.boolean().optional(),
+  languages: z.array(z.string()).optional(),
+  last_air_date: z.string().nullish(),
+  last_episode_to_air: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      overview: z.string(),
+      vote_average: z.number(),
+      vote_count: z.number(),
+      air_date: z.string(),
+      episode_number: z.number(),
+      production_code: z.string(),
+      runtime: z.number().nullish(),
+      season_number: z.number(),
+      show_id: z.number(),
+      still_path: z.string().nullish(),
+    })
+    .nullish(),
+  networks: z
+    .array(
+      z.object({
+        id: z.number(),
+        logo_path: z.string().nullish(),
+        name: z.string(),
+        origin_country: z.string(),
+      })
+    )
+    .optional(),
+  number_of_episodes: z.number().optional(),
+  number_of_seasons: z.number().optional(),
+  origin_country: z.array(z.string()).optional(),
+  production_companies: z.array(TMDBProductionCompanySchema).optional(),
+  production_countries: z.array(TMDBProductionCountrySchema).optional(),
+  seasons: z
+    .array(
+      z.object({
+        air_date: z.string().nullish(),
+        episode_count: z.number(),
+        id: z.number(),
+        name: z.string(),
+        overview: z.string(),
+        poster_path: z.string().nullish(),
+        season_number: z.number(),
+        vote_average: z.number(),
+      })
+    )
+    .optional(),
+  spoken_languages: z.array(TMDBSpokenLanguageSchema).optional(),
+  status: z.string().optional(),
+  tagline: z.string().nullish(),
+  type: z.string().optional(),
+})
+
+// Cast and Crew schemas
+export const TMDBCastMemberSchema = z.object({
+  adult: z.boolean(),
+  gender: z.number().nullish(),
+  id: z.number(),
+  known_for_department: z.string(),
+  name: z.string(),
+  original_name: z.string(),
+  popularity: z.number(),
+  profile_path: z.string().nullish(),
+  cast_id: z.number().optional(),
+  character: z.string(),
+  credit_id: z.string(),
+  order: z.number(),
+})
+
+export const TMDBCrewMemberSchema = z.object({
+  adult: z.boolean(),
+  gender: z.number().nullish(),
+  id: z.number(),
+  known_for_department: z.string(),
+  name: z.string(),
+  original_name: z.string(),
+  popularity: z.number(),
+  profile_path: z.string().nullish(),
+  credit_id: z.string(),
+  department: z.string(),
+  job: z.string(),
+})
+
+export const TMDBCreditsSchema = z.object({
+  id: z.number(),
+  cast: z.array(TMDBCastMemberSchema),
+  crew: z.array(TMDBCrewMemberSchema),
 })
 
 export const TMDBPersonSchema = z.object({
@@ -74,13 +225,20 @@ export const TMDBSearchResultSchema = z.object({
 export type TMDBMovie = z.infer<typeof TMDBMovieSchema>
 export type TMDBTV = z.infer<typeof TMDBTVSchema>
 export type TMDBPerson = z.infer<typeof TMDBPersonSchema>
+export type TMDBMovieDetails = z.infer<typeof TMDBMovieDetailsSchema>
+export type TMDBTVDetails = z.infer<typeof TMDBTVDetailsSchema>
+export type TMDBGenre = z.infer<typeof TMDBGenreSchema>
+export type TMDBProductionCompany = z.infer<typeof TMDBProductionCompanySchema>
+export type TMDBCastMember = z.infer<typeof TMDBCastMemberSchema>
+export type TMDBCrewMember = z.infer<typeof TMDBCrewMemberSchema>
+export type TMDBCredits = z.infer<typeof TMDBCreditsSchema>
 export type TMDBSearchResult = z.infer<typeof TMDBSearchResultSchema>
 export type TMDBSearchResultItems = z.infer<typeof MultiResultItemsSchema>
 export type TMDBSearchResultItem = z.infer<
   typeof MultiResultItemsSchema
 >[number]
 
-class TMDBService {
+export class TMDBService {
   private apiKey: string
 
   constructor() {
@@ -157,6 +315,26 @@ class TMDBService {
   async getTVDetails(id: number): Promise<TMDBTV> {
     const data = await this.makeRequest(`/tv/${id}`)
     return TMDBTVSchema.parse(data)
+  }
+
+  async getMovieDetailsExtended(id: number): Promise<TMDBMovieDetails> {
+    const data = await this.makeRequest(`/movie/${id}`)
+    return TMDBMovieDetailsSchema.parse(data)
+  }
+
+  async getTVDetailsExtended(id: number): Promise<TMDBTVDetails> {
+    const data = await this.makeRequest(`/tv/${id}`)
+    return TMDBTVDetailsSchema.parse(data)
+  }
+
+  async getMovieCredits(id: number): Promise<TMDBCredits> {
+    const data = await this.makeRequest(`/movie/${id}/credits`)
+    return TMDBCreditsSchema.parse(data)
+  }
+
+  async getTVCredits(id: number): Promise<TMDBCredits> {
+    const data = await this.makeRequest(`/tv/${id}/credits`)
+    return TMDBCreditsSchema.parse(data)
   }
 
   // Helper methods for image URLs

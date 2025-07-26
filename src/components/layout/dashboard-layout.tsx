@@ -114,11 +114,6 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Media
-                  </Button>
-
                   <Button variant="ghost" size="sm">
                     <Bell className="h-4 w-4" />
                   </Button>
