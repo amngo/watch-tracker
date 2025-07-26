@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Play,
   Check,
@@ -72,6 +72,8 @@ interface EpisodeCardProps {
   onStatusChange: (status: EpisodeWatchStatus) => void
   viewMode: 'grid' | 'list'
   showSpoilers: boolean
+  individualSpoilerVisible: boolean
+  onToggleIndividualSpoiler: () => void
 }
 
 const statusConfig = {
@@ -108,6 +110,8 @@ function EpisodeCard({
   onStatusChange,
   viewMode,
   showSpoilers,
+  individualSpoilerVisible,
+  onToggleIndividualSpoiler,
 }: EpisodeCardProps) {
   const config = statusConfig[status]
   const stillUrl = episode.still_path
@@ -197,13 +201,31 @@ function EpisodeCard({
             {/* Episode Overview */}
             {episode.overview && (
               <div className="text-xs text-muted-foreground">
-                {showSpoilers || status === 'WATCHED' ? (
-                  <p className="line-clamp-3">{episode.overview}</p>
-                ) : (
-                  <p className="blur-sm line-clamp-3 select-none">
-                    {episode.overview}
-                  </p>
-                )}
+                <div className="flex items-start gap-2">
+                  <div className="flex-1">
+                    {showSpoilers || status === 'WATCHED' || individualSpoilerVisible ? (
+                      <p className="line-clamp-3">{episode.overview}</p>
+                    ) : (
+                      <p className="blur-sm line-clamp-3 select-none">
+                        {episode.overview}
+                      </p>
+                    )}
+                  </div>
+                  {status !== 'WATCHED' && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={onToggleIndividualSpoiler}
+                      className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                    >
+                      {individualSpoilerVisible ? (
+                        <EyeOff className="h-3 w-3" />
+                      ) : (
+                        <Eye className="h-3 w-3" />
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -302,11 +324,27 @@ function EpisodeCard({
                   </div>
                 </div>
                 {episode.overview && (
-                  <p
-                    className={`text-xs text-muted-foreground leading-relaxed line-clamp-2 ${!showSpoilers && status !== 'WATCHED' ? 'blur-sm select-none' : ''}`}
-                  >
-                    {episode.overview}
-                  </p>
+                  <div className="flex items-start gap-2">
+                    <p
+                      className={`text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1 ${!showSpoilers && status !== 'WATCHED' && !individualSpoilerVisible ? 'blur-sm select-none' : ''}`}
+                    >
+                      {episode.overview}
+                    </p>
+                    {status !== 'WATCHED' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={onToggleIndividualSpoiler}
+                        className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                      >
+                        {individualSpoilerVisible ? (
+                          <EyeOff className="h-3 w-3" />
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -376,8 +414,52 @@ export function FlexibleEpisodeTracker({
   const [selectedEpisodes, setSelectedEpisodes] = useState<Set<number>>(
     new Set()
   )
+  const [individualSpoilerStates, setIndividualSpoilerStates] = useState<
+    Map<string, boolean>
+  >(new Map())
 
   const seasonNumber = seasonDetails.season_number
+
+  // Load individual spoiler states from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('episodeSpoilerStates')
+      if (stored) {
+        const parsedStates = JSON.parse(stored)
+        setIndividualSpoilerStates(new Map(Object.entries(parsedStates)))
+      }
+    } catch (error) {
+      console.warn('Failed to load episode spoiler states:', error)
+    }
+  }, [])
+
+  // Save individual spoiler states to localStorage when they change
+  useEffect(() => {
+    try {
+      const statesObject = Object.fromEntries(individualSpoilerStates)
+      localStorage.setItem('episodeSpoilerStates', JSON.stringify(statesObject))
+    } catch (error) {
+      console.warn('Failed to save episode spoiler states:', error)
+    }
+  }, [individualSpoilerStates])
+
+  // Helper functions for individual spoiler management
+  const getEpisodeKey = (seasonNum: number, episodeNum: number) => 
+    `${watchedItem.id}-s${seasonNum}-e${episodeNum}`
+
+  const getIndividualSpoilerVisible = (episodeNumber: number): boolean => {
+    const key = getEpisodeKey(seasonNumber, episodeNumber)
+    return individualSpoilerStates.get(key) || false
+  }
+
+  const toggleIndividualSpoiler = (episodeNumber: number) => {
+    const key = getEpisodeKey(seasonNumber, episodeNumber)
+    setIndividualSpoilerStates(prev => {
+      const newMap = new Map(prev)
+      newMap.set(key, !prev.get(key))
+      return newMap
+    })
+  }
 
   // Get episode status from watchedEpisodes array
   const getEpisodeStatus = (episodeNumber: number): EpisodeWatchStatus => {
@@ -655,6 +737,8 @@ export function FlexibleEpisodeTracker({
                   }
                   viewMode={viewMode}
                   showSpoilers={showSpoilers}
+                  individualSpoilerVisible={getIndividualSpoilerVisible(episode.episode_number)}
+                  onToggleIndividualSpoiler={() => toggleIndividualSpoiler(episode.episode_number)}
                 />
               ))}
             </div>
