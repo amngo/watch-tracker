@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Plus, TrendingUp, Clock, CheckCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Plus, TrendingUp, Clock, CheckCircle, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -21,9 +20,9 @@ import {
 } from '@/components/ui/dialog'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
-import { ErrorDisplay } from '@/components/common/error-boundary'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
+import { useBackgroundUpdates } from '@/hooks/use-background-updates'
 import { calculateProgress } from '@/lib/utils'
 import type { TMDBMediaItem, WatchedItem } from '@/types'
 
@@ -43,6 +42,8 @@ export default function Dashboard() {
   } = useMedia()
 
   const { isSearchModalOpen, openSearchModal, closeSearchModal } = useUI()
+  const { forceUpdate } = useBackgroundUpdates()
+  const [isUpdatingTVShows, setIsUpdatingTVShows] = useState(false)
 
   // Fetch user stats and sync with store
   const { data: statsData, isLoading: statsDataLoading } =
@@ -111,6 +112,16 @@ export default function Dashboard() {
   const handleDeleteItem = async (id: string) => {
     await deleteItem(id)
   }
+
+  const handleUpdateAllTVShows = async () => {
+    try {
+      setIsUpdatingTVShows(true)
+      await forceUpdate({ forceAll: false }) // Only update missing data by default
+    } finally {
+      setIsUpdatingTVShows(false)
+    }
+  }
+
 
   return (
     <DashboardLayout stats={stats || undefined}>
@@ -208,10 +219,24 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Recent Activity</h2>
-            <Button variant="outline" onClick={openSearchModal}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add More
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleUpdateAllTVShows}
+                disabled={isUpdatingTVShows}
+              >
+                {isUpdatingTVShows ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                {isUpdatingTVShows ? 'Updating...' : 'Update TV Show Details'}
+              </Button>
+              <Button variant="outline" onClick={openSearchModal}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add More
+              </Button>
+            </div>
           </div>
 
           {itemsLoading ? (

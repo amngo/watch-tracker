@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { WatchStatus, TMDBMediaItem } from "@/types"
+import type { WatchStatus, TMDBMediaItem, WatchedItem } from "@/types"
+import { calculateFlexibleProgress } from "./episode-utils"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -8,6 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Calculate progress percentage based on watch status and episode/runtime data
+ * @deprecated Use calculateProgressFromWatchedItem for better accuracy with TV shows
  */
 export function calculateProgress(
   status: WatchStatus,
@@ -46,6 +48,17 @@ export function calculateProgress(
     default:
       return 0
   }
+}
+
+/**
+ * Calculate progress percentage from a WatchedItem, using watched episodes for TV shows
+ */
+export function calculateProgressFromWatchedItem(
+  watchedItem: WatchedItem,
+  totalSeasons?: number,
+  totalEpisodes?: number
+): number {
+  return Math.round(calculateFlexibleProgress(watchedItem, totalSeasons, totalEpisodes))
 }
 
 /**

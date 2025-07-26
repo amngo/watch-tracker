@@ -27,13 +27,14 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { TMDBService } from '@/lib/tmdb'
-import { calculateProgress } from '@/lib/utils'
+import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
 import type {
   TMDBTVDetailsExtended,
   TMDBMediaItem,
   EpisodeWatchStatus,
   WatchStatus,
+  WatchedItem,
 } from '@/types'
 
 export default function TVDetailPage() {
@@ -105,12 +106,14 @@ export default function TVDetailPage() {
           notes: item.notes || [],
           _count: item._count,
           watchedEpisodes: item.watchedEpisodes || [],
-          progress: calculateProgress(
-            item.status,
-            item.currentEpisode,
-            item.totalEpisodes,
-            item.currentRuntime,
-            item.totalRuntime
+          progress: calculateProgressFromWatchedItem(
+            {
+              ...item,
+              watchedEpisodes: item.watchedEpisodes || [],
+              progress: 0, // Temporary placeholder, will be calculated
+            } as WatchedItem,
+            item.totalSeasons ?? undefined,
+            item.totalEpisodes ?? undefined
           ),
         }))
       )
@@ -205,9 +208,20 @@ export default function TVDetailPage() {
       })
     }
 
-    // Update the watched item with new episodes array
+    // Calculate new progress based on updated episodes
+    const newProgress = calculateProgressFromWatchedItem(
+      {
+        ...userWatchedItem,
+        watchedEpisodes: updatedWatchedEpisodes,
+      },
+      tvDetails?.number_of_seasons,
+      tvDetails?.number_of_episodes
+    )
+
+    // Update the watched item with new episodes array and progress
     await updateItem(userWatchedItem.id, {
       watchedEpisodes: updatedWatchedEpisodes,
+      progress: newProgress,
     } as any)
   }
 
@@ -252,9 +266,20 @@ export default function TVDetailPage() {
       }
     })
 
+    // Calculate new progress based on updated episodes
+    const newProgress = calculateProgressFromWatchedItem(
+      {
+        ...userWatchedItem,
+        watchedEpisodes: updatedWatchedEpisodes,
+      },
+      tvDetails?.number_of_seasons,
+      tvDetails?.number_of_episodes
+    )
+
     // Make a single API call to update all episodes at once
     await updateItem(userWatchedItem.id, {
       watchedEpisodes: updatedWatchedEpisodes,
+      progress: newProgress,
     } as any)
   }
 

@@ -4,6 +4,7 @@ import { api } from '@/trpc/react'
 import { showToast } from '@/components/common/toast-provider'
 import { calculateProgress, convertTMDBMediaType, getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { logError } from '@/lib/logger'
+import { tmdbService } from '@/lib/tmdb'
 import type { TMDBMediaItem, UpdateWatchedItemData, WatchedItem } from '@/types'
 
 export function useMedia() {
@@ -57,6 +58,14 @@ export function useMedia() {
       // Confirm the optimistic update
       store.confirmOptimisticUpdate(data.id)
       
+      // Get current item to check if we should preserve progress
+      const currentItem = store.getItemById(data.id)
+      const shouldPreserveProgress = currentItem && 
+        // If the current item has progress and current/total episodes/runtime haven't changed
+        currentItem.progress !== undefined &&
+        currentItem.currentEpisode === data.currentEpisode &&
+        currentItem.currentRuntime === data.currentRuntime
+      
       // Update with actual server data
       store.updateWatchedItem(data.id, {
         status: data.status,
@@ -67,7 +76,7 @@ export function useMedia() {
         startDate: data.startDate,
         finishDate: data.finishDate,
         updatedAt: data.updatedAt,
-        progress: calculateProgress(
+        progress: shouldPreserveProgress ? currentItem.progress : calculateProgress(
           data.status,
           data.currentEpisode,
           data.totalEpisodes,
@@ -100,6 +109,50 @@ export function useMedia() {
     },
   })
 
+  const updateTVShowDetailsMutation = api.watchedItem.updateTVShowDetails.useMutation({
+    onSuccess: (data) => {
+      // Update the item in the store with the new season/episode data
+      store.updateWatchedItem(data.id, {
+        totalSeasons: data.totalSeasons,
+        totalEpisodes: data.totalEpisodes,
+        updatedAt: data.updatedAt,
+      })
+      showToast.success('TV show details updated!')
+    },
+    onError: (error) => {
+      store.setItemsError(error.message)
+      showToast.error('Failed to update TV show details', error.message)
+    },
+  })
+
+  const updateAllTVShowDetailsMutation = api.watchedItem.updateAllTVShowDetails.useMutation({
+    onSuccess: (result) => {
+      // Refresh the watched items to get updated data
+      store.setLastUpdated()
+      
+      let successMessage = `Updated ${result.successfulUpdates} TV shows`
+      if (result.totalProcessed === 0) {
+        successMessage = 'All TV shows are already up to date'
+      }
+      
+      showToast.success(
+        successMessage,
+        result.failedUpdates > 0 
+          ? `${result.failedUpdates} updates failed`
+          : undefined
+      )
+
+      // Show detailed errors if any
+      if (result.errors && result.errors.length > 0) {
+        console.warn('TV show update errors:', result.errors)
+      }
+    },
+    onError: (error) => {
+      store.setItemsError(error.message)
+      showToast.error('Failed to update TV show details', error.message)
+    },
+  })
+
   const addMedia = useCallback(async (media: TMDBMediaItem) => {
     // Generate a temporary ID for optimistic update (outside try block for scope)
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -107,6 +160,35 @@ export function useMedia() {
     try {
       const releaseDate = getTMDBReleaseDate(media)
       const parsedReleaseDate = releaseDate ? new Date(releaseDate) : undefined
+      
+      // For TV shows, fetch detailed information to get accurate episode/season counts
+      let totalEpisodes = null
+      let totalSeasons = null
+      let totalRuntime = null
+
+      if (media.media_type === 'tv') {
+        try {
+          const tvDetails = await tmdbService.getTVDetailsExtended(media.id)
+          totalEpisodes = tvDetails.number_of_episodes || null
+          totalSeasons = tvDetails.number_of_seasons || null
+          // Calculate total runtime from episode runtime and number of episodes
+          if (tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0 && totalEpisodes) {
+            const avgEpisodeRuntime = tvDetails.episode_run_time.reduce((a, b) => a + b, 0) / tvDetails.episode_run_time.length
+            totalRuntime = Math.round(avgEpisodeRuntime * totalEpisodes)
+          }
+        } catch (error) {
+          // Log the error but continue with fallback values
+          logError('Failed to fetch TV show details', error, {
+            component: 'useMedia',
+            metadata: { tmdbId: media.id }
+          })
+          // Use fallback values
+          totalEpisodes = 24
+          totalSeasons = 2
+        }
+      } else if (media.media_type === 'movie') {
+        totalRuntime = 120 // Default movie runtime
+      }
       
       // Create optimistic item
       const optimisticItem: WatchedItem = {
@@ -119,11 +201,11 @@ export function useMedia() {
         status: 'PLANNED',
         rating: null,
         currentEpisode: null,
-        totalEpisodes: media.media_type === 'tv' ? 24 : null,
+        totalEpisodes,
         currentSeason: null,
-        totalSeasons: media.media_type === 'tv' ? 2 : null,
+        totalSeasons,
         currentRuntime: null,
-        totalRuntime: media.media_type === 'movie' ? 120 : null,
+        totalRuntime,
         createdAt: new Date(),
         updatedAt: new Date(),
         startDate: null,
@@ -143,9 +225,9 @@ export function useMedia() {
         title: getTMDBTitle(media),
         poster: media.poster_path || undefined,
         releaseDate: parsedReleaseDate,
-        totalRuntime: media.media_type === 'movie' ? 120 : undefined,
-        totalEpisodes: media.media_type === 'tv' ? 24 : undefined,
-        totalSeasons: media.media_type === 'tv' ? 2 : undefined,
+        totalRuntime: totalRuntime || undefined,
+        totalEpisodes: totalEpisodes || undefined,
+        totalSeasons: totalSeasons || undefined,
       })
 
       // Replace the optimistic item with the real item
@@ -249,6 +331,33 @@ export function useMedia() {
     updateItem(id, { progress })
   }, [updateItem])
 
+  const updateTVShowDetails = useCallback(async (id: string) => {
+    try {
+      await updateTVShowDetailsMutation.mutateAsync({ id })
+    } catch (error) {
+      logError('Failed to update TV show details', error, {
+        component: 'useMedia',
+        metadata: { itemId: id }
+      })
+    }
+  }, [updateTVShowDetailsMutation])
+
+  const updateAllTVShowDetails = useCallback(async (options?: {
+    forceUpdate?: boolean
+    onlyMissingData?: boolean
+  }) => {
+    try {
+      return await updateAllTVShowDetailsMutation.mutateAsync({
+        forceUpdate: options?.forceUpdate ?? false,
+        onlyMissingData: options?.onlyMissingData ?? true,
+      })
+    } catch (error) {
+      logError('Failed to update all TV show details', error, {
+        component: 'useMedia'
+      })
+    }
+  }, [updateAllTVShowDetailsMutation])
+
   return {
     // State
     watchedItems: store.watchedItems,
@@ -271,6 +380,8 @@ export function useMedia() {
     markCompleted,
     markWatching,
     updateProgress,
+    updateTVShowDetails,
+    updateAllTVShowDetails,
 
     // Store actions (direct access)
     setWatchedItems: store.setWatchedItems,

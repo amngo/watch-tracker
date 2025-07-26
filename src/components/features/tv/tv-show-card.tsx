@@ -12,6 +12,7 @@ import {
   Edit3,
   Tv,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -41,6 +42,7 @@ import {
   NotesBadge,
 } from '@/components/ui/media-badges'
 import type { WatchedItem, WatchStatus, WatchedItemCardProps } from '@/types'
+import { useMedia } from '@/hooks/use-media'
 
 const statusConfig = {
   PLANNED: { label: 'Planned', icon: Clock },
@@ -52,6 +54,7 @@ const statusConfig = {
 
 interface TVShowCardProps extends WatchedItemCardProps {
   showSeasonProgress?: boolean
+  showRefreshButton?: boolean
 }
 
 export function TVShowCard({
@@ -59,15 +62,20 @@ export function TVShowCard({
   onUpdate,
   onDelete,
   showSeasonProgress = true,
+  showRefreshButton = true,
 }: TVShowCardProps) {
   const [isEditingRating, setIsEditingRating] = useState(false)
   const [isEditingProgress, setIsEditingProgress] = useState(false)
   const [newSeason, setNewSeason] = useState(item.currentSeason || 1)
   const [newEpisode, setNewEpisode] = useState(item.currentEpisode || 1)
 
+  const { updateTVShowDetails } = useMedia()
+
   const handleStatusChange = (newStatus: WatchStatus) => {
     onUpdate(item.id, {
       status: newStatus,
+      // Preserve existing progress when changing status
+      progress: item.progress,
       ...(newStatus === 'COMPLETED' && { finishDate: new Date() }),
       ...(newStatus === 'WATCHING' &&
         !item.startDate && { startDate: new Date() }),
@@ -85,6 +93,10 @@ export function TVShowCard({
       currentEpisode: newEpisode,
     })
     setIsEditingProgress(false)
+  }
+
+  const handleRefreshDetails = () => {
+    updateTVShowDetails(item.id)
   }
 
   const detailUrl = `/tv/${item.tmdbId}`
@@ -182,6 +194,15 @@ export function TVShowCard({
                     <Edit3 className="h-4 w-4" />
                     Update Progress
                   </DropdownMenuItem>
+                  {showRefreshButton && item.mediaType === 'TV' && (
+                    <DropdownMenuItem
+                      onClick={handleRefreshDetails}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh Details
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => onDelete(item.id)}
@@ -207,25 +228,43 @@ export function TVShowCard({
 
               {/* Season and Episode Details for TV Shows */}
               {showSeasonProgress && item.mediaType === 'TV' && (
-                <div className="grid grid-cols-3 gap-2 text-xs pt-2">
-                  <div className="text-center">
-                    <div className="font-medium">
-                      {item.currentSeason || 0}/{item.totalSeasons || '?'}
+                <div className="pt-2">
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="text-center">
+                      <div className="font-medium">
+                        {item.totalSeasons || '?'}
+                      </div>
+                      <div className="text-muted-foreground">Seasons</div>
                     </div>
-                    <div className="text-muted-foreground">Seasons</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium">
-                      {item.currentEpisode || 0}
+                    <div className="text-center">
+                      <div className="font-medium">
+                        {item.totalEpisodes || '?'}
+                      </div>
+                      <div className="text-muted-foreground">Episodes</div>
                     </div>
-                    <div className="text-muted-foreground">Episodes</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-primary">
-                      {nextEpisode}
+                    <div className="text-center">
+                      <div className="font-medium text-primary">
+                        {nextEpisode}
+                      </div>
+                      <div className="text-muted-foreground">Up Next</div>
                     </div>
-                    <div className="text-muted-foreground">Up Next</div>
                   </div>
+
+                  {/* Show refresh button if season/episode data is missing */}
+                  {showRefreshButton &&
+                    (!item.totalSeasons || !item.totalEpisodes) && (
+                      <div className="flex justify-center mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleRefreshDetails}
+                          className="text-xs px-2 py-1 h-auto"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Get Season/Episode Info
+                        </Button>
+                      </div>
+                    )}
                 </div>
               )}
 

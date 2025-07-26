@@ -17,7 +17,7 @@ import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
-import { calculateProgress } from '@/lib/utils'
+import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import type { TMDBMediaItem, WatchedItem } from '@/types'
 
 export default function TVPage() {
@@ -82,12 +82,14 @@ export default function TVPage() {
           notes: item.notes || [],
           _count: item._count,
           watchedEpisodes: item.watchedEpisodes || [],
-          progress: calculateProgress(
-            item.status,
-            item.currentEpisode,
-            item.totalEpisodes,
-            item.currentRuntime,
-            item.totalRuntime
+          progress: calculateProgressFromWatchedItem(
+            {
+              ...item,
+              watchedEpisodes: item.watchedEpisodes || [],
+              progress: 0, // Temporary placeholder, will be calculated
+            } as WatchedItem,
+            item.totalSeasons ?? undefined,
+            item.totalEpisodes ?? undefined
           ),
         }))
       )

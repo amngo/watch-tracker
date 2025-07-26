@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { tmdbService } from '@/lib/tmdb'
 
 const MediaTypeEnum = z.enum(['MOVIE', 'TV'])
 const WatchStatusEnum = z.enum([
@@ -183,5 +184,136 @@ export const watchedItemRouter = createTRPCRouter({
           userId: ctx.user.id,
         },
       })
+    }),
+
+  // New endpoint to fetch and update TV show details for existing items
+  updateTVShowDetails: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // First, get the watched item to ensure it exists and belongs to user
+      const watchedItem = await ctx.db.watchedItem.findFirst({
+        where: {
+          id: input.id,
+          userId: ctx.user.id,
+          mediaType: 'TV', // Only works for TV shows
+        },
+      })
+
+      if (!watchedItem) {
+        throw new Error('TV show not found or does not belong to user')
+      }
+
+      try {
+        // Fetch detailed information from TMDB
+        const tvDetails = await tmdbService.getTVDetailsExtended(watchedItem.tmdbId)
+        
+        // Update the watched item with season and episode counts
+        return ctx.db.watchedItem.update({
+          where: {
+            id: input.id,
+            userId: ctx.user.id,
+          },
+          data: {
+            totalSeasons: tvDetails.number_of_seasons || null,
+            totalEpisodes: tvDetails.number_of_episodes || null,
+          },
+          include: {
+            notes: {
+              orderBy: { createdAt: 'desc' },
+              take: 3,
+            },
+            watchedEpisodes: {
+              orderBy: { episodeNumber: 'asc' },
+            },
+            _count: {
+              select: { notes: true },
+            },
+          },
+        })
+      } catch (error) {
+        throw new Error('Failed to fetch TV show details from TMDB')
+      }
+    }),
+
+  // Bulk update TV show details for all user's TV shows
+  updateAllTVShowDetails: protectedProcedure
+    .input(
+      z.object({
+        forceUpdate: z.boolean().default(false), // Force update even if data exists
+        onlyMissingData: z.boolean().default(true), // Only update items with missing data
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Build query based on input parameters
+      const where: any = {
+        userId: ctx.user.id,
+        mediaType: 'TV',
+      }
+
+      if (input.onlyMissingData && !input.forceUpdate) {
+        where.OR = [
+          { totalSeasons: null },
+          { totalEpisodes: null },
+        ]
+      }
+
+      // Get all TV shows for the user based on criteria
+      const tvShows = await ctx.db.watchedItem.findMany({ where })
+
+      // Process updates in batches to avoid overwhelming TMDB API
+      const batchSize = 5
+      let successfulUpdates = 0
+      let failedUpdates = 0
+      const errors: string[] = []
+
+      for (let i = 0; i < tvShows.length; i += batchSize) {
+        const batch = tvShows.slice(i, i + batchSize)
+        
+        const batchPromises = batch.map(async (tvShow) => {
+          try {
+            const tvDetails = await tmdbService.getTVDetailsExtended(tvShow.tmdbId)
+            
+            // Calculate total runtime if not present
+            let totalRuntime = tvShow.totalRuntime
+            if (!totalRuntime && tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0 && tvDetails.number_of_episodes) {
+              const avgEpisodeRuntime = tvDetails.episode_run_time.reduce((a, b) => a + b, 0) / tvDetails.episode_run_time.length
+              totalRuntime = Math.round(avgEpisodeRuntime * tvDetails.number_of_episodes)
+            }
+            
+            const updatedItem = await ctx.db.watchedItem.update({
+              where: { id: tvShow.id },
+              data: {
+                totalSeasons: tvDetails.number_of_seasons || null,
+                totalEpisodes: tvDetails.number_of_episodes || null,
+                totalRuntime: totalRuntime || null,
+              },
+            })
+            
+            successfulUpdates++
+            return updatedItem
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+            console.error(`Failed to update TV show ${tvShow.id} (${tvShow.title}):`, errorMessage)
+            errors.push(`${tvShow.title}: ${errorMessage}`)
+            failedUpdates++
+            return null
+          }
+        })
+
+        // Wait for current batch to complete before starting next
+        await Promise.allSettled(batchPromises)
+        
+        // Add small delay between batches to respect TMDB rate limits
+        if (i + batchSize < tvShows.length) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
+
+      return {
+        totalProcessed: tvShows.length,
+        successfulUpdates,
+        failedUpdates,
+        errors: errors.slice(0, 10), // Return first 10 errors to avoid overwhelming response
+      }
     }),
 })
