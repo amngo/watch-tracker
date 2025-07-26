@@ -31,6 +31,11 @@ export interface MediaStoreState {
   hasNextPage: boolean
   currentPage: number
 
+  // Optimistic updates tracking
+  optimisticItems: Map<string, WatchedItem>
+  pendingOperations: Map<string, 'create' | 'update' | 'delete'>
+  rollbackData: Map<string, WatchedItem | null>
+
   // Actions - Data management
   setWatchedItems: (items: WatchedItem[]) => void
   addWatchedItem: (item: WatchedItem) => void
@@ -69,6 +74,14 @@ export interface MediaStoreState {
   markAsWatching: (id: string) => void
   updateProgress: (id: string, progress: number) => void
 
+  // Optimistic update actions
+  optimisticUpdateItem: (id: string, updates: Partial<WatchedItem>) => void
+  optimisticAddItem: (item: WatchedItem) => void
+  optimisticRemoveItem: (id: string) => void
+  confirmOptimisticUpdate: (id: string) => void
+  rollbackOptimisticUpdate: (id: string) => void
+  clearOptimisticUpdates: () => void
+
   reset: () => void
   resetErrors: () => void
 }
@@ -93,6 +106,11 @@ const initialState = {
   lastUpdated: null,
   hasNextPage: false,
   currentPage: 1,
+
+  // Optimistic updates tracking
+  optimisticItems: new Map(),
+  pendingOperations: new Map(),
+  rollbackData: new Map(),
 }
 
 export const useMediaStore = create<MediaStoreState>()(
@@ -281,6 +299,132 @@ export const useMediaStore = create<MediaStoreState>()(
           }),
           false,
           'media/updateProgress'
+        ),
+
+      // Optimistic update actions
+      optimisticUpdateItem: (id: string, updates: Partial<WatchedItem>) =>
+        set(
+          state => {
+            const item = state.watchedItems.find(item => item.id === id)
+            if (!item) return state
+
+            // Store rollback data if not already stored
+            if (!state.rollbackData.has(id)) {
+              state.rollbackData.set(id, { ...item })
+            }
+
+            // Apply optimistic update
+            const updatedItems = state.watchedItems.map(item =>
+              item.id === id ? { ...item, ...updates } : item
+            )
+
+            // Track the operation
+            state.optimisticItems.set(id, { ...item, ...updates })
+            state.pendingOperations.set(id, 'update')
+
+            return {
+              watchedItems: updatedItems,
+              lastUpdated: new Date(),
+            }
+          },
+          false,
+          'media/optimisticUpdateItem'
+        ),
+
+      optimisticAddItem: (item: WatchedItem) =>
+        set(
+          state => {
+            // Track the operation
+            state.optimisticItems.set(item.id, item)
+            state.pendingOperations.set(item.id, 'create')
+            state.rollbackData.set(item.id, null) // null means item didn't exist
+
+            return {
+              watchedItems: [item, ...state.watchedItems],
+              lastUpdated: new Date(),
+            }
+          },
+          false,
+          'media/optimisticAddItem'
+        ),
+
+      optimisticRemoveItem: (id: string) =>
+        set(
+          state => {
+            const item = state.watchedItems.find(item => item.id === id)
+            if (!item) return state
+
+            // Store rollback data
+            state.rollbackData.set(id, { ...item })
+            state.pendingOperations.set(id, 'delete')
+
+            return {
+              watchedItems: state.watchedItems.filter(item => item.id !== id),
+              lastUpdated: new Date(),
+            }
+          },
+          false,
+          'media/optimisticRemoveItem'
+        ),
+
+      confirmOptimisticUpdate: (id: string) =>
+        set(
+          state => {
+            // Clean up tracking data
+            state.optimisticItems.delete(id)
+            state.pendingOperations.delete(id)
+            state.rollbackData.delete(id)
+
+            return {}
+          },
+          false,
+          'media/confirmOptimisticUpdate'
+        ),
+
+      rollbackOptimisticUpdate: (id: string) =>
+        set(
+          state => {
+            const rollbackItem = state.rollbackData.get(id)
+            const operation = state.pendingOperations.get(id)
+
+            if (operation === 'create') {
+              // Remove the optimistically added item
+              return {
+                watchedItems: state.watchedItems.filter(item => item.id !== id),
+                lastUpdated: new Date(),
+              }
+            } else if (operation === 'delete' && rollbackItem) {
+              // Restore the deleted item
+              return {
+                watchedItems: [rollbackItem, ...state.watchedItems],
+                lastUpdated: new Date(),
+              }
+            } else if (operation === 'update' && rollbackItem) {
+              // Restore the original item
+              return {
+                watchedItems: state.watchedItems.map(item =>
+                  item.id === id ? rollbackItem : item
+                ),
+                lastUpdated: new Date(),
+              }
+            }
+
+            return {}
+          },
+          false,
+          'media/rollbackOptimisticUpdate'
+        ),
+
+      clearOptimisticUpdates: () =>
+        set(
+          state => {
+            state.optimisticItems.clear()
+            state.pendingOperations.clear()
+            state.rollbackData.clear()
+            return {}
+          },
+          false,
+          'media/clearOptimisticUpdates'
         ),
 
       reset: () => set(initialState, false, 'media/reset'),
