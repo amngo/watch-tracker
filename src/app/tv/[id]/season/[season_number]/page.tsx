@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { EpisodeTracker } from '@/components/features/tv/episode-tracker'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
@@ -43,7 +44,7 @@ export default function TVSeasonPage() {
   const [error, setError] = useState<string | null>(null)
   const [spoilerMode, setSpoilerMode] = useState(false)
 
-  const { watchedItems, stats, setStats, setStatsLoading } = useMedia()
+  const { watchedItems, stats, updateItem, setStats, setStatsLoading } = useMedia()
 
   // Fetch user stats
   const { data: statsData, isLoading: statsDataLoading } =
@@ -132,21 +133,6 @@ export default function TVSeasonPage() {
     })
   }
 
-  const isEpisodeWatched = (episodeNumber: number): boolean => {
-    if (!userWatchedItem?.currentEpisode || !userWatchedItem?.currentSeason) {
-      return false
-    }
-
-    if (userWatchedItem.currentSeason > seasonNumber) {
-      return true
-    }
-
-    if (userWatchedItem.currentSeason === seasonNumber) {
-      return episodeNumber <= userWatchedItem.currentEpisode
-    }
-
-    return false
-  }
 
   // Season navigation logic
   const getSeasonNavigation = () => {
@@ -179,6 +165,12 @@ export default function TVSeasonPage() {
 
   const { hasPrevious, hasNext, previousSeason, nextSeason } =
     getSeasonNavigation()
+
+  const handleUpdateProgress = async (data: { currentSeason: number; currentEpisode: number }) => {
+    if (userWatchedItem) {
+      await updateItem(userWatchedItem.id, data)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -432,128 +424,128 @@ export default function TVSeasonPage() {
           </div>
         </div>
 
-        {/* Episodes List */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Episodes</h2>
-          <div className="space-y-4">
-            {seasonDetails.episodes.map((episode: TMDBEpisodeItem) => {
-              const episodeWatched = isEpisodeWatched(episode.episode_number)
-              const stillUrl = episode.still_path
-                ? TMDBService.getImageUrl(episode.still_path, 'w500')
-                : null
+        {/* Episode Tracker */}
+        {userWatchedItem && (
+          <EpisodeTracker
+            watchedItem={userWatchedItem}
+            seasonDetails={seasonDetails}
+            onUpdateProgress={handleUpdateProgress}
+          />
+        )}
 
-              return (
-                <Card key={episode.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
-                      {/* Episode Still */}
-                      <div className="md:col-span-1">
-                        {stillUrl ? (
-                          <div className="aspect-video relative">
-                            <img
-                              src={stillUrl}
-                              alt={episode.name}
-                              className="object-cover w-full h-full"
-                            />
-                            {episodeWatched && (
-                              <div className="absolute top-2 right-2">
-                                <Badge variant="default">Watched</Badge>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="aspect-video bg-muted flex items-center justify-center">
-                            <Tv2 className="h-8 w-8 text-muted-foreground" />
-                            {episodeWatched && (
-                              <div className="absolute top-2 right-2">
-                                <Badge variant="default">Watched</Badge>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+        {/* Episodes List (for non-tracked shows) */}
+        {!userWatchedItem && (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Episodes</h2>
+            <div className="space-y-4">
+              {seasonDetails.episodes.map((episode: TMDBEpisodeItem) => {
+                const stillUrl = episode.still_path
+                  ? TMDBService.getImageUrl(episode.still_path, 'w500')
+                  : null
 
-                      {/* Episode Details */}
-                      <div className="md:col-span-3 p-6">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="text-lg font-semibold mb-1">
-                              {episode.episode_number}. {episode.name}
-                            </h3>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
-                              {episode.air_date && (
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
-                                  <span>{formatAirDate(episode.air_date)}</span>
-                                </div>
-                              )}
-                              {episode.runtime && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  <span>{formatRuntime(episode.runtime)}</span>
-                                </div>
-                              )}
-                              <div className="flex items-center gap-1">
-                                <Star className="h-4 w-4" />
-                                <span>
-                                  {episode.vote_average.toFixed(1)}/10
-                                </span>
-                              </div>
+                return (
+                  <Card key={episode.id} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
+                        {/* Episode Still */}
+                        <div className="md:col-span-1">
+                          {stillUrl ? (
+                            <div className="aspect-video relative">
+                              <img
+                                src={stillUrl}
+                                alt={episode.name}
+                                className="object-cover w-full h-full"
+                              />
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Episode Overview */}
-                        {episode.overview && (
-                          <div className="mb-4">
-                            {spoilerMode || episodeWatched ? (
-                              <p className="text-muted-foreground text-sm leading-relaxed">
-                                {episode.overview}
-                              </p>
-                            ) : (
-                              <div className="relative">
-                                <p className="text-muted-foreground text-sm leading-relaxed blur-sm select-none">
-                                  {episode.overview}
-                                </p>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <Badge variant="outline">
-                                    Spoiler Hidden
-                                  </Badge>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Guest Stars */}
-                        {episode.guest_stars &&
-                          episode.guest_stars.length > 0 && (
-                            <div>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                                GUEST STARS
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {episode.guest_stars.slice(0, 5).map(guest => (
-                                  <Badge key={guest.id} variant="secondary">
-                                    {guest.name}
-                                  </Badge>
-                                ))}
-                                {episode.guest_stars.length > 5 && (
-                                  <Badge variant="outline">
-                                    +{episode.guest_stars.length - 5} more
-                                  </Badge>
-                                )}
-                              </div>
+                          ) : (
+                            <div className="aspect-video bg-muted flex items-center justify-center">
+                              <Tv2 className="h-8 w-8 text-muted-foreground" />
                             </div>
                           )}
+                        </div>
+
+                        {/* Episode Details */}
+                        <div className="md:col-span-3 p-6">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="text-lg font-semibold mb-1">
+                                {episode.episode_number}. {episode.name}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
+                                {episode.air_date && (
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>{formatAirDate(episode.air_date)}</span>
+                                  </div>
+                                )}
+                                {episode.runtime && (
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span>{formatRuntime(episode.runtime)}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-1">
+                                  <Star className="h-4 w-4" />
+                                  <span>
+                                    {episode.vote_average.toFixed(1)}/10
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Episode Overview */}
+                          {episode.overview && (
+                            <div className="mb-4">
+                              {spoilerMode ? (
+                                <p className="text-muted-foreground text-sm leading-relaxed">
+                                  {episode.overview}
+                                </p>
+                              ) : (
+                                <div className="relative">
+                                  <p className="text-muted-foreground text-sm leading-relaxed blur-sm select-none">
+                                    {episode.overview}
+                                  </p>
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <Badge variant="outline">
+                                      Spoiler Hidden
+                                    </Badge>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Guest Stars */}
+                          {episode.guest_stars &&
+                            episode.guest_stars.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                                  GUEST STARS
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {episode.guest_stars.slice(0, 5).map(guest => (
+                                    <Badge key={guest.id} variant="secondary">
+                                      {guest.name}
+                                    </Badge>
+                                  ))}
+                                  {episode.guest_stars.length > 5 && (
+                                    <Badge variant="outline">
+                                      +{episode.guest_stars.length - 5} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </DashboardLayout>
   )

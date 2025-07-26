@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { MediaSearch } from '@/components/features/search/media-search'
+import { SeasonOverview } from '@/components/features/tv/season-overview'
 import {
   Dialog,
   DialogContent,
@@ -36,7 +37,7 @@ export default function TVDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { watchedItems, stats, addMedia, setStats, setStatsLoading } =
+  const { watchedItems, stats, addMedia, updateItem, setStats, setStatsLoading } =
     useMedia()
 
   const { isSearchModalOpen, openSearchModal, closeSearchModal } = useUI()
@@ -94,6 +95,12 @@ export default function TVDetailPage() {
   const handleAddToWatchlist = async (media: TMDBMediaItem) => {
     await addMedia(media)
     closeSearchModal()
+  }
+
+  const handleUpdateProgress = async (data: { currentSeason: number; currentEpisode: number }) => {
+    if (userWatchedItem) {
+      await updateItem(userWatchedItem.id, data)
+    }
   }
 
   const formatRuntime = (minutes: number[] | undefined): string => {
@@ -428,7 +435,16 @@ export default function TVDetailPage() {
         </div>
 
         {/* Seasons */}
-        {tvDetails.seasons && tvDetails.seasons.length > 0 && (
+        {userWatchedItem && tvDetails.seasons && tvDetails.seasons.length > 0 && (
+          <SeasonOverview
+            watchedItem={userWatchedItem}
+            tvDetails={tvDetails}
+            onUpdateProgress={handleUpdateProgress}
+          />
+        )}
+
+        {/* Basic Seasons List (for non-tracked shows) */}
+        {!userWatchedItem && tvDetails.seasons && tvDetails.seasons.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Seasons</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

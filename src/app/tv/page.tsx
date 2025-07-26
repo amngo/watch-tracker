@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { MediaSearch } from '@/components/features/search/media-search'
-import { WatchedItemCard } from '@/components/features/media/watched-item-card'
+import { TVShowCard } from '@/components/features/tv/tv-show-card'
 import {
   Dialog,
   DialogContent,
@@ -221,8 +221,8 @@ export default function TVPage() {
           </div>
 
           {itemsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[...Array(8)].map((_, i) => (
+            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+              {[...Array(6)].map((_, i) => (
                 <LoadingCard key={i} />
               ))}
             </div>
@@ -243,13 +243,14 @@ export default function TVPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
               {tvWatchlistItems.map(item => (
-                <WatchedItemCard
+                <TVShowCard
                   key={item.id}
                   item={item}
                   onUpdate={handleUpdateItem}
                   onDelete={handleDeleteItem}
+                  showSeasonProgress={true}
                 />
               ))}
             </div>
