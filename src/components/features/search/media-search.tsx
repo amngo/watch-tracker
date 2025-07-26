@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Plus, Film, Tv } from 'lucide-react'
+import { Search, Plus, Film, Tv, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,6 +11,7 @@ import { MediaTypeBadge, VoteAverageBadge } from '@/components/ui/media-badges'
 import { cn, getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { TMDBSearchResultItem } from '@/lib/tmdb'
 import { useSearch } from '@/hooks/use-search'
+import { useMediaStore } from '@/stores/media-store'
 import { useEffect } from 'react'
 import type { MediaSearchProps, TMDBMediaItem } from '@/types'
 
@@ -25,6 +26,8 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
     setSearchType,
     clearSearch,
   } = useSearch()
+
+  const { isItemInWatchlist } = useMediaStore()
 
   const handleAddMedia = (media: TMDBMediaItem) => {
     onAddMedia(media)
@@ -88,58 +91,80 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
                 </div>
               ) : results.length > 0 ? (
                 <div className="space-y-3">
-                  {results.map(media => (
-                    <Card
-                      key={media.id}
-                      className="transition-shadow hover:shadow-md p-0"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex gap-4">
-                          <MediaPoster
-                            src={media.poster_path}
-                            alt={getTMDBTitle(media)}
-                            mediaType={media.media_type}
-                            size="md"
-                          />
+                  {results.map(media => {
+                    const isInWatchlist = isItemInWatchlist(
+                      media.id,
+                      media.media_type
+                    )
+                    return (
+                      <Card
+                        key={media.id}
+                        className="transition-shadow hover:shadow-md p-0"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex gap-4">
+                            <MediaPoster
+                              src={media.poster_path}
+                              alt={getTMDBTitle(media)}
+                              mediaType={media.media_type}
+                              size="md"
+                            />
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <h3 className="font-semibold text-lg leading-tight">
-                                  {getTMDBTitle(media)}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <MediaTypeBadge
-                                    mediaType={media.media_type}
-                                  />
-                                  <span className="text-xs text-muted-foreground">
-                                    {getTMDBReleaseDate(media)}
-                                  </span>
-                                  <VoteAverageBadge
-                                    rating={media.vote_average}
-                                  />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="font-semibold text-lg leading-tight">
+                                    {getTMDBTitle(media)}
+                                  </h3>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <MediaTypeBadge
+                                      mediaType={media.media_type}
+                                    />
+                                    <span className="text-xs text-muted-foreground">
+                                      {getTMDBReleaseDate(media)}
+                                    </span>
+                                    <VoteAverageBadge
+                                      rating={media.vote_average}
+                                    />
+                                    {/* {isInWatchlist && (
+                                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs rounded-full">
+                                        <Check className="h-3 w-3" />
+                                        In Watchlist
+                                      </div>
+                                    )} */}
+                                  </div>
                                 </div>
+
+                                <Button
+                                  onClick={() =>
+                                    !isInWatchlist && handleAddMedia(media)
+                                  }
+                                  size="sm"
+                                  className="shrink-0"
+                                  disabled={isInWatchlist}
+                                  variant={
+                                    isInWatchlist ? 'secondary' : 'default'
+                                  }
+                                >
+                                  {isInWatchlist ? (
+                                    <Check className="h-4 w-4" />
+                                  ) : (
+                                    <Plus className="h-4 w-4" />
+                                  )}
+                                </Button>
                               </div>
 
-                              <Button
-                                onClick={() => handleAddMedia(media)}
-                                size="sm"
-                                className="shrink-0"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
+                              {media.overview && (
+                                <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                  {media.overview}
+                                </p>
+                              )}
                             </div>
-
-                            {media.overview && (
-                              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                                {media.overview}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
               ) : query.length > 0 && !isLoading ? (
                 <Card>

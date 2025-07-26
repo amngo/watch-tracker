@@ -68,6 +68,7 @@ export interface MediaStoreState {
   getItemById: (id: string) => WatchedItem | undefined
   getItemsByStatus: (status: WatchedItem['status']) => WatchedItem[]
   getItemsByType: (type: WatchedItem['mediaType']) => WatchedItem[]
+  isItemInWatchlist: (tmdbId: number, mediaType: 'movie' | 'tv') => boolean
 
   // Bulk operations
   markAsCompleted: (id: string) => void
@@ -226,6 +227,14 @@ export const useMediaStore = create<MediaStoreState>()(
       getItemsByType: (type: WatchedItem['mediaType']) => {
         const state = get()
         return state.watchedItems.filter(item => item.mediaType === type)
+      },
+
+      isItemInWatchlist: (tmdbId: number, mediaType: 'movie' | 'tv') => {
+        const state = get()
+        const watchlistMediaType = mediaType === 'movie' ? 'MOVIE' : 'TV'
+        return state.watchedItems.some(
+          item => item.tmdbId === tmdbId && item.mediaType === watchlistMediaType
+        )
       },
 
       // Bulk operations
