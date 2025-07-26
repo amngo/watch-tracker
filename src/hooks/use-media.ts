@@ -2,6 +2,9 @@ import { useCallback } from 'react'
 import { useMediaStore } from '@/stores/media-store'
 import { api } from '@/trpc/react'
 import { showToast } from '@/components/common/toast-provider'
+import { calculateProgress } from '@/lib/utils'
+import { logError } from '@/lib/logger'
+import type { TMDBSearchResultItem, UpdateWatchedItemData } from '@/types'
 
 export function useMedia() {
   const store = useMediaStore()
@@ -33,9 +36,13 @@ export function useMedia() {
         finishDate: data.finishDate,
         notes: [],
         _count: { notes: 0 },
-        progress: data.status === 'COMPLETED' ? 100 : 
-                 data.status === 'WATCHING' ? 50 : 
-                 data.status === 'PAUSED' ? 25 : 0,
+        progress: calculateProgress(
+          data.status,
+          data.currentEpisode,
+          data.totalEpisodes,
+          data.currentRuntime,
+          data.totalRuntime
+        ),
       })
       store.setItemsLoading(false)
       showToast.success('Media added successfully!')
@@ -61,9 +68,13 @@ export function useMedia() {
         startDate: data.startDate,
         finishDate: data.finishDate,
         updatedAt: data.updatedAt,
-        progress: data.status === 'COMPLETED' ? 100 : 
-                 data.status === 'WATCHING' ? 50 : 
-                 data.status === 'PAUSED' ? 25 : 0,
+        progress: calculateProgress(
+          data.status,
+          data.currentEpisode,
+          data.totalEpisodes,
+          data.currentRuntime,
+          data.totalRuntime
+        ),
       })
       store.setItemsLoading(false)
       showToast.success('Progress updated!')
@@ -91,15 +102,7 @@ export function useMedia() {
     },
   })
 
-  const addMedia = useCallback(async (media: {
-    id: number
-    media_type: string
-    title?: string
-    name?: string
-    poster_path?: string
-    release_date?: string
-    first_air_date?: string
-  }) => {
+  const addMedia = useCallback(async (media: TMDBSearchResultItem) => {
     try {
       const dateString = media.release_date || media.first_air_date
       const releaseDate = dateString ? new Date(dateString) : undefined
@@ -108,25 +111,31 @@ export function useMedia() {
         tmdbId: media.id,
         mediaType: media.media_type === 'movie' ? 'MOVIE' : 'TV',
         title: media.title || media.name || 'Unknown Title',
-        poster: media.poster_path,
+        poster: media.poster_path || undefined,
         releaseDate,
         totalRuntime: media.media_type === 'movie' ? 120 : undefined,
         totalEpisodes: media.media_type === 'tv' ? 24 : undefined,
         totalSeasons: media.media_type === 'tv' ? 2 : undefined,
       })
     } catch (error) {
-      console.error('Error adding media:', error)
+      logError('Failed to add media to watchlist', error, {
+        component: 'useMedia',
+        metadata: { tmdbId: media.id, mediaType: media.media_type }
+      })
     }
   }, [createMutation])
 
   const updateItem = useCallback(async (
     id: string,
-    data: Record<string, unknown>
+    data: UpdateWatchedItemData
   ) => {
     try {
       await updateMutation.mutateAsync({ id, ...data })
     } catch (error) {
-      console.error('Error updating item:', error)
+      logError('Failed to update watched item', error, {
+        component: 'useMedia',
+        metadata: { itemId: id }
+      })
     }
   }, [updateMutation])
 
@@ -134,7 +143,10 @@ export function useMedia() {
     try {
       await deleteMutation.mutateAsync({ id })
     } catch (error) {
-      console.error('Error deleting item:', error)
+      logError('Failed to delete watched item', error, {
+        component: 'useMedia',
+        metadata: { itemId: id }
+      })
     }
   }, [deleteMutation])
 

@@ -16,17 +16,13 @@ import { cn } from '@/lib/utils'
 import { TMDBSearchResultItem } from '@/lib/tmdb'
 import { useSearch } from '@/hooks/use-search'
 import { useEffect } from 'react'
-
-interface MediaSearchProps {
-  onAddMedia: (media: any) => void
-  className?: string
-}
+import type { MediaSearchProps } from '@/types'
 
 export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
   const { query, results, isLoading, error, setQuery, clearSearch } =
     useSearch()
 
-  const handleAddMedia = (media: any) => {
+  const handleAddMedia = (media: TMDBSearchResultItem) => {
     onAddMedia(media)
     clearSearch()
   }

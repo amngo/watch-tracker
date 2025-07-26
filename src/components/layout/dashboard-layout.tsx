@@ -27,22 +27,8 @@ import {
 } from '@/components/ui/sheet'
 import { UserButton } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
+import type { DashboardLayoutProps, NavigationItem } from '@/types'
 
-interface DashboardLayoutProps {
-  children: React.ReactNode
-  stats?: {
-    totalItems: number
-    completedItems: number
-    currentlyWatching: number
-    totalNotes: number
-  }
-}
-
-interface NavigationItem {
-  name: string
-  href: string
-  icon: any
-}
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },

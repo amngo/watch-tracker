@@ -24,6 +24,8 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { ErrorDisplay } from '@/components/common/error-boundary'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
+import { calculateProgress } from '@/lib/utils'
+import type { TMDBSearchResultItem, WatchedItem } from '@/types'
 
 export default function Dashboard() {
   const {
@@ -84,29 +86,27 @@ export default function Dashboard() {
           finishDate: item.finishDate,
           notes: item.notes || [],
           _count: item._count,
-          // Calculate progress - for now using a simple calculation
-          progress:
-            item.status === 'COMPLETED'
-              ? 100
-              : item.status === 'WATCHING'
-                ? 50
-                : item.status === 'PAUSED'
-                  ? 25
-                  : 0,
+          progress: calculateProgress(
+            item.status,
+            item.currentEpisode,
+            item.totalEpisodes,
+            item.currentRuntime,
+            item.totalRuntime
+          ),
         }))
       )
     }
     setItemsLoading(itemsDataLoading)
   }, [recentItems, itemsDataLoading, setWatchedItems, setItemsLoading])
 
-  const handleAddMedia = async (media: any) => {
+  const handleAddMedia = async (media: TMDBSearchResultItem) => {
     await addMedia(media)
     closeSearchModal()
   }
 
   const handleUpdateItem = async (
     id: string,
-    data: Record<string, unknown>
+    data: Partial<WatchedItem>
   ) => {
     await updateItem(id, data)
   }

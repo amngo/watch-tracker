@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
+import type { TMDBSearchResultItem } from '@/types'
 
 export interface UIStoreState {
   // Modal states
@@ -13,7 +14,7 @@ export interface UIStoreState {
   
   // Search state
   searchQuery: string
-  searchResults: any[]
+  searchResults: TMDBSearchResultItem[]
   searchLoading: boolean
   
   // Filters and sorting
@@ -38,7 +39,7 @@ export interface UIStoreState {
   setLoading: (loading: boolean, message?: string) => void
   
   setSearchQuery: (query: string) => void
-  setSearchResults: (results: any[]) => void
+  setSearchResults: (results: TMDBSearchResultItem[]) => void
   setSearchLoading: (loading: boolean) => void
   clearSearch: () => void
   
@@ -118,7 +119,7 @@ export const useUIStore = create<UIStoreState>()(
       setSearchQuery: (query: string) =>
         set({ searchQuery: query }, false, 'ui/setSearchQuery'),
 
-      setSearchResults: (results: any[]) =>
+      setSearchResults: (results: TMDBSearchResultItem[]) =>
         set({ searchResults: results }, false, 'ui/setSearchResults'),
 
       setSearchLoading: (loading: boolean) =>

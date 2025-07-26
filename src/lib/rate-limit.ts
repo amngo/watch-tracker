@@ -1,6 +1,8 @@
 // Simple rate limiting implementation
 // In production, you'd want to use Redis with proper distributed rate limiting
 
+import type { TRPCContext, TRPCMiddlewareOpts } from '@/types'
+
 interface RateLimitEntry {
   count: number
   resetTime: number
@@ -111,10 +113,10 @@ export const rateLimitKeys = {
 // Middleware function for tRPC
 export function createRateLimitMiddleware(
   limiter: RateLimiter,
-  keyGenerator: (ctx: any) => string,
+  keyGenerator: (ctx: TRPCContext) => string,
   errorMessage = 'Rate limit exceeded'
 ) {
-  return async function rateLimitMiddleware(opts: any) {
+  return async function rateLimitMiddleware(opts: TRPCMiddlewareOpts) {
     const key = keyGenerator(opts.ctx)
     const result = limiter.check(key)
     
