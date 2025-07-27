@@ -317,6 +317,7 @@ export interface NavigationItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   active?: boolean
+  badgeKey?: 'queue' | 'movies' | 'tvShows' | 'notes'
 }
 
 // Extended TMDB types for detailed pages

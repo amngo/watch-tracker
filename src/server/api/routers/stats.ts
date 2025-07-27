@@ -5,6 +5,59 @@ import { createError, toTRPCError } from '@/lib/errors'
 const TimeRangeSchema = z.enum(['week', 'month', 'quarter', 'year', 'all']).default('month')
 
 export const statsRouter = createTRPCRouter({
+  // Get navigation badge counts
+  navigationCounts: protectedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.db.user.findUnique({
+      where: { clerkId: ctx.session.userId },
+    })
+
+    if (!user) {
+      throw toTRPCError(createError.userNotFound(ctx.session.userId))
+    }
+
+    const [
+      queueCount,
+      moviesCount,
+      tvShowsCount,
+      notesCount,
+    ] = await Promise.all([
+      // Active queue items (not watched)
+      ctx.db.queueItem.count({ 
+        where: { 
+          userId: user.id,
+          watched: false,
+        } 
+      }),
+      // Movies count
+      ctx.db.watchedItem.count({ 
+        where: { 
+          userId: user.id,
+          mediaType: 'MOVIE',
+        } 
+      }),
+      // TV Shows count
+      ctx.db.watchedItem.count({ 
+        where: { 
+          userId: user.id,
+          mediaType: 'TV',
+        } 
+      }),
+      // Total notes count
+      ctx.db.note.count({ 
+        where: { 
+          userId: user.id,
+        } 
+      }),
+    ])
+
+    return {
+      queue: queueCount,
+      movies: moviesCount,
+      tvShows: tvShowsCount,
+      notes: notesCount,
+    }
+  }),
+
   // Get user's overall statistics
   overview: protectedProcedure
     .input(z.object({

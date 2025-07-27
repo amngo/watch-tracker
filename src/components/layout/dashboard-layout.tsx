@@ -27,15 +27,17 @@ import {
 } from '@/components/ui/sheet'
 import { UserButton } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
+import { NavigationBadge } from '@/components/ui/navigation-badge'
+import { useNavigationCounts } from '@/hooks/use-navigation-counts'
 import type { DashboardLayoutProps, NavigationItem } from '@/types'
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Search & Add', href: '/search', icon: Search },
-  { name: 'Queue', href: '/queue', icon: ListOrdered },
-  { name: 'Movies', href: '/movies', icon: Film },
-  { name: 'TV Shows', href: '/tv', icon: Tv },
-  { name: 'Notes', href: '/notes', icon: FileText },
+  { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
+  { name: 'Movies', href: '/movies', icon: Film, badgeKey: 'movies' },
+  { name: 'TV Shows', href: '/tv', icon: Tv, badgeKey: 'tvShows' },
+  { name: 'Notes', href: '/notes', icon: FileText, badgeKey: 'notes' },
   { name: 'Statistics', href: '/stats', icon: BarChart3 },
   { name: 'Profile', href: '/profile', icon: User },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -44,6 +46,7 @@ const navigation: NavigationItem[] = [
 export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { counts } = useNavigationCounts()
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,6 +70,7 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
                   navigation={navigation}
                   pathname={pathname}
                   stats={stats}
+                  counts={counts}
                   onItemClick={() => setIsMobileMenuOpen(false)}
                 />
               </SheetContent>
@@ -98,6 +102,7 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
               navigation={navigation}
               pathname={pathname}
               stats={stats}
+              counts={counts}
             />
           </div>
         </div>
@@ -140,16 +145,24 @@ function DesktopNavigation({
   navigation,
   pathname,
   stats,
+  counts,
 }: {
   navigation: NavigationItem[]
   pathname: string
   stats?: DashboardLayoutProps['stats']
+  counts?: {
+    queue: number
+    movies: number
+    tvShows: number
+    notes: number
+  }
 }) {
   return (
     <div className="mt-8 flex-grow flex flex-col">
       <nav className="flex-1 space-y-1 px-2">
         {navigation.map(item => {
           const isActive = pathname === item.href
+          const badgeCount = item.badgeKey && counts ? counts[item.badgeKey] : 0
           return (
             <Link
               key={item.name}
@@ -163,6 +176,12 @@ function DesktopNavigation({
             >
               <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
               {item.name}
+              {item.badgeKey && (
+                <NavigationBadge 
+                  count={badgeCount} 
+                  isActive={isActive}
+                />
+              )}
             </Link>
           )
         })}
@@ -204,11 +223,18 @@ function MobileNavigation({
   navigation,
   pathname,
   stats,
+  counts,
   onItemClick,
 }: {
   navigation: NavigationItem[]
   pathname: string
   stats?: DashboardLayoutProps['stats']
+  counts?: {
+    queue: number
+    movies: number
+    tvShows: number
+    notes: number
+  }
   onItemClick: () => void
 }) {
   return (
@@ -216,6 +242,7 @@ function MobileNavigation({
       <nav className="flex-1 space-y-1">
         {navigation.map(item => {
           const isActive = pathname === item.href
+          const badgeCount = item.badgeKey && counts ? counts[item.badgeKey] : 0
           return (
             <Link
               key={item.name}
@@ -230,6 +257,12 @@ function MobileNavigation({
             >
               <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
               {item.name}
+              {item.badgeKey && (
+                <NavigationBadge 
+                  count={badgeCount} 
+                  isActive={isActive}
+                />
+              )}
             </Link>
           )
         })}
