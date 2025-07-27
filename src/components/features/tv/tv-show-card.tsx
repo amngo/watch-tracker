@@ -13,6 +13,7 @@ import {
   Tv,
   ChevronRight,
   RefreshCw,
+  RotateCcw,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
@@ -66,12 +78,19 @@ export function TVShowCard({
 }: TVShowCardProps) {
   const [isEditingRating, setIsEditingRating] = useState(false)
   const [isEditingProgress, setIsEditingProgress] = useState(false)
+  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false)
   const [newSeason, setNewSeason] = useState(item.currentSeason || 1)
   const [newEpisode, setNewEpisode] = useState(item.currentEpisode || 1)
 
   const { updateTVShowDetails } = useMedia()
 
   const handleStatusChange = (newStatus: WatchStatus) => {
+    // Show confirmation dialog for TV shows when marking as complete
+    if (newStatus === 'COMPLETED' && item.mediaType === 'TV') {
+      setIsCompletionDialogOpen(true)
+      return
+    }
+
     onUpdate(item.id, {
       status: newStatus,
       // Preserve existing progress when changing status
@@ -80,6 +99,16 @@ export function TVShowCard({
       ...(newStatus === 'WATCHING' &&
         !item.startDate && { startDate: new Date() }),
     })
+  }
+
+  const handleConfirmComplete = () => {
+    onUpdate(item.id, {
+      status: 'COMPLETED',
+      progress: 100,
+      finishDate: new Date(),
+      // Mark all episodes as watched - this will be handled by the backend
+    })
+    setIsCompletionDialogOpen(false)
   }
 
   const handleRatingChange = (rating: number | null) => {
@@ -97,6 +126,18 @@ export function TVShowCard({
 
   const handleRefreshDetails = () => {
     updateTVShowDetails(item.id)
+  }
+
+  const handleResetProgress = () => {
+    onUpdate(item.id, {
+      status: 'PLANNED',
+      progress: 0,
+      currentSeason: 1,
+      currentEpisode: 1,
+      startDate: null,
+      finishDate: null,
+      // Reset all episodes to unwatched - this will be handled by the backend
+    })
   }
 
   const detailUrl = `/tv/${item.tmdbId}`
@@ -193,6 +234,13 @@ export function TVShowCard({
                   >
                     <Edit3 className="h-4 w-4" />
                     Update Progress
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleResetProgress}
+                    className="flex items-center gap-2"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset Progress
                   </DropdownMenuItem>
                   {showRefreshButton && item.mediaType === 'TV' && (
                     <DropdownMenuItem
@@ -348,6 +396,24 @@ export function TVShowCard({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Completion Confirmation Dialog */}
+      <AlertDialog open={isCompletionDialogOpen} onOpenChange={setIsCompletionDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark Show as Complete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Marking "{item.title}" as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete}>
+              Yes, Mark Complete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   )
 }

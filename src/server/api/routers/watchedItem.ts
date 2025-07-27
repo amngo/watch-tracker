@@ -131,8 +131,91 @@ export const watchedItemRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, watchedEpisodes, ...updateData } = input
 
-      // Handle watched episodes update if provided
-      if (watchedEpisodes) {
+      // Get the current watched item to check if it's a TV show being marked as completed
+      const currentItem = await ctx.db.watchedItem.findFirst({
+        where: {
+          id,
+          userId: ctx.user.id,
+        },
+      })
+
+      if (!currentItem) {
+        throw new Error('Watched item not found')
+      }
+
+      // Handle automatic episode marking when TV show is marked as COMPLETED
+      if (
+        updateData.status === 'COMPLETED' && 
+        currentItem.mediaType === 'TV' && 
+        currentItem.status !== 'COMPLETED' &&
+        !watchedEpisodes // Only auto-generate if no explicit episodes provided
+      ) {
+        try {
+          // Fetch TV show details to get all seasons and episodes
+          const tvDetails = await tmdbService.getTVDetailsExtended(currentItem.tmdbId)
+          
+          if (tvDetails.seasons && tvDetails.seasons.length > 0) {
+            // Generate watched episodes for all seasons/episodes
+            const allEpisodes: Array<{
+              seasonNumber: number;
+              episodeNumber: number;
+              status: 'WATCHED';
+              watchedAt: Date;
+              watchedItemId: string;
+            }> = []
+
+            // Fetch detailed season information for each season to get episode counts
+            for (const season of tvDetails.seasons) {
+              // Skip season 0 (specials) unless it's the only season
+              if (season.season_number === 0 && tvDetails.seasons.length > 1) continue
+
+              try {
+                const seasonDetails = await tmdbService.getTVSeasonDetails(currentItem.tmdbId, season.season_number)
+                
+                // Add all episodes from this season using actual episode data
+                for (const episode of seasonDetails.episodes) {
+                  allEpisodes.push({
+                    seasonNumber: season.season_number,
+                    episodeNumber: episode.episode_number,
+                    status: 'WATCHED',
+                    watchedAt: new Date(),
+                    watchedItemId: id,
+                  })
+                }
+              } catch (seasonError) {
+                console.warn(`Failed to fetch season ${season.season_number} details for TV show ${currentItem.tmdbId}:`, seasonError)
+                // Fallback: use episode_count from basic season info
+                for (let episodeNum = 1; episodeNum <= season.episode_count; episodeNum++) {
+                  allEpisodes.push({
+                    seasonNumber: season.season_number,
+                    episodeNumber: episodeNum,
+                    status: 'WATCHED',
+                    watchedAt: new Date(),
+                    watchedItemId: id,
+                  })
+                }
+              }
+            }
+
+            // Clear existing watched episodes and create new ones
+            await ctx.db.watchedEpisode.deleteMany({
+              where: { watchedItemId: id },
+            })
+
+            if (allEpisodes.length > 0) {
+              await ctx.db.watchedEpisode.createMany({
+                data: allEpisodes,
+              })
+            }
+          }
+        } catch (tmdbError) {
+          console.error(`Failed to fetch TV show details for completion marking:`, tmdbError)
+          // Don't fail the status update if TMDB fetch fails
+          // The user can manually mark episodes later
+        }
+      }
+      // Handle explicit watched episodes update if provided
+      else if (watchedEpisodes) {
         // First, delete all existing watched episodes for this item
         await ctx.db.watchedEpisode.deleteMany({
           where: {

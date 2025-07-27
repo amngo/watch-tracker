@@ -10,6 +10,7 @@ import {
   Check,
   X,
   Edit3,
+  RotateCcw,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -26,6 +27,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { MediaPoster } from '@/components/ui/media-poster'
 import Link from 'next/link'
 import {
@@ -52,8 +63,15 @@ export function WatchedItemCard({
   onDelete,
 }: WatchedItemCardProps) {
   const [isEditingRating, setIsEditingRating] = useState(false)
+  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false)
 
   const handleStatusChange = (newStatus: WatchStatus) => {
+    // Show confirmation dialog for TV shows when marking as complete
+    if (newStatus === 'COMPLETED' && item.mediaType === 'TV') {
+      setIsCompletionDialogOpen(true)
+      return
+    }
+
     onUpdate(item.id, {
       status: newStatus,
       ...(newStatus === 'COMPLETED' && { finishDate: new Date() }),
@@ -62,9 +80,31 @@ export function WatchedItemCard({
     })
   }
 
+  const handleConfirmComplete = () => {
+    onUpdate(item.id, {
+      status: 'COMPLETED',
+      progress: 100,
+      finishDate: new Date(),
+      // Mark all episodes as watched - this will be handled by the backend
+    })
+    setIsCompletionDialogOpen(false)
+  }
+
   const handleRatingChange = (rating: number | null) => {
     onUpdate(item.id, { rating })
     setIsEditingRating(false)
+  }
+
+  const handleResetProgress = () => {
+    onUpdate(item.id, {
+      status: 'PLANNED',
+      progress: 0,
+      currentSeason: 1,
+      currentEpisode: 1,
+      startDate: null,
+      finishDate: null,
+      // Reset all episodes to unwatched - this will be handled by the backend
+    })
   }
 
   const detailUrl = item.mediaType === 'MOVIE' 
@@ -128,6 +168,15 @@ export function WatchedItemCard({
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
+                  {item.mediaType === 'TV' && (
+                    <DropdownMenuItem
+                      onClick={handleResetProgress}
+                      className="flex items-center gap-2"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Reset Progress
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={() => onDelete(item.id)}
                     className="text-destructive"
@@ -207,6 +256,24 @@ export function WatchedItemCard({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Completion Confirmation Dialog */}
+      <AlertDialog open={isCompletionDialogOpen} onOpenChange={setIsCompletionDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark Show as Complete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Marking "{item.title}" as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmComplete}>
+              Yes, Mark Complete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   )
 }
