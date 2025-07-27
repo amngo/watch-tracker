@@ -229,14 +229,34 @@ export const queueRouter = createTRPCRouter({
         })
       }
 
-      const updatedItem = await ctx.db.queueItem.update({
-        where: { id: input.id },
-        data: {
-          watched: true,
-        },
+      // Use a transaction to update watched status and reorder remaining items
+      await ctx.db.$transaction(async (tx) => {
+        // Mark the item as watched
+        await tx.queueItem.update({
+          where: { id: input.id },
+          data: {
+            watched: true,
+          },
+        })
+
+        // Reorder remaining items to fill the gap
+        await tx.queueItem.updateMany({
+          where: {
+            userId: ctx.user.id,
+            watched: false, // Only reorder unwatched items
+            position: {
+              gt: queueItem.position,
+            },
+          },
+          data: {
+            position: {
+              decrement: 1,
+            },
+          },
+        })
       })
 
-      return updatedItem
+      return { success: true }
     }),
 
   // Get watched queue items (history)
@@ -260,6 +280,29 @@ export const queueRouter = createTRPCRouter({
       where: {
         userId: ctx.user.id,
         watched: true,
+      },
+    })
+
+    return { deletedCount: deletedItems.count }
+  }),
+
+  // Clear entire queue (both watched and unwatched items)
+  clearQueue: protectedProcedure.mutation(async ({ ctx }) => {
+    const deletedItems = await ctx.db.queueItem.deleteMany({
+      where: {
+        userId: ctx.user.id,
+      },
+    })
+
+    return { deletedCount: deletedItems.count }
+  }),
+
+  // Clear only active queue items (unwatched)
+  clearActiveQueue: protectedProcedure.mutation(async ({ ctx }) => {
+    const deletedItems = await ctx.db.queueItem.deleteMany({
+      where: {
+        userId: ctx.user.id,
+        watched: false,
       },
     })
 

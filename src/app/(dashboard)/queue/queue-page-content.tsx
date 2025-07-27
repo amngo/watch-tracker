@@ -17,10 +17,11 @@ export function QueuePageContent() {
     removeFromQueue,
     markAsWatched,
     clearWatchedItems,
+    clearQueue,
+    clearActiveQueue,
   } = useQueue()
 
   const activeQueue = queueItems.filter((item) => !item.watched)
-  const completedQueue = queueItems.filter((item) => item.watched)
 
   return (
     <div className="space-y-6">
@@ -61,7 +62,7 @@ export function QueuePageContent() {
               <History className="h-4 w-4 text-muted-foreground" />
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Completed</p>
-                <p className="text-2xl font-bold">{completedQueue.length + watchHistory.length}</p>
+                <p className="text-2xl font-bold">{watchHistory.length}</p>
               </div>
             </div>
           </CardContent>
@@ -109,6 +110,8 @@ export function QueuePageContent() {
         onRemove={removeFromQueue}
         onMarkWatched={markAsWatched}
         onClearWatched={clearWatchedItems}
+        onClearQueue={clearQueue}
+        onClearActiveQueue={clearActiveQueue}
       />
     </div>
   )
