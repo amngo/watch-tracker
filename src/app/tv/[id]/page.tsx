@@ -9,6 +9,7 @@ import {
   Plus,
   Edit3,
   Tv2,
+  MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -460,16 +461,29 @@ export default function TVDetailPage() {
                         {userWatchedItem.progress}%
                       </span>
                     </div>
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        // Could open a quick edit dialog here
-                      }}
-                    >
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      Update Progress
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          // Could open a quick edit dialog here
+                        }}
+                      >
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Update Progress
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        asChild
+                      >
+                        <Link href={`/tv/${tvId}/notes`}>
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          View Notes
+                        </Link>
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}

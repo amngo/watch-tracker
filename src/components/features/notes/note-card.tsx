@@ -17,40 +17,50 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-
-interface Note {
-  id: string
-  content: string
-  timestamp?: string
-  isPublic: boolean
-  hasSpoilers: boolean
-  createdAt: Date
-  updatedAt: Date
-}
+import { api } from '@/trpc/react'
+import type { Note } from '@/types'
 
 interface NoteCardProps {
   note: Note
-  mediaTitle: string
-  onUpdate: (id: string, data: Partial<Note>) => void
-  onDelete: (id: string) => void
+  onDeleted?: () => void
+  formatTimestamp?: (timestamp: string | null) => string | null
   showSpoilers?: boolean
 }
 
-export function NoteCard({ note, mediaTitle, onUpdate, onDelete, showSpoilers = true }: NoteCardProps) {
+export function NoteCard({ note, onDeleted, formatTimestamp, showSpoilers = true }: NoteCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(note.content)
   const [editTimestamp, setEditTimestamp] = useState(note.timestamp || '')
   const [editIsPublic, setEditIsPublic] = useState(note.isPublic)
   const [editHasSpoilers, setEditHasSpoilers] = useState(note.hasSpoilers)
 
+  const updateNoteMutation = api.note.update.useMutation({
+    onSuccess: () => {
+      setIsEditing(false)
+      onDeleted?.()
+    }
+  })
+
+  const deleteNoteMutation = api.note.delete.useMutation({
+    onSuccess: () => {
+      onDeleted?.()
+    }
+  })
+
   const handleSave = () => {
-    onUpdate(note.id, {
+    updateNoteMutation.mutate({
+      id: note.id,
       content: editContent,
       timestamp: editTimestamp || undefined,
       isPublic: editIsPublic,
       hasSpoilers: editHasSpoilers
     })
-    setIsEditing(false)
+  }
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this note?')) {
+      deleteNoteMutation.mutate({ id: note.id })
+    }
   }
 
   const handleCancel = () => {
@@ -74,7 +84,7 @@ export function NoteCard({ note, mediaTitle, onUpdate, onDelete, showSpoilers = 
                 <div className="flex items-center gap-1 mb-2">
                   <Clock className="h-3 w-3 text-muted-foreground" />
                   <Badge variant="outline" className="text-xs">
-                    {note.timestamp}
+                    {formatTimestamp ? formatTimestamp(note.timestamp) : note.timestamp}
                   </Badge>
                 </div>
               )}
@@ -133,7 +143,7 @@ export function NoteCard({ note, mediaTitle, onUpdate, onDelete, showSpoilers = 
                   <Edit3 className="h-4 w-4 mr-2" />
                   Edit Note
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(note.id)} className="text-destructive">
+                <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Note
                 </DropdownMenuItem>
@@ -196,11 +206,18 @@ export function NoteCard({ note, mediaTitle, onUpdate, onDelete, showSpoilers = 
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleCancel}>
+              <Button 
+                variant="outline" 
+                onClick={handleCancel}
+                disabled={updateNoteMutation.isPending}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
-                Save Changes
+              <Button 
+                onClick={handleSave}
+                disabled={updateNoteMutation.isPending}
+              >
+                {updateNoteMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>
