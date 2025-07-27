@@ -5,7 +5,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import type { EpisodeWatchStatus, TMDBEpisodeItem, WatchedItem } from '@/types'

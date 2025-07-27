@@ -62,13 +62,20 @@ export function SimpleQueueItem({
 
   const getDisplayTitle = () => {
     if (item.contentType === 'TV' && item.seasonNumber && item.episodeNumber) {
-      return `${item.title} - S${item.seasonNumber.toString().padStart(2, '0')}E${item.episodeNumber.toString().padStart(2, '0')}`
+      const episodeCode = `S${item.seasonNumber.toString().padStart(2, '0')}E${item.episodeNumber.toString().padStart(2, '0')}`
+      if (item.episodeName) {
+        return `${item.title} - ${episodeCode}: ${item.episodeName}`
+      }
+      return `${item.title} - ${episodeCode}`
     }
     return item.title
   }
 
   const getSubtitle = () => {
     if (item.contentType === 'TV' && item.seasonNumber && item.episodeNumber) {
+      if (item.episodeName) {
+        return `Season ${item.seasonNumber}, Episode ${item.episodeNumber}`
+      }
       return `Season ${item.seasonNumber}, Episode ${item.episodeNumber}`
     }
     if (item.releaseDate) {

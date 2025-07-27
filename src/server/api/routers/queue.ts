@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { TRPCError } from '@trpc/server'
+import { TMDBService } from '@/lib/tmdb'
 
 export const queueRouter = createTRPCRouter({
   // Get user's queue
@@ -29,6 +30,7 @@ export const queueRouter = createTRPCRouter({
         tmdbId: z.number(),
         seasonNumber: z.number().nullable().optional(),
         episodeNumber: z.number().nullable().optional(),
+        episodeName: z.string().nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -61,6 +63,28 @@ export const queueRouter = createTRPCRouter({
 
       const nextPosition = lastItem ? lastItem.position + 1 : 1
 
+      // Fetch episode name from TMDB if this is a TV episode
+      let episodeName = input.episodeName
+      if (
+        input.contentType === 'TV' &&
+        input.seasonNumber &&
+        input.episodeNumber &&
+        !episodeName
+      ) {
+        try {
+          const tmdb = new TMDBService()
+          const episodeData = await tmdb.getTVEpisodeDetails(
+            input.tmdbId,
+            input.seasonNumber,
+            input.episodeNumber
+          )
+          episodeName = episodeData.name
+        } catch (error) {
+          // If TMDB fetch fails, continue without episode name
+          console.warn('Failed to fetch episode name from TMDB:', error)
+        }
+      }
+
       // Create the queue item
       const queueItem = await ctx.db.queueItem.create({
         data: {
@@ -73,6 +97,7 @@ export const queueRouter = createTRPCRouter({
           tmdbId: input.tmdbId,
           seasonNumber: input.seasonNumber,
           episodeNumber: input.episodeNumber,
+          episodeName: episodeName,
           position: nextPosition,
         },
       })
@@ -160,7 +185,7 @@ export const queueRouter = createTRPCRouter({
       }
 
       // Use a transaction to ensure consistency
-      await ctx.db.$transaction(async (tx) => {
+      await ctx.db.$transaction(async tx => {
         if (newPosition > currentPosition) {
           // Moving down: shift items up
           await tx.queueItem.updateMany({
@@ -230,7 +255,7 @@ export const queueRouter = createTRPCRouter({
       }
 
       // Use a transaction to update watched status and reorder remaining items
-      await ctx.db.$transaction(async (tx) => {
+      await ctx.db.$transaction(async tx => {
         // Mark the item as watched
         await tx.queueItem.update({
           where: { id: input.id },
@@ -332,7 +357,11 @@ export const queueRouter = createTRPCRouter({
       // In a real app, you'd fetch this from TMDB API
       const maxEpisodesPerSeason = 50
 
-      if (nextEpisode > maxEpisodesPerSeason && input.totalSeasons && nextSeason < input.totalSeasons) {
+      if (
+        nextEpisode > maxEpisodesPerSeason &&
+        input.totalSeasons &&
+        nextSeason < input.totalSeasons
+      ) {
         nextSeason += 1
         nextEpisode = 1
       }
@@ -366,6 +395,21 @@ export const queueRouter = createTRPCRouter({
 
       const nextPosition = lastItem ? lastItem.position + 1 : 1
 
+      // Fetch episode name from TMDB
+      let episodeName: string | null = null
+      try {
+        const tmdb = new TMDBService()
+        const episodeData = await tmdb.getTVEpisodeDetails(
+          input.tmdbId,
+          nextSeason,
+          nextEpisode
+        )
+        episodeName = episodeData.name
+      } catch (error) {
+        // If TMDB fetch fails, continue without episode name
+        console.warn('Failed to fetch next episode name from TMDB:', error)
+      }
+
       // Create the queue item for next episode
       const queueItem = await ctx.db.queueItem.create({
         data: {
@@ -377,6 +421,7 @@ export const queueRouter = createTRPCRouter({
           tmdbId: input.tmdbId,
           seasonNumber: nextSeason,
           episodeNumber: nextEpisode,
+          episodeName: episodeName,
           position: nextPosition,
         },
       })

@@ -55,6 +55,7 @@ export interface QueueItem {
   updatedAt: Date
   seasonNumber: number | null
   episodeNumber: number | null
+  episodeName: string | null
   title: string
   poster: string | null
   releaseDate: Date | null
@@ -250,6 +251,7 @@ export interface CreateQueueItemData {
   tmdbId: number
   seasonNumber?: number | null
   episodeNumber?: number | null
+  episodeName?: string | null
 }
 
 export interface UpdateQueueItemData {

@@ -202,7 +202,7 @@ export const TMDBEpisodeSchema = z.object({
   production_code: z.string().nullish(),
   runtime: z.number().nullish(),
   season_number: z.number(),
-  show_id: z.number(),
+  //   show_id: z.number(),
   still_path: z.string().nullish(),
   vote_average: z.number(),
   vote_count: z.number(),
