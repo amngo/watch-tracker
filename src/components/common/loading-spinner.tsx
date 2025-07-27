@@ -17,6 +17,10 @@ export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) 
   )
 }
 
+/**
+ * @deprecated Use specific skeleton components from @/components/ui/skeletons or @/components/common/loading-states instead
+ * This generic LoadingCard will be removed in a future version
+ */
 export function LoadingCard({ className }: { className?: string }) {
   return (
     <div className={cn('animate-pulse', className)}>
@@ -48,3 +52,29 @@ export function LoadingText({ lines = 3, className }: { lines?: number; classNam
     </div>
   )
 }
+
+// Re-export specific loading states for easier migration
+export {
+  MediaCardSkeleton,
+  WatchedItemCardSkeleton,
+  StatsCardSkeleton,
+  ChartSkeleton,
+  EpisodeCardSkeleton,
+  NoteCardSkeleton,
+  GridSkeleton,
+} from '@/components/ui/skeletons'
+
+export {
+  DashboardStatsLoading,
+  DashboardRecentItemsLoading,
+  MediaLibraryLoading,
+  SearchPageLoading,
+  StatsPageLoading,
+  MediaDetailLoading,
+  EpisodeTrackerLoading,
+  NotesPageLoading,
+  ProfilePageLoading,
+  ListLoading,
+  CardsGridLoading,
+  DataTableLoading,
+} from '@/components/common/loading-states'

@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LoadingCard } from '@/components/common/loading-spinner'
+import { MediaCardSkeleton } from '@/components/ui/skeletons'
 import { MediaResultCard } from './media-result-card'
 import { ActiveFilters } from './active-filters'
 import type { TMDBMediaItem } from '@/types'
@@ -135,7 +135,7 @@ export function SearchResults({
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <LoadingCard key={i} />
+              <MediaCardSkeleton key={i} />
             ))}
           </div>
         ) : error ? (

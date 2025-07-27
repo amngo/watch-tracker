@@ -11,7 +11,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { NoteCard } from '@/components/features/notes/note-card'
 import { PageHeader } from '@/components/common/page-header'
 import { EmptyState } from '@/components/common/empty-state'
-import { LoadingCard } from '@/components/common/loading-spinner'
+import { NoteCardSkeleton } from '@/components/ui/skeletons'
 import { api } from '@/trpc/react'
 import { useMedia } from '@/hooks/use-media'
 import Link from 'next/link'
@@ -89,7 +89,11 @@ export default function NotesPage() {
             title="Notes"
             subtitle="All your notes in one place"
           />
-          <LoadingCard />
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <NoteCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </DashboardLayout>
     )

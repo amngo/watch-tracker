@@ -12,7 +12,7 @@ export function EmptySearchState() {
             Search for movies and TV shows to add to your watchlist
           </p>
           <p className="text-sm text-muted-foreground">
-            Use filters and sorting to find exactly what you're looking for
+            Use filters and sorting to find exactly what you&apos;re looking for
           </p>
         </div>
       </CardContent>
