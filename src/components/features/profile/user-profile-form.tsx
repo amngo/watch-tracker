@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save, User, Globe, Lock, Eye, EyeOff } from 'lucide-react'
+import { Save, User, Globe, Lock, Eye } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

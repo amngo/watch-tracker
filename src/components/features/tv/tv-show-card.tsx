@@ -3,14 +3,12 @@
 import { useState } from 'react'
 import {
   MoreHorizontal,
-  Star,
   Clock,
   Play,
   Pause,
   Check,
   X,
   Edit3,
-  Tv,
   ChevronRight,
   RefreshCw,
   RotateCcw,
@@ -30,7 +28,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import {
   AlertDialog,
@@ -53,7 +50,7 @@ import {
   RatingBadge,
   NotesBadge,
 } from '@/components/ui/media-badges'
-import type { WatchedItem, WatchStatus, WatchedItemCardProps } from '@/types'
+import type { WatchStatus, WatchedItemCardProps } from '@/types'
 import { useMedia } from '@/hooks/use-media'
 
 const statusConfig = {
@@ -410,7 +407,7 @@ export function TVShowCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Mark Show as Complete?</AlertDialogTitle>
             <AlertDialogDescription>
-              Marking "{item.title}" as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
+              Marking &quot;{item.title}&quot; as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -428,7 +425,7 @@ export function TVShowCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Show Progress?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will reset "{item.title}" back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
+              This will reset &quot;{item.title}&quot; back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

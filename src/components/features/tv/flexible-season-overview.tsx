@@ -2,14 +2,10 @@
 
 import { useState } from 'react'
 import {
-  Play,
   Check,
   Clock,
   ChevronRight,
   Tv2,
-  Edit3,
-  Star,
-  SkipForward,
   BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -24,7 +20,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { TMDBService } from '@/lib/tmdb'
 import { calculateSeasonProgress, getShowStatistics, getNextUnwatchedEpisode } from '@/lib/episode-utils'

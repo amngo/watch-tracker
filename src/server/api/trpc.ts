@@ -5,7 +5,7 @@ import superjson from 'superjson'
 import { ZodError } from 'zod'
 
 import { db } from '@/server/db'
-import { toTRPCError, logError } from '@/lib/errors'
+import { logError } from '@/lib/errors'
 
 type CreateContextOptions = {
   session: Awaited<ReturnType<typeof auth>>

@@ -314,8 +314,8 @@ export default function TVNotesPage() {
               mediaType="TV"
               totalSeasons={tvDetails.number_of_seasons}
               totalEpisodes={tvDetails.number_of_episodes}
-              currentSeason={userWatchedItem.currentSeason}
-              currentEpisode={userWatchedItem.currentEpisode}
+              currentSeason={userWatchedItem.currentSeason ?? undefined}
+              currentEpisode={userWatchedItem.currentEpisode ?? undefined}
               onSuccess={handleNoteAdded}
               onCancel={() => setIsAddNoteModalOpen(false)}
             />

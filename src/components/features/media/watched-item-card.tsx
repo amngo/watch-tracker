@@ -9,7 +9,6 @@ import {
   Pause,
   Check,
   X,
-  Edit3,
   RotateCcw,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -44,10 +43,9 @@ import {
   MediaTypeBadge,
   RatingBadge,
   NotesBadge,
-  ReleaseDate,
 } from '@/components/ui/media-badges'
 import { ProgressDisplay } from '@/components/ui/progress-display'
-import type { WatchedItem, WatchStatus, WatchedItemCardProps } from '@/types'
+import type { WatchStatus, WatchedItemCardProps } from '@/types'
 
 const statusConfig = {
   PLANNED: { label: 'Planned', icon: Clock },
@@ -270,7 +268,7 @@ export function WatchedItemCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Mark Show as Complete?</AlertDialogTitle>
             <AlertDialogDescription>
-              Marking "{item.title}" as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
+              Marking &quot;{item.title}&quot; as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -288,7 +286,7 @@ export function WatchedItemCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Show Progress?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will reset "{item.title}" back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
+              This will reset &quot;{item.title}&quot; back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

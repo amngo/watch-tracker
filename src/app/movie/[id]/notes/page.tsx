@@ -17,8 +17,9 @@ import {
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
+import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
-import type { Note } from '@/types'
+import type { Note, WatchedItem } from '@/types'
 
 export default function MovieNotesPage() {
   const params = useParams()
@@ -113,7 +114,15 @@ export default function MovieNotesPage() {
           notes: item.notes || [],
           _count: item._count,
           watchedEpisodes: item.watchedEpisodes || [],
-          progress: item.progress || 0,
+          progress: calculateProgressFromWatchedItem(
+            {
+              ...item,
+              watchedEpisodes: item.watchedEpisodes || [],
+              progress: 0, // Temporary placeholder, will be calculated
+            } as WatchedItem,
+            item.totalSeasons ?? undefined,
+            item.totalEpisodes ?? undefined
+          ),
         }))
       )
     }

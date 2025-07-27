@@ -4,11 +4,9 @@ import { useState } from 'react'
 import {
   Play,
   Check,
-  Clock,
   ChevronRight,
   Tv2,
   Edit3,
-  Star,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

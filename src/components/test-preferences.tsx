@@ -26,7 +26,7 @@ export function TestPreferences() {
         />
         <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
         <p>Results count: {results.length}</p>
-        <p>Query: "{query}"</p>
+        <p>Query: &quot;{query}&quot;</p>
       </div>
 
       {/* Preferences Test */}

@@ -2,7 +2,7 @@
 
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { UserProfileForm } from '@/components/features/profile/user-profile-form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { api } from '@/trpc/react'
 import { useUser } from '@clerk/nextjs'
 

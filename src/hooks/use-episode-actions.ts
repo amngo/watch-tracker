@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import type { EpisodeWatchStatus, WatchedItem, WatchedEpisode } from '@/types'
+import { useCallback } from 'react'
+import type { EpisodeWatchStatus, WatchedItem } from '@/types'
 
 /**
  * Custom hook for managing episode watch actions and status

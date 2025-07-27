@@ -13,11 +13,13 @@ import { CheckCircle, XCircle, Clock, Play, Trash2 } from 'lucide-react'
 const mockMediaItem = {
   id: 123456,
   title: 'Test Movie',
-  name: 'Test Movie',
   media_type: 'movie' as const,
   poster_path: '/test-poster.jpg',
   release_date: '2023-01-01',
-  first_air_date: '2023-01-01',
+  overview: 'A test movie for optimistic updates',
+  vote_average: 7.5,
+  adult: false,
+  vote_count: 100,
 }
 
 export function OptimisticUpdatesTest() {

@@ -18,9 +18,8 @@ import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
-import { TMDBService, tmdbService } from '@/lib/tmdb'
+import { TMDBService } from '@/lib/tmdb'
 import Link from 'next/link'
-import Image from 'next/image'
 import type { TMDBMovieDetailsExtended, TMDBMediaItem } from '@/types'
 
 export default function MovieDetailPage() {

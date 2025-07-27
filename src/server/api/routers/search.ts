@@ -7,11 +7,8 @@ import {
 import { tmdbService, TMDBError } from '@/lib/tmdb'
 import { createError, toTRPCError } from '@/lib/errors'
 import { withCache, cacheKeys, cacheTTL } from '@/lib/cache'
-import {
-  rateLimiters,
-  createSearchRateLimit,
-  createTMDBRateLimit,
-} from '@/lib/rate-limit'
+
+
 
 const SearchInputSchema = z.object({
   query: z

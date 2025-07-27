@@ -1,4 +1,4 @@
-import type { WatchedItem, WatchedEpisode, EpisodeWatchStatus } from '@/types'
+import type { WatchedItem, EpisodeWatchStatus } from '@/types'
 
 /**
  * Calculate flexible progress for TV shows that allows non-linear watching
