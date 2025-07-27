@@ -3,23 +3,15 @@
 import { useEffect } from 'react'
 import { Plus, Film } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { MediaSearch } from '@/components/features/search/media-search'
 import { WatchedItemCard } from '@/components/features/media/watched-item-card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { PageHeader } from '@/components/common/page-header'
+import { AddMediaModal } from '@/components/common/add-media-modal'
+import { StatsCard } from '@/components/common/stats-card'
+import { EmptyState } from '@/components/common/empty-state'
+import { LoadingGrid } from '@/components/common/loading-grid'
+import { SectionHeader } from '@/components/common/section-header'
 import { api } from '@/trpc/react'
-import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { calculateProgress } from '@/lib/utils'
@@ -116,132 +108,74 @@ export default function MoviesPage() {
   return (
     <DashboardLayout stats={stats || undefined}>
       <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-              <Film className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">Movies</h1>
-              <p className="text-muted-foreground mt-1">
-                Your movie watchlist and collection
-              </p>
-            </div>
-          </div>
-
-          <Dialog
-            open={isSearchModalOpen}
-            onOpenChange={open => !open && closeSearchModal()}
-          >
-            <Button onClick={openSearchModal}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Movie
-            </Button>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Search & Add Movies</DialogTitle>
-              </DialogHeader>
-              <MediaSearch onAddMedia={handleAddMedia} />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <PageHeader
+          icon={Film}
+          title="Movies"
+          subtitle="Your movie watchlist and collection"
+        >
+          <AddMediaModal
+            isOpen={isSearchModalOpen}
+            onOpenChange={open => open ? openSearchModal() : closeSearchModal()}
+            onAddMedia={handleAddMedia}
+            triggerLabel="Add Movie"
+            dialogTitle="Search & Add Movies"
+          />
+        </PageHeader>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Movies</CardTitle>
-              <Film className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading ? '...' : movieWatchlistItems.length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Movies in your collection
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Film className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading
-                  ? '...'
-                  : movieWatchlistItems.filter(item => item.status === 'COMPLETED').length}
-              </div>
-              <p className="text-xs text-muted-foreground">Movies watched</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Watching</CardTitle>
-              <Film className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading
-                  ? '...'
-                  : movieWatchlistItems.filter(item => item.status === 'WATCHING').length}
-              </div>
-              <p className="text-xs text-muted-foreground">Currently watching</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Planned</CardTitle>
-              <Film className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading
-                  ? '...'
-                  : movieWatchlistItems.filter(item => item.status === 'PLANNED').length}
-              </div>
-              <p className="text-xs text-muted-foreground">Want to watch</p>
-            </CardContent>
-          </Card>
+          <StatsCard
+            title="Total Movies"
+            value={movieWatchlistItems.length}
+            description="Movies in your collection"
+            icon={Film}
+            isLoading={itemsLoading}
+          />
+          <StatsCard
+            title="Completed"
+            value={movieWatchlistItems.filter(item => item.status === 'COMPLETED').length}
+            description="Movies watched"
+            icon={Film}
+            isLoading={itemsLoading}
+          />
+          <StatsCard
+            title="Watching"
+            value={movieWatchlistItems.filter(item => item.status === 'WATCHING').length}
+            description="Currently watching"
+            icon={Film}
+            isLoading={itemsLoading}
+          />
+          <StatsCard
+            title="Planned"
+            value={movieWatchlistItems.filter(item => item.status === 'PLANNED').length}
+            description="Want to watch"
+            icon={Film}
+            isLoading={itemsLoading}
+          />
         </div>
 
         {/* Movie Collection */}
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Your Movie Collection</h2>
+          <SectionHeader title="Your Movie Collection">
             <Button variant="outline" onClick={openSearchModal}>
               <Plus className="h-4 w-4 mr-2" />
               Add More Movies
             </Button>
-          </div>
+          </SectionHeader>
 
           {itemsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[...Array(8)].map((_, i) => (
-                <LoadingCard key={i} />
-              ))}
-            </div>
+            <LoadingGrid count={8} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" />
           ) : movieWatchlistItems.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="text-center">
-                  <Film className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No movies yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start building your movie collection by adding your first film
-                  </p>
-                  <Button onClick={openSearchModal}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Movie
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Film}
+              title="No movies yet"
+              description="Start building your movie collection by adding your first film"
+            >
+              <Button onClick={openSearchModal}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Movie
+              </Button>
+            </EmptyState>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {movieWatchlistItems.map(item => (

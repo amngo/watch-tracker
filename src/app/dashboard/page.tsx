@@ -3,23 +3,14 @@
 import { useEffect, useState } from 'react'
 import { Plus, TrendingUp, Clock, CheckCircle, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { MediaSearch } from '@/components/features/search/media-search'
 import { WatchedItemCard } from '@/components/features/media/watched-item-card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { AddMediaModal } from '@/components/common/add-media-modal'
+import { StatsCard } from '@/components/common/stats-card'
+import { EmptyState } from '@/components/common/empty-state'
+import { LoadingGrid } from '@/components/common/loading-grid'
+import { SectionHeader } from '@/components/common/section-header'
 import { api } from '@/trpc/react'
-import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { useBackgroundUpdates } from '@/hooks/use-background-updates'
@@ -135,131 +126,81 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <Dialog
-            open={isSearchModalOpen}
-            onOpenChange={open => !open && closeSearchModal()}
-          >
-            <Button onClick={openSearchModal}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Media
-            </Button>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Search & Add Media</DialogTitle>
-              </DialogHeader>
-              <MediaSearch onAddMedia={handleAddMedia} />
-            </DialogContent>
-          </Dialog>
+          <AddMediaModal
+            isOpen={isSearchModalOpen}
+            onOpenChange={open => open ? openSearchModal() : closeSearchModal()}
+            onAddMedia={handleAddMedia}
+            triggerLabel="Add Media"
+            dialogTitle="Search & Add Media"
+          />
         </div>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Items</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statsLoading ? '...' : stats?.totalItems || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Movies and TV shows tracked
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Currently Watching
-              </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statsLoading ? '...' : stats?.currentlyWatching || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Active watch progress
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statsLoading ? '...' : stats?.completedItems || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">Finished watching</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Notes</CardTitle>
-              <Plus className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statsLoading ? '...' : stats?.totalNotes || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Thoughts and reactions
-              </p>
-            </CardContent>
-          </Card>
+          <StatsCard
+            title="Total Items"
+            value={stats?.totalItems || 0}
+            description="Movies and TV shows tracked"
+            icon={TrendingUp}
+            isLoading={statsLoading}
+          />
+          <StatsCard
+            title="Currently Watching"
+            value={stats?.currentlyWatching || 0}
+            description="Active watch progress"
+            icon={Clock}
+            isLoading={statsLoading}
+          />
+          <StatsCard
+            title="Completed"
+            value={stats?.completedItems || 0}
+            description="Finished watching"
+            icon={CheckCircle}
+            isLoading={statsLoading}
+          />
+          <StatsCard
+            title="Notes"
+            value={stats?.totalNotes || 0}
+            description="Thoughts and reactions"
+            icon={Plus}
+            isLoading={statsLoading}
+          />
         </div>
 
         {/* Recent Activity */}
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Recent Activity</h2>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleUpdateAllTVShows}
-                disabled={isUpdatingTVShows}
-              >
-                {isUpdatingTVShows ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                {isUpdatingTVShows ? 'Updating...' : 'Update TV Show Details'}
-              </Button>
-              <Button variant="outline" onClick={openSearchModal}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add More
-              </Button>
-            </div>
-          </div>
+          <SectionHeader title="Recent Activity">
+            <Button 
+              variant="outline" 
+              onClick={handleUpdateAllTVShows}
+              disabled={isUpdatingTVShows}
+            >
+              {isUpdatingTVShows ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              {isUpdatingTVShows ? 'Updating...' : 'Update TV Show Details'}
+            </Button>
+            <Button variant="outline" onClick={openSearchModal}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add More
+            </Button>
+          </SectionHeader>
 
           {itemsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <LoadingCard key={i} />
-              ))}
-            </div>
+            <LoadingGrid />
           ) : watchedItems.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold mb-2">No items yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start by adding your first movie or TV show
-                  </p>
-                  <Button onClick={openSearchModal}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Item
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Plus}
+              title="No items yet"
+              description="Start by adding your first movie or TV show"
+            >
+              <Button onClick={openSearchModal}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Item
+              </Button>
+            </EmptyState>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {watchedItems.slice(0, 6).map(item => (

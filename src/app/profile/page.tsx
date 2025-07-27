@@ -1,7 +1,9 @@
 'use client'
 
+import { User } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { UserProfileForm } from '@/components/features/profile/user-profile-form'
+import { PageHeader } from '@/components/common/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { api } from '@/trpc/react'
 import { useUser } from '@clerk/nextjs'
@@ -59,12 +61,11 @@ export default function ProfilePage() {
   return (
     <DashboardLayout stats={stats}>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your account information and privacy settings
-          </p>
-        </div>
+        <PageHeader
+          icon={User}
+          title="Profile Settings"
+          subtitle="Manage your account information and privacy settings"
+        />
 
         <UserProfileForm
           user={mockUser}

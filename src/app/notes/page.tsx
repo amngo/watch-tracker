@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { NoteCard } from '@/components/features/notes/note-card'
+import { PageHeader } from '@/components/common/page-header'
+import { EmptyState } from '@/components/common/empty-state'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { api } from '@/trpc/react'
 import { useMedia } from '@/hooks/use-media'
@@ -82,12 +84,11 @@ export default function NotesPage() {
     return (
       <DashboardLayout stats={stats || undefined}>
         <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Notes</h1>
-              <p className="text-muted-foreground">All your notes in one place</p>
-            </div>
-          </div>
+          <PageHeader
+            icon={FileText}
+            title="Notes"
+            subtitle="All your notes in one place"
+          />
           <LoadingCard />
         </div>
       </DashboardLayout>
@@ -114,18 +115,15 @@ export default function NotesPage() {
   return (
     <DashboardLayout stats={stats || undefined}>
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Notes</h1>
-            <p className="text-muted-foreground">All your notes in one place</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-sm">
-              {notes.length} total note{notes.length !== 1 ? 's' : ''}
-            </Badge>
-          </div>
-        </div>
+        <PageHeader
+          icon={FileText}
+          title="Notes"
+          subtitle="All your notes in one place"
+        >
+          <Badge variant="outline" className="text-sm">
+            {notes.length} total note{notes.length !== 1 ? 's' : ''}
+          </Badge>
+        </PageHeader>
 
         {/* Search and Filters */}
         <div className="flex items-center gap-4">
@@ -141,29 +139,24 @@ export default function NotesPage() {
         </div>
 
         {notes.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No notes yet</h3>
-              <p className="text-muted-foreground mb-4 text-center">
-                Start taking notes on your movies and TV shows to track your thoughts and reactions
-              </p>
-              <div className="flex gap-2">
-                <Button asChild variant="outline">
-                  <Link href="/movies">
-                    <Film className="h-4 w-4 mr-2" />
-                    Browse Movies
-                  </Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/tv">
-                    <Tv className="h-4 w-4 mr-2" />
-                    Browse TV Shows
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={FileText}
+            title="No notes yet"
+            description="Start taking notes on your movies and TV shows to track your thoughts and reactions"
+          >
+            <Button asChild variant="outline">
+              <Link href="/movies">
+                <Film className="h-4 w-4 mr-2" />
+                Browse Movies
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/tv">
+                <Tv className="h-4 w-4 mr-2" />
+                Browse TV Shows
+              </Link>
+            </Button>
+          </EmptyState>
         ) : (
           <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
             <TabsList className="grid w-full grid-cols-3">

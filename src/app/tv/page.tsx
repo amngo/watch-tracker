@@ -3,18 +3,15 @@
 import { useEffect } from 'react'
 import { Plus, Tv } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { MediaSearch } from '@/components/features/search/media-search'
 import { TVShowCard } from '@/components/features/tv/tv-show-card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { PageHeader } from '@/components/common/page-header'
+import { AddMediaModal } from '@/components/common/add-media-modal'
+import { StatsCard } from '@/components/common/stats-card'
+import { EmptyState } from '@/components/common/empty-state'
+import { LoadingGrid } from '@/components/common/loading-grid'
+import { SectionHeader } from '@/components/common/section-header'
 import { api } from '@/trpc/react'
-import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
@@ -116,140 +113,74 @@ export default function TVPage() {
   return (
     <DashboardLayout stats={stats || undefined}>
       <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-              <Tv className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">TV Shows</h1>
-              <p className="text-muted-foreground mt-1">
-                Your TV show watchlist and collection
-              </p>
-            </div>
-          </div>
-
-          <Dialog
-            open={isSearchModalOpen}
-            onOpenChange={open => !open && closeSearchModal()}
-          >
-            <Button onClick={openSearchModal}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add TV Show
-            </Button>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Search & Add TV Shows</DialogTitle>
-              </DialogHeader>
-              <MediaSearch onAddMedia={handleAddMedia} />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <PageHeader
+          icon={Tv}
+          title="TV Shows"
+          subtitle="Your TV show watchlist and collection"
+        >
+          <AddMediaModal
+            isOpen={isSearchModalOpen}
+            onOpenChange={open => open ? openSearchModal() : closeSearchModal()}
+            onAddMedia={handleAddMedia}
+            triggerLabel="Add TV Show"
+            dialogTitle="Search & Add TV Shows"
+          />
+        </PageHeader>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Shows</CardTitle>
-              <Tv className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading ? '...' : tvWatchlistItems.length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                TV shows in your collection
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Tv className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading
-                  ? '...'
-                  : tvWatchlistItems.filter(item => item.status === 'COMPLETED')
-                      .length}
-              </div>
-              <p className="text-xs text-muted-foreground">Shows finished</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Watching</CardTitle>
-              <Tv className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading
-                  ? '...'
-                  : tvWatchlistItems.filter(item => item.status === 'WATCHING')
-                      .length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Currently watching
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Planned</CardTitle>
-              <Tv className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {itemsLoading
-                  ? '...'
-                  : tvWatchlistItems.filter(item => item.status === 'PLANNED')
-                      .length}
-              </div>
-              <p className="text-xs text-muted-foreground">Want to watch</p>
-            </CardContent>
-          </Card>
+          <StatsCard
+            title="Total Shows"
+            value={tvWatchlistItems.length}
+            description="TV shows in your collection"
+            icon={Tv}
+            isLoading={itemsLoading}
+          />
+          <StatsCard
+            title="Completed"
+            value={tvWatchlistItems.filter(item => item.status === 'COMPLETED').length}
+            description="Shows finished"
+            icon={Tv}
+            isLoading={itemsLoading}
+          />
+          <StatsCard
+            title="Watching"
+            value={tvWatchlistItems.filter(item => item.status === 'WATCHING').length}
+            description="Currently watching"
+            icon={Tv}
+            isLoading={itemsLoading}
+          />
+          <StatsCard
+            title="Planned"
+            value={tvWatchlistItems.filter(item => item.status === 'PLANNED').length}
+            description="Want to watch"
+            icon={Tv}
+            isLoading={itemsLoading}
+          />
         </div>
 
         {/* TV Show Collection */}
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Your TV Show Collection</h2>
+          <SectionHeader title="Your TV Show Collection">
             <Button variant="outline" onClick={openSearchModal}>
               <Plus className="h-4 w-4 mr-2" />
               Add More Shows
             </Button>
-          </div>
+          </SectionHeader>
 
           {itemsLoading ? (
-            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-              {[...Array(6)].map((_, i) => (
-                <LoadingCard key={i} />
-              ))}
-            </div>
+            <LoadingGrid count={6} className="grid gap-4 md:grid-cols-1 lg:grid-cols-2" />
           ) : tvWatchlistItems.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="text-center">
-                  <Tv className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    No TV shows yet
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start building your TV show collection by adding your first
-                    series
-                  </p>
-                  <Button onClick={openSearchModal}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Your First TV Show
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Tv}
+              title="No TV shows yet"
+              description="Start building your TV show collection by adding your first series"
+            >
+              <Button onClick={openSearchModal}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First TV Show
+              </Button>
+            </EmptyState>
           ) : (
             <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
               {tvWatchlistItems.map(item => (

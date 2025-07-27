@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { Search } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { SearchHeader } from '@/components/features/search/search-header'
+import { PageHeader } from '@/components/common/page-header'
 import { SearchInterface } from '@/components/features/search/search-interface'
 import { SearchResults } from '@/components/features/search/search-results'
 import { EmptySearchState } from '@/components/features/search/empty-search-state'
@@ -161,7 +162,11 @@ export default function SearchPage() {
   return (
     <DashboardLayout stats={stats}>
       <div className="space-y-6">
-        <SearchHeader />
+        <PageHeader
+          icon={Search}
+          title="Search & Discover"
+          subtitle="Find new movies and TV shows to add to your watchlist"
+        />
         
         <SearchInterface
           searchType={searchType}

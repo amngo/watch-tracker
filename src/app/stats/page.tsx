@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { BarChart3 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { LoadingCard } from '@/components/common/loading-spinner'
-import { StatsHeader } from '@/components/features/stats/stats-header'
+import { PageHeader } from '@/components/common/page-header'
 import { KeyMetrics } from '@/components/features/stats/key-metrics'
 import { StatusDistributionChart } from '@/components/features/stats/status-distribution-chart'
 import { ContentTypeChart } from '@/components/features/stats/content-type-chart'
@@ -229,7 +230,26 @@ export default function StatisticsPage() {
     return (
       <DashboardLayout>
         <div className="space-y-6">
-          <StatsHeader timeRange={timeRange} onTimeRangeChange={setTimeRange} />
+          <PageHeader
+          icon={BarChart3}
+          title="Statistics"
+          subtitle="Your viewing insights and analytics"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Period:</span>
+            <Tabs
+              value={timeRange}
+              onValueChange={value => setTimeRange(value as TimeRange)}
+            >
+              <TabsList>
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </PageHeader>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(8)].map((_, i) => (
               <LoadingCard key={i} />
@@ -254,7 +274,26 @@ export default function StatisticsPage() {
       }
     >
       <div className="space-y-6">
-        <StatsHeader timeRange={timeRange} onTimeRangeChange={setTimeRange} />
+        <PageHeader
+          icon={BarChart3}
+          title="Statistics"
+          subtitle="Your viewing insights and analytics"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Period:</span>
+            <Tabs
+              value={timeRange}
+              onValueChange={value => setTimeRange(value as TimeRange)}
+            >
+              <TabsList>
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </PageHeader>
         
         <KeyMetrics
           timeRange={timeRange}
