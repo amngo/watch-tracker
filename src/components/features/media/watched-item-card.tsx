@@ -64,6 +64,7 @@ export function WatchedItemCard({
 }: WatchedItemCardProps) {
   const [isEditingRating, setIsEditingRating] = useState(false)
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false)
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
 
   const handleStatusChange = (newStatus: WatchStatus) => {
     // Show confirmation dialog for TV shows when marking as complete
@@ -96,6 +97,10 @@ export function WatchedItemCard({
   }
 
   const handleResetProgress = () => {
+    setIsResetDialogOpen(true)
+  }
+
+  const handleConfirmReset = () => {
     onUpdate(item.id, {
       status: 'PLANNED',
       progress: 0,
@@ -103,8 +108,10 @@ export function WatchedItemCard({
       currentEpisode: 1,
       startDate: null,
       finishDate: null,
-      // Reset all episodes to unwatched - this will be handled by the backend
+      // Reset all episodes to unwatched by providing empty array
+      watchedEpisodes: [],
     })
+    setIsResetDialogOpen(false)
   }
 
   const detailUrl = item.mediaType === 'MOVIE' 
@@ -270,6 +277,24 @@ export function WatchedItemCard({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmComplete}>
               Yes, Mark Complete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Progress Confirmation Dialog */}
+      <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Show Progress?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset "{item.title}" back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Yes, Reset Progress
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
