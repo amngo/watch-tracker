@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Search,
   Filter,
@@ -25,12 +25,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { MediaPoster } from '@/components/ui/media-poster'
 import { MediaTypeBadge, VoteAverageBadge } from '@/components/ui/media-badges'
 import { LoadingCard } from '@/components/common/loading-spinner'
-import { cn, getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
+import { getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { useSearch } from '@/hooks/use-search'
 import { useMedia } from '@/hooks/use-media'
 import { useMediaStore } from '@/stores/media-store'
@@ -83,7 +83,7 @@ export default function SearchPage() {
   const filteredAndSortedResults = useMemo(() => {
     if (!results.length) return []
 
-    let filtered = results.filter(item => {
+    const filtered = results.filter(item => {
       // Media type filter
       if (
         appliedFilters.mediaType !== 'all' &&
