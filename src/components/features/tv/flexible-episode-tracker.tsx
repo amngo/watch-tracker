@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ChevronDown,
   ChevronRight,
@@ -75,6 +75,19 @@ export function FlexibleEpisodeTracker({
   )
 
   const seasonNumber = seasonDetails.season_number
+
+  // Keyboard shortcut for spoiler toggle
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 's' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault()
+        setShowSpoilers(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [])
 
   // Custom hooks for state management
   const {
@@ -156,6 +169,8 @@ export function FlexibleEpisodeTracker({
                   onPressedChange={setShowSpoilers}
                   size="sm"
                   onClick={e => e.stopPropagation()}
+                  title={`${showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'} (Ctrl+S)`}
+                  aria-label={showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'}
                 >
                   {showSpoilers ? (
                     <EyeOff className="h-4 w-4" />
