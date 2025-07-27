@@ -34,7 +34,6 @@ import type {
   TMDBTVDetailsExtended,
   TMDBMediaItem,
   EpisodeWatchStatus,
-  WatchStatus,
   WatchedItem,
 } from '@/types'
 
@@ -158,17 +157,6 @@ export default function TVDetailPage() {
   const handleAddToWatchlist = async (media: TMDBMediaItem) => {
     await addMedia(media)
     closeSearchModal()
-  }
-
-  const handleUpdateProgress = async (data: {
-    currentSeason: number
-    currentEpisode: number
-    status?: WatchStatus
-    finishDate?: Date
-  }) => {
-    if (userWatchedItem) {
-      await updateItem(userWatchedItem.id, data)
-    }
   }
 
   const handleUpdateEpisodeStatus = async (

@@ -30,7 +30,6 @@ import type {
   TMDBEpisodeItem,
   TMDBTVDetailsExtended,
   EpisodeWatchStatus,
-  WatchStatus,
   WatchedItem,
 } from '@/types'
 
@@ -224,17 +223,6 @@ export default function TVSeasonPage() {
 
   const { hasPrevious, hasNext, previousSeason, nextSeason } =
     getSeasonNavigation()
-
-  const handleUpdateProgress = async (data: {
-    currentSeason: number
-    currentEpisode: number
-    status?: WatchStatus
-    finishDate?: Date
-  }) => {
-    if (userWatchedItem) {
-      await updateItem(userWatchedItem.id, data)
-    }
-  }
 
   const handleUpdateEpisodeStatus = async (
     seasonNumber: number,

@@ -221,7 +221,7 @@ export default function StatisticsPage() {
     }
 
     return data
-  }, [])
+  }, [activityData])
 
   const isLoading =
     overviewLoading || activityLoading || achievementsLoading || genresLoading

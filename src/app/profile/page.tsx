@@ -12,9 +12,6 @@ export default function ProfilePage() {
   const { user: clerkUser } = useUser()
   const { data: stats } = api.user.getStats.useQuery()
   
-  // Create user mutation for first-time setup
-  const createUser = api.user.create.useMutation()
-  
   // Update user mutation
   const updateUser = api.user.updateProfile.useMutation()
 
@@ -33,7 +30,7 @@ export default function ProfilePage() {
     }
   }
 
-  const handleUpdateProfile = async (data: any) => {
+  const handleUpdateProfile = async (data: { name?: string; isPublic?: boolean }) => {
     try {
       await updateUser.mutateAsync(data)
     } catch (error) {

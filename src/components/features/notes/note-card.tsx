@@ -25,9 +25,10 @@ interface NoteCardProps {
   onDeleted?: () => void
   formatTimestamp?: (timestamp: string | null) => string | null
   showSpoilers?: boolean
+  showMediaInfo?: boolean
 }
 
-export function NoteCard({ note, onDeleted, formatTimestamp, showSpoilers = true }: NoteCardProps) {
+export function NoteCard({ note, onDeleted, formatTimestamp, showSpoilers = true, showMediaInfo = false }: NoteCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(note.content)
   const [editTimestamp, setEditTimestamp] = useState(note.timestamp || '')

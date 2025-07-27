@@ -15,7 +15,7 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { api } from '@/trpc/react'
 import { useMedia } from '@/hooks/use-media'
 import Link from 'next/link'
-import type { Note } from '@/types'
+import type { Note, WatchedItem } from '@/types'
 
 export default function NotesPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -110,7 +110,7 @@ export default function NotesPage() {
     }
     acc[mediaKey].notes.push(note)
     return acc
-  }, {} as Record<string, { watchedItem: any; notes: Note[] }>)
+  }, {} as Record<string, { watchedItem: Partial<WatchedItem> | null; notes: Note[] }>)
 
   return (
     <DashboardLayout stats={stats || undefined}>
