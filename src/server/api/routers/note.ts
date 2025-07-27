@@ -115,4 +115,63 @@ export const noteRouter = createTRPCRouter({
         },
       })
     }),
+
+  getAllByUser: protectedProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(50),
+      cursor: z.string().optional(),
+      search: z.string().optional(),
+      noteType: z.enum(['GENERAL', 'EPISODE']).optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const whereClause: any = {
+        userId: ctx.user.id,
+      }
+
+      // Filter by note type if specified
+      if (input.noteType) {
+        whereClause.noteType = input.noteType
+      }
+
+      // Add search functionality
+      if (input.search) {
+        whereClause.content = {
+          contains: input.search,
+          mode: 'insensitive',
+        }
+      }
+
+      const notes = await ctx.db.note.findMany({
+        where: whereClause,
+        include: {
+          watchedItem: {
+            select: {
+              id: true,
+              tmdbId: true,
+              mediaType: true,
+              title: true,
+              poster: true,
+              releaseDate: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: input.limit + 1,
+        ...(input.cursor && {
+          cursor: { id: input.cursor },
+          skip: 1,
+        }),
+      })
+
+      let nextCursor: typeof input.cursor | undefined = undefined
+      if (notes.length > input.limit) {
+        const nextItem = notes.pop()
+        nextCursor = nextItem!.id
+      }
+
+      return {
+        notes,
+        nextCursor,
+      }
+    }),
 })

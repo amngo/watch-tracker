@@ -13,6 +13,7 @@ import {
   Settings,
   Menu,
   Bell,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,7 @@ const navigation: NavigationItem[] = [
   { name: 'Search & Add', href: '/search', icon: Search },
   { name: 'Movies', href: '/movies', icon: Film },
   { name: 'TV Shows', href: '/tv', icon: Tv },
+  { name: 'Notes', href: '/notes', icon: FileText },
   { name: 'Statistics', href: '/stats', icon: BarChart3 },
   { name: 'Profile', href: '/profile', icon: User },
   { name: 'Settings', href: '/settings', icon: Settings },
