@@ -351,6 +351,8 @@ export function FlexibleEpisodeTracker({
                     onToggleIndividualSpoiler={() => 
                       toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
                     }
+                    watchedItem={watchedItem}
+                    showQueueButton={true}
                   />
                 ) : (
                   <EpisodeCardList
@@ -365,6 +367,8 @@ export function FlexibleEpisodeTracker({
                     onToggleIndividualSpoiler={() => 
                       toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
                     }
+                    watchedItem={watchedItem}
+                    showQueueButton={true}
                   />
                 )
               })}

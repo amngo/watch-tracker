@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { FlexibleEpisodeTracker } from '@/components/features/tv/flexible-episode-tracker'
+import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
@@ -689,7 +690,7 @@ export default function TVSeasonPage() {
                           {/* Guest Stars */}
                           {episode.guest_stars &&
                             episode.guest_stars.length > 0 && (
-                              <div>
+                              <div className="mb-4">
                                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
                                   GUEST STARS
                                 </h4>
@@ -709,6 +710,27 @@ export default function TVSeasonPage() {
                                 </div>
                               </div>
                             )}
+
+                          {/* Queue Action */}
+                          <div className="flex justify-end">
+                            <AddToQueueButton
+                              tmdbItem={{
+                                id: parseInt(tvId),
+                                media_type: 'tv',
+                                name: tvShowTitle,
+                                poster_path: tvShowDetails?.poster_path,
+                                first_air_date: tvShowDetails?.first_air_date,
+                                overview: tvShowDetails?.overview,
+                                vote_average: tvShowDetails?.vote_average || 0,
+                                adult: false,
+                                vote_count: 0,
+                              }}
+                              seasonNumber={episode.season_number}
+                              episodeNumber={episode.episode_number}
+                              size="sm"
+                              variant="outline"
+                            />
+                          </div>
                         </div>
                       </div>
                     </CardContent>

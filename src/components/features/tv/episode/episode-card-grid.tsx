@@ -9,7 +9,7 @@ import { EpisodeStatusBadge } from './episode-status-badge'
 import { EpisodeOverview } from './episode-overview'
 import { EpisodeActions } from './episode-actions'
 
-import type { TMDBEpisodeItem, EpisodeWatchStatus } from '@/types'
+import type { TMDBEpisodeItem, EpisodeWatchStatus, WatchedItem } from '@/types'
 
 interface EpisodeCardGridProps {
   episode: TMDBEpisodeItem
@@ -18,6 +18,8 @@ interface EpisodeCardGridProps {
   individualSpoilerVisible: boolean
   onStatusChange: (status: EpisodeWatchStatus) => void
   onToggleIndividualSpoiler: () => void
+  watchedItem?: WatchedItem
+  showQueueButton?: boolean
 }
 
 /**
@@ -30,6 +32,8 @@ export function EpisodeCardGrid({
   individualSpoilerVisible,
   onStatusChange,
   onToggleIndividualSpoiler,
+  watchedItem,
+  showQueueButton = true,
 }: EpisodeCardGridProps) {
   const config = EPISODE_STATUS_CONFIG[status]
   const stillUrl = episode.still_path
@@ -88,6 +92,9 @@ export function EpisodeCardGrid({
             status={status}
             onStatusChange={onStatusChange}
             variant="grid"
+            episode={episode}
+            watchedItem={watchedItem}
+            showQueueButton={showQueueButton}
           />
         </div>
       </CardContent>

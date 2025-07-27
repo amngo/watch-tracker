@@ -29,6 +29,7 @@ model User {
   watchedItems WatchedItem[]
   notes        Note[]
   profiles     Profile[]
+  queueItems   QueueItem[]
 
   @@map("users")
 }
@@ -144,4 +145,33 @@ enum EpisodeWatchStatus {
 enum NoteType {
   GENERAL
   EPISODE
+}
+
+// Queue model for managing watch order
+model QueueItem {
+  id          String    @id @default(cuid())
+  userId      String
+  contentId   String    // references WatchedItem.id
+  contentType MediaType // MOVIE or TV
+  position    Int       // ordering index
+  watched     Boolean   @default(false)
+  addedAt     DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // For TV shows - specific episode queuing
+  seasonNumber  Int? @db.SmallInt
+  episodeNumber Int? @db.SmallInt
+
+  // For enhanced metadata (copied from WatchedItem/TMDB)
+  title       String
+  poster      String?
+  releaseDate DateTime?
+  tmdbId      Int
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId, seasonNumber, episodeNumber])
+  @@index([userId, position])
+  @@map("queue_items")
 }

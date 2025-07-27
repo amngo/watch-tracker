@@ -44,6 +44,23 @@ export interface WatchedEpisode {
   updatedAt: Date
 }
 
+export interface QueueItem {
+  id: string
+  userId: string
+  contentId: string
+  contentType: 'MOVIE' | 'TV'
+  position: number
+  watched: boolean
+  addedAt: Date
+  updatedAt: Date
+  seasonNumber: number | null
+  episodeNumber: number | null
+  title: string
+  poster: string | null
+  releaseDate: Date | null
+  tmdbId: number
+}
+
 export interface Note {
   id: string
   content: string
@@ -222,6 +239,27 @@ export interface UpdateProfileData {
   displayName?: string
   bio?: string
   isPublic?: boolean
+}
+
+export interface CreateQueueItemData {
+  contentId: string
+  contentType: 'MOVIE' | 'TV'
+  title: string
+  poster?: string | null
+  releaseDate?: Date | null
+  tmdbId: number
+  seasonNumber?: number | null
+  episodeNumber?: number | null
+}
+
+export interface UpdateQueueItemData {
+  position?: number
+  watched?: boolean
+}
+
+export interface ReorderQueueData {
+  itemId: string
+  newPosition: number
 }
 
 // API response types

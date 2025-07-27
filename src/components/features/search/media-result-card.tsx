@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { MediaPoster } from '@/components/ui/media-poster'
 import { MediaTypeBadge, VoteAverageBadge } from '@/components/ui/media-badges'
+import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import type { TMDBMediaItem } from '@/types'
 
@@ -42,15 +43,23 @@ export function MediaResultCard({
                 </div>
               </div>
 
-              <Button
-                onClick={() => !isInWatchlist && onAddMedia(media)}
-                size="sm"
-                className="shrink-0"
-                disabled={isInWatchlist}
-                variant={isInWatchlist ? 'secondary' : 'default'}
-              >
-                {isInWatchlist ? '✓ Added' : '+ Add'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => !isInWatchlist && onAddMedia(media)}
+                  size="sm"
+                  className="shrink-0"
+                  disabled={isInWatchlist}
+                  variant={isInWatchlist ? 'secondary' : 'default'}
+                >
+                  {isInWatchlist ? '✓ Added' : '+ Add'}
+                </Button>
+                
+                <AddToQueueButton
+                  tmdbItem={media}
+                  size="sm"
+                  variant="outline"
+                />
+              </div>
             </div>
 
             {media.overview && (

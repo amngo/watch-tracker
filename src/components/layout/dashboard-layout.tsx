@@ -14,6 +14,7 @@ import {
   Menu,
   Bell,
   FileText,
+  ListOrdered,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +32,7 @@ import type { DashboardLayoutProps, NavigationItem } from '@/types'
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Search & Add', href: '/search', icon: Search },
+  { name: 'Queue', href: '/queue', icon: ListOrdered },
   { name: 'Movies', href: '/movies', icon: Film },
   { name: 'TV Shows', href: '/tv', icon: Tv },
   { name: 'Notes', href: '/notes', icon: FileText },

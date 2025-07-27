@@ -45,6 +45,7 @@ import {
   NotesBadge,
 } from '@/components/ui/media-badges'
 import { ProgressDisplay } from '@/components/ui/progress-display'
+import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import type { WatchStatus, WatchedItemCardProps } from '@/types'
 
 const statusConfig = {
@@ -204,25 +205,34 @@ export function WatchedItemCard({
               className="mt-2"
             />
 
-            <div className="flex items-center gap-2 mt-3">
-              {item.rating ? (
-                <RatingBadge
-                  rating={item.rating}
-                  onClick={() => setIsEditingRating(true)}
-                  interactive
-                />
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditingRating(true)}
-                  className="text-muted-foreground"
-                >
-                  <Star className="h-4 w-4 mr-1" />
-                  Rate
-                </Button>
-              )}
-              <NotesBadge count={item._count.notes} />
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center gap-2">
+                {item.rating ? (
+                  <RatingBadge
+                    rating={item.rating}
+                    onClick={() => setIsEditingRating(true)}
+                    interactive
+                  />
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingRating(true)}
+                    className="text-muted-foreground"
+                  >
+                    <Star className="h-4 w-4 mr-1" />
+                    Rate
+                  </Button>
+                )}
+                <NotesBadge count={item._count.notes} />
+              </div>
+              
+              <AddToQueueButton
+                item={item}
+                showDropdown={item.mediaType === 'TV'}
+                size="sm"
+                variant="outline"
+              />
             </div>
           </div>
         </div>
