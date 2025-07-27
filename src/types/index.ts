@@ -48,6 +48,9 @@ export interface Note {
   id: string
   content: string
   timestamp: string | null
+  noteType: 'GENERAL' | 'EPISODE'
+  seasonNumber: number | null
+  episodeNumber: number | null
   createdAt: Date
   isPublic: boolean
   hasSpoilers: boolean

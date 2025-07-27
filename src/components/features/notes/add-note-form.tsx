@@ -6,11 +6,19 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { api } from '@/trpc/react'
 
 interface AddNoteFormProps {
   watchedItemId: string
   mediaType: 'MOVIE' | 'TV'
+  noteType?: 'GENERAL' | 'EPISODE'
+  totalRuntime?: number
+  totalSeasons?: number
+  totalEpisodes?: number
+  currentSeason?: number
+  currentEpisode?: number
   onSuccess?: () => void
   onCancel?: () => void
 }
@@ -18,11 +26,19 @@ interface AddNoteFormProps {
 export function AddNoteForm({ 
   watchedItemId,
   mediaType,
+  noteType = 'GENERAL',
+  totalSeasons,
+  totalEpisodes,
+  currentSeason,
+  currentEpisode,
   onSuccess,
   onCancel
 }: AddNoteFormProps) {
   const [content, setContent] = useState('')
   const [timestamp, setTimestamp] = useState('')
+  const [selectedNoteType, setSelectedNoteType] = useState<'GENERAL' | 'EPISODE'>(noteType)
+  const [seasonNumber, setSeasonNumber] = useState(currentSeason || 1)
+  const [episodeNumber, setEpisodeNumber] = useState(currentEpisode || 1)
   const [isPublic, setIsPublic] = useState(false)
   const [hasSpoilers, setHasSpoilers] = useState(false)
 
@@ -31,6 +47,9 @@ export function AddNoteForm({
       // Reset form
       setContent('')
       setTimestamp('')
+      setSelectedNoteType('GENERAL')
+      setSeasonNumber(currentSeason || 1)
+      setEpisodeNumber(currentEpisode || 1)
       setIsPublic(false)
       setHasSpoilers(false)
       onSuccess?.()
@@ -49,6 +68,9 @@ export function AddNoteForm({
       watchedItemId,
       content: content.trim(),
       timestamp: timestamp.trim() || undefined,
+      noteType: selectedNoteType,
+      seasonNumber: selectedNoteType === 'EPISODE' ? seasonNumber : undefined,
+      episodeNumber: selectedNoteType === 'EPISODE' ? episodeNumber : undefined,
       isPublic,
       hasSpoilers
     })
@@ -58,14 +80,20 @@ export function AddNoteForm({
     if (mediaType === 'MOVIE') {
       return 'e.g., 01:23:45'
     }
-    return 'e.g., S02E05 or S02E05 12:34'
+    if (selectedNoteType === 'EPISODE') {
+      return 'e.g., 12:34 (time within episode)'
+    }
+    return 'e.g., 12:34 (optional)'
   }
 
   const getTimestampHelpText = () => {
     if (mediaType === 'MOVIE') {
       return 'Enter the time in the movie (HH:MM:SS or MM:SS format)'
     }
-    return 'Enter season/episode (S02E05) or include time (S02E05 12:34)'
+    if (selectedNoteType === 'EPISODE') {
+      return 'Enter time within the episode (MM:SS format) - optional'
+    }
+    return 'Enter a timestamp reference if applicable'
   }
 
   return (
@@ -81,6 +109,82 @@ export function AddNoteForm({
           required
         />
       </div>
+
+      {/* Note Type Selection for TV Shows */}
+      {mediaType === 'TV' && (
+        <div className="space-y-3">
+          <Label>Note Type</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <Card 
+              className={`cursor-pointer transition-all ${
+                selectedNoteType === 'GENERAL' 
+                  ? 'ring-2 ring-primary border-primary' 
+                  : 'hover:border-border'
+              }`}
+              onClick={() => setSelectedNoteType('GENERAL')}
+            >
+              <CardContent className="p-4 text-center">
+                <h4 className="font-medium">General Note</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  About the show in general
+                </p>
+              </CardContent>
+            </Card>
+            <Card 
+              className={`cursor-pointer transition-all ${
+                selectedNoteType === 'EPISODE' 
+                  ? 'ring-2 ring-primary border-primary' 
+                  : 'hover:border-border'
+              }`}
+              onClick={() => setSelectedNoteType('EPISODE')}
+            >
+              <CardContent className="p-4 text-center">
+                <h4 className="font-medium">Episode Note</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  About a specific episode
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Episode Selection for Episode Notes */}
+      {mediaType === 'TV' && selectedNoteType === 'EPISODE' && (
+        <div className="space-y-3">
+          <Label>Episode</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="season-number">Season</Label>
+              <Input
+                id="season-number"
+                type="number"
+                min="1"
+                max={totalSeasons || 50}
+                value={seasonNumber}
+                onChange={(e) => setSeasonNumber(parseInt(e.target.value) || 1)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="episode-number">Episode</Label>
+              <Input
+                id="episode-number"
+                type="number"
+                min="1"
+                max={100}
+                value={episodeNumber}
+                onChange={(e) => setEpisodeNumber(parseInt(e.target.value) || 1)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">
+              S{seasonNumber.toString().padStart(2, '0')}E{episodeNumber.toString().padStart(2, '0')}
+            </Badge>
+            <span className="text-sm text-muted-foreground">Episode reference</span>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="timestamp">Timestamp (optional)</Label>

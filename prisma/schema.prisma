@@ -89,6 +89,9 @@ model Note {
   watchedItemId String
   content       String
   timestamp     String?  // For movies: "01:23:45", for shows: "S02E05" or "S02E05 12:34"
+  noteType      NoteType @default(GENERAL) // General note or episode-specific
+  seasonNumber  Int?     @db.SmallInt // For episode-specific notes
+  episodeNumber Int?     @db.SmallInt // For episode-specific notes
   isPublic      Boolean  @default(false)
   hasSpoilers   Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -136,4 +139,9 @@ enum EpisodeWatchStatus {
   UNWATCHED
   WATCHED
   SKIPPED
+}
+
+enum NoteType {
+  GENERAL
+  EPISODE
 }

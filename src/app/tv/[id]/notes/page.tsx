@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { ArrowLeft, Plus, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Plus, FileText, Tv } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { AddNoteForm } from '@/components/features/notes/add-note-form'
 import { NoteCard } from '@/components/features/notes/note-card'
@@ -25,6 +27,7 @@ export default function TVNotesPage() {
   const params = useParams()
   const tvId = params.id as string
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false)
+  const [noteType, setNoteType] = useState<'GENERAL' | 'EPISODE'>('GENERAL')
   const [tvDetails, setTvDetails] = useState<any>(null)
 
   const { 
@@ -66,14 +69,30 @@ export default function TVNotesPage() {
     }
   )
 
-  // Fetch notes for this TV show
+  // Fetch general notes for this TV show
   const {
-    data: notesData,
-    isLoading: notesLoading,
-    refetch: refetchNotes,
+    data: generalNotesData,
+    isLoading: generalNotesLoading,
+    refetch: refetchGeneralNotes,
   } = api.note.getByWatchedItem.useQuery(
     {
       watchedItemId: userWatchedItem?.id || '',
+      noteType: 'GENERAL',
+    },
+    {
+      enabled: !!userWatchedItem?.id,
+    }
+  )
+
+  // Fetch episode-specific notes for this TV show
+  const {
+    data: episodeNotesData,
+    isLoading: episodeNotesLoading,
+    refetch: refetchEpisodeNotes,
+  } = api.note.getByWatchedItem.useQuery(
+    {
+      watchedItemId: userWatchedItem?.id || '',
+      noteType: 'EPISODE',
     },
     {
       enabled: !!userWatchedItem?.id,
@@ -137,11 +156,13 @@ export default function TVNotesPage() {
 
   const handleNoteAdded = () => {
     setIsAddNoteModalOpen(false)
-    refetchNotes()
+    refetchGeneralNotes()
+    refetchEpisodeNotes()
   }
 
   const handleNoteDeleted = () => {
-    refetchNotes()
+    refetchGeneralNotes()
+    refetchEpisodeNotes()
   }
 
   const formatTimestamp = (timestamp: string | null) => {
@@ -171,7 +192,7 @@ export default function TVNotesPage() {
     return timestamp
   }
 
-  if (detailsLoading || notesLoading || watchedItemsLoading) {
+  if (detailsLoading || generalNotesLoading || episodeNotesLoading || watchedItemsLoading) {
     return (
       <DashboardLayout stats={stats || undefined}>
         <div className="space-y-8">
@@ -249,7 +270,20 @@ export default function TVNotesPage() {
     )
   }
 
-  const notes = notesData?.notes || []
+  const generalNotes = generalNotesData?.notes || []
+  const episodeNotes = episodeNotesData?.notes || []
+
+  // Group episode notes by season and episode
+  const groupedEpisodeNotes = episodeNotes.reduce((acc, note) => {
+    if (note.seasonNumber && note.episodeNumber) {
+      const key = `S${note.seasonNumber}E${note.episodeNumber}`
+      if (!acc[key]) {
+        acc[key] = []
+      }
+      acc[key].push(note)
+    }
+    return acc
+  }, {} as Record<string, Note[]>)
 
   return (
     <DashboardLayout stats={stats || undefined}>
@@ -275,33 +309,119 @@ export default function TVNotesPage() {
           </Button>
         </div>
 
-        {/* Notes List */}
-        {notes.length > 0 ? (
-          <div className="space-y-4">
-            {notes.map((note: Note) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onDeleted={handleNoteDeleted}
-                formatTimestamp={formatTimestamp}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No notes yet</h3>
-              <p className="text-muted-foreground mb-4 text-center">
-                Start taking notes about specific episodes or moments in the show
-              </p>
-              <Button onClick={() => setIsAddNoteModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Note
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        {/* Notes Tabs */}
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="general" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              General Notes
+              {generalNotes.length > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {generalNotes.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="episodes" className="flex items-center gap-2">
+              <Tv className="h-4 w-4" />
+              Episode Notes
+              {episodeNotes.length > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {episodeNotes.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* General Notes Tab */}
+          <TabsContent value="general" className="space-y-4">
+            {generalNotes.length > 0 ? (
+              <div className="space-y-4">
+                {generalNotes.map((note: Note) => (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    onDeleted={handleNoteDeleted}
+                    formatTimestamp={formatTimestamp}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No general notes yet</h3>
+                  <p className="text-muted-foreground mb-4 text-center">
+                    Add notes about the show in general, your thoughts, or overall reactions
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setNoteType('GENERAL')
+                      setIsAddNoteModalOpen(true)
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add General Note
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Episode Notes Tab */}
+          <TabsContent value="episodes" className="space-y-4">
+            {Object.keys(groupedEpisodeNotes).length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(groupedEpisodeNotes)
+                  .sort(([a], [b]) => {
+                    // Sort by season then episode
+                    const [seasonA, episodeA] = a.match(/\d+/g)!.map(Number)
+                    const [seasonB, episodeB] = b.match(/\d+/g)!.map(Number)
+                    return seasonA - seasonB || episodeA - episodeB
+                  })
+                  .map(([episodeKey, notes]) => (
+                    <Card key={episodeKey}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Tv className="h-4 w-4" />
+                          {episodeKey}
+                          <Badge variant="outline">{notes.length} note{notes.length > 1 ? 's' : ''}</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {notes.map((note: Note) => (
+                          <NoteCard
+                            key={note.id}
+                            note={note}
+                            onDeleted={handleNoteDeleted}
+                            formatTimestamp={formatTimestamp}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Tv className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No episode notes yet</h3>
+                  <p className="text-muted-foreground mb-4 text-center">
+                    Add notes about specific episodes, scenes, or moments
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setNoteType('EPISODE')
+                      setIsAddNoteModalOpen(true)
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Episode Note
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Add Note Modal */}
         <Dialog open={isAddNoteModalOpen} onOpenChange={setIsAddNoteModalOpen}>
@@ -312,6 +432,11 @@ export default function TVNotesPage() {
             <AddNoteForm
               watchedItemId={userWatchedItem.id}
               mediaType="TV"
+              noteType={noteType}
+              totalSeasons={tvDetails.number_of_seasons}
+              totalEpisodes={tvDetails.number_of_episodes}
+              currentSeason={userWatchedItem.currentSeason || undefined}
+              currentEpisode={userWatchedItem.currentEpisode || undefined}
               onSuccess={handleNoteAdded}
               onCancel={() => setIsAddNoteModalOpen(false)}
             />

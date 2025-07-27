@@ -7,6 +7,9 @@ export const noteRouter = createTRPCRouter({
       watchedItemId: z.string(),
       content: z.string().min(1),
       timestamp: z.string().optional(),
+      noteType: z.enum(['GENERAL', 'EPISODE']).default('GENERAL'),
+      seasonNumber: z.number().int().min(1).optional(),
+      episodeNumber: z.number().int().min(1).optional(),
       isPublic: z.boolean().default(false),
       hasSpoilers: z.boolean().default(false),
     }))
@@ -34,15 +37,31 @@ export const noteRouter = createTRPCRouter({
   getByWatchedItem: protectedProcedure
     .input(z.object({
       watchedItemId: z.string(),
+      noteType: z.enum(['GENERAL', 'EPISODE']).optional(),
+      seasonNumber: z.number().int().min(1).optional(),
+      episodeNumber: z.number().int().min(1).optional(),
       limit: z.number().min(1).max(100).default(50),
       cursor: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
+      const whereClause: any = {
+        watchedItemId: input.watchedItemId,
+        userId: ctx.user.id,
+      }
+
+      // Filter by note type if specified
+      if (input.noteType) {
+        whereClause.noteType = input.noteType
+      }
+
+      // Filter by specific episode if specified
+      if (input.seasonNumber && input.episodeNumber) {
+        whereClause.seasonNumber = input.seasonNumber
+        whereClause.episodeNumber = input.episodeNumber
+      }
+
       const notes = await ctx.db.note.findMany({
-        where: {
-          watchedItemId: input.watchedItemId,
-          userId: ctx.user.id,
-        },
+        where: whereClause,
         orderBy: { createdAt: 'desc' },
         take: input.limit + 1,
         ...(input.cursor && {
@@ -68,6 +87,9 @@ export const noteRouter = createTRPCRouter({
       id: z.string(),
       content: z.string().min(1).optional(),
       timestamp: z.string().optional(),
+      noteType: z.enum(['GENERAL', 'EPISODE']).optional(),
+      seasonNumber: z.number().int().min(1).optional(),
+      episodeNumber: z.number().int().min(1).optional(),
       isPublic: z.boolean().optional(),
       hasSpoilers: z.boolean().optional(),
     }))
