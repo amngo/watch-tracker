@@ -308,7 +308,6 @@ export default function MovieNotesPage() {
             <AddNoteForm
               watchedItemId={userWatchedItem.id}
               mediaType="MOVIE"
-              totalRuntime={movieDetails.runtime}
               onSuccess={handleNoteAdded}
               onCancel={() => setIsAddNoteModalOpen(false)}
             />

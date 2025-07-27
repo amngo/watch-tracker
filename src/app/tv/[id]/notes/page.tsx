@@ -312,10 +312,6 @@ export default function TVNotesPage() {
             <AddNoteForm
               watchedItemId={userWatchedItem.id}
               mediaType="TV"
-              totalSeasons={tvDetails.number_of_seasons}
-              totalEpisodes={tvDetails.number_of_episodes}
-              currentSeason={userWatchedItem.currentSeason ?? undefined}
-              currentEpisode={userWatchedItem.currentEpisode ?? undefined}
               onSuccess={handleNoteAdded}
               onCancel={() => setIsAddNoteModalOpen(false)}
             />

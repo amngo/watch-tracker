@@ -38,11 +38,10 @@ interface SeasonCardProps {
   season: NonNullable<TMDBTVDetailsExtended['seasons']>[number]
   watchedItem: WatchedItem
   tvId: string
-  onUpdateEpisodeStatus: (seasonNumber: number, episodeNumber: number, status: EpisodeWatchStatus) => void
   onBulkUpdateEpisodes: (episodes: { seasonNumber: number; episodeNumber: number; status: EpisodeWatchStatus }[]) => void
 }
 
-function SeasonCard({ season, watchedItem, tvId, onUpdateEpisodeStatus, onBulkUpdateEpisodes }: SeasonCardProps) {
+function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonCardProps) {
   if (!season) return null
 
   const posterUrl = season.poster_path
@@ -349,7 +348,6 @@ export function FlexibleSeasonOverview({
               season={season}
               watchedItem={watchedItem}
               tvId={tvDetails.id.toString()}
-              onUpdateEpisodeStatus={onUpdateEpisodeStatus}
               onBulkUpdateEpisodes={onBulkUpdateEpisodes}
             />
           ))}
@@ -367,7 +365,6 @@ export function FlexibleSeasonOverview({
                 season={season}
                 watchedItem={watchedItem}
                 tvId={tvDetails.id.toString()}
-                onUpdateEpisodeStatus={onUpdateEpisodeStatus}
                 onBulkUpdateEpisodes={onBulkUpdateEpisodes}
               />
             ))}

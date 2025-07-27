@@ -11,27 +11,15 @@ import { api } from '@/trpc/react'
 interface AddNoteFormProps {
   watchedItemId: string
   mediaType: 'MOVIE' | 'TV'
-  totalRuntime?: number
-  totalSeasons?: number
-  totalEpisodes?: number
-  currentSeason?: number
-  currentEpisode?: number
   onSuccess?: () => void
   onCancel?: () => void
-  trigger?: React.ReactNode
 }
 
 export function AddNoteForm({ 
   watchedItemId,
   mediaType,
-  totalRuntime,
-  totalSeasons,
-  totalEpisodes,
-  currentSeason,
-  currentEpisode,
   onSuccess,
-  onCancel,
-  trigger 
+  onCancel
 }: AddNoteFormProps) {
   const [content, setContent] = useState('')
   const [timestamp, setTimestamp] = useState('')

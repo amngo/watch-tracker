@@ -39,8 +39,6 @@ interface EpisodeItemProps {
   episode: TMDBEpisodeItem
   isWatched: boolean
   isCurrent: boolean
-  watchedItem: WatchedItem
-  seasonNumber: number
   onMarkWatched: (episodeNumber: number) => void
   onMarkAsCurrentEpisode: (episodeNumber: number) => void
 }
@@ -49,8 +47,6 @@ function EpisodeItem({
   episode,
   isWatched,
   isCurrent,
-  watchedItem,
-  seasonNumber,
   onMarkWatched,
   onMarkAsCurrentEpisode,
 }: EpisodeItemProps) {
@@ -349,8 +345,6 @@ export function EpisodeTracker({
                   episode={episode}
                   isWatched={isEpisodeWatched(episode.episode_number)}
                   isCurrent={isCurrentEpisode(episode.episode_number)}
-                  watchedItem={watchedItem}
-                  seasonNumber={seasonNumber}
                   onMarkWatched={handleMarkWatched}
                   onMarkAsCurrentEpisode={handleMarkAsCurrentEpisode}
                 />
