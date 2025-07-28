@@ -90,7 +90,9 @@ export default function MoviesPage() {
   }, [movieItems, itemsDataLoading, setWatchedItems, setItemsLoading])
 
   // Filter items by media type (movies only)
-  const movieWatchlistItems = watchedItems.filter(item => item.mediaType === 'MOVIE')
+  const movieWatchlistItems = watchedItems.filter(
+    item => item.mediaType === 'MOVIE'
+  )
 
   const handleAddMedia = async (media: TMDBMediaItem) => {
     await addMedia(media)
@@ -115,7 +117,9 @@ export default function MoviesPage() {
         >
           <AddMediaModal
             isOpen={isSearchModalOpen}
-            onOpenChange={open => open ? openSearchModal() : closeSearchModal()}
+            onOpenChange={open =>
+              open ? openSearchModal() : closeSearchModal()
+            }
             onAddMedia={handleAddMedia}
             triggerLabel="Add Movie"
             dialogTitle="Search & Add Movies"
@@ -133,21 +137,30 @@ export default function MoviesPage() {
           />
           <StatsCard
             title="Completed"
-            value={movieWatchlistItems.filter(item => item.status === 'COMPLETED').length}
+            value={
+              movieWatchlistItems.filter(item => item.status === 'COMPLETED')
+                .length
+            }
             description="Movies watched"
             icon={Film}
             isLoading={itemsLoading}
           />
           <StatsCard
             title="Watching"
-            value={movieWatchlistItems.filter(item => item.status === 'WATCHING').length}
+            value={
+              movieWatchlistItems.filter(item => item.status === 'WATCHING')
+                .length
+            }
             description="Currently watching"
             icon={Film}
             isLoading={itemsLoading}
           />
           <StatsCard
             title="Planned"
-            value={movieWatchlistItems.filter(item => item.status === 'PLANNED').length}
+            value={
+              movieWatchlistItems.filter(item => item.status === 'PLANNED')
+                .length
+            }
             description="Want to watch"
             icon={Film}
             isLoading={itemsLoading}
@@ -164,7 +177,10 @@ export default function MoviesPage() {
           </SectionHeader>
 
           {itemsLoading ? (
-            <LoadingGrid count={8} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" />
+            <LoadingGrid
+              count={8}
+              className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            />
           ) : movieWatchlistItems.length === 0 ? (
             <EmptyState
               icon={Film}
@@ -177,7 +193,7 @@ export default function MoviesPage() {
               </Button>
             </EmptyState>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {movieWatchlistItems.map(item => (
                 <WatchedItemCard
                   key={item.id}

@@ -1,8 +1,8 @@
 'use client'
-
 import { useState } from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { PageTransition } from '@/components/common/page-transition'
+import { NavigationTransitionLink } from '@/components/common/transition-link'
 import {
   Home,
   Search,
@@ -26,10 +26,15 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { UserButton } from '@clerk/nextjs'
-import { cn } from '@/lib/utils'
 import { NavigationBadge } from '@/components/ui/navigation-badge'
 import { useNavigationCounts } from '@/hooks/use-navigation-counts'
 import type { DashboardLayoutProps, NavigationItem } from '@/types'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+} from '../ui/breadcrumb'
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -47,6 +52,7 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { counts } = useNavigationCounts()
+  const currentPage = navigation.find(item => pathname.startsWith(item.href))
 
   return (
     <div className="min-h-screen bg-background">
@@ -114,10 +120,17 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
             <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="flex h-16 items-center justify-between px-6">
                 <div className="flex items-center gap-4">
-                  <h2 className="font-semibold text-lg">
-                    {navigation.find(item => item.href === pathname)?.name ||
-                      'Dashboard'}
-                  </h2>
+                  <Breadcrumb>
+                    <BreadcrumbList>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink
+                          href={currentPage?.href || '/dashboard'}
+                        >
+                          {currentPage?.name || 'Dashboard'}
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                    </BreadcrumbList>
+                  </Breadcrumb>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -133,7 +146,9 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
 
           {/* Page Content */}
           <main className="flex-1">
-            <div className="py-6 px-4 lg:px-6">{children}</div>
+            <PageTransition className="py-6 px-4 lg:px-6">
+              {children}
+            </PageTransition>
           </main>
         </div>
       </div>
@@ -161,28 +176,20 @@ function DesktopNavigation({
     <div className="mt-8 flex-grow flex flex-col">
       <nav className="flex-1 space-y-1 px-2">
         {navigation.map(item => {
-          const isActive = pathname === item.href
+          const isActive = pathname.startsWith(item.href)
           const badgeCount = item.badgeKey && counts ? counts[item.badgeKey] : 0
           return (
-            <Link
+            <NavigationTransitionLink
               key={item.name}
               href={item.href}
-              className={cn(
-                'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
+              isActive={isActive}
             >
               <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
               {item.name}
               {item.badgeKey && (
-                <NavigationBadge 
-                  count={badgeCount} 
-                  isActive={isActive}
-                />
+                <NavigationBadge count={badgeCount} isActive={isActive} />
               )}
-            </Link>
+            </NavigationTransitionLink>
           )
         })}
       </nav>
@@ -241,29 +248,22 @@ function MobileNavigation({
     <div className="mt-6 flex-grow flex flex-col">
       <nav className="flex-1 space-y-1">
         {navigation.map(item => {
-          const isActive = pathname === item.href
+          const isActive = pathname.startsWith(item.href)
           const badgeCount = item.badgeKey && counts ? counts[item.badgeKey] : 0
           return (
-            <Link
+            <NavigationTransitionLink
               key={item.name}
               href={item.href}
+              isActive={isActive}
               onClick={onItemClick}
-              className={cn(
-                'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
+              className="px-3 py-2"
             >
               <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
               {item.name}
               {item.badgeKey && (
-                <NavigationBadge 
-                  count={badgeCount} 
-                  isActive={isActive}
-                />
+                <NavigationBadge count={badgeCount} isActive={isActive} />
               )}
-            </Link>
+            </NavigationTransitionLink>
           )
         })}
       </nav>

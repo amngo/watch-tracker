@@ -113,9 +113,8 @@ export function WatchedItemCard({
     setIsResetDialogOpen(false)
   }
 
-  const detailUrl = item.mediaType === 'MOVIE' 
-    ? `/movie/${item.tmdbId}`
-    : `/tv/${item.tmdbId}`
+  const detailUrl =
+    item.mediaType === 'MOVIE' ? `/movie/${item.tmdbId}` : `/tv/${item.tmdbId}`
 
   return (
     <Card className="group transition-shadow hover:shadow-md p-0">
@@ -206,7 +205,7 @@ export function WatchedItemCard({
             />
 
             <div className="flex items-center justify-between mt-3">
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 {item.rating ? (
                   <RatingBadge
                     rating={item.rating}
@@ -225,8 +224,8 @@ export function WatchedItemCard({
                   </Button>
                 )}
                 <NotesBadge count={item._count.notes} />
-              </div>
-              
+              </div> */}
+
               <AddToQueueButton
                 item={item}
                 showDropdown={item.mediaType === 'TV'}
@@ -273,12 +272,17 @@ export function WatchedItemCard({
       </Dialog>
 
       {/* Completion Confirmation Dialog */}
-      <AlertDialog open={isCompletionDialogOpen} onOpenChange={setIsCompletionDialogOpen}>
+      <AlertDialog
+        open={isCompletionDialogOpen}
+        onOpenChange={setIsCompletionDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Mark Show as Complete?</AlertDialogTitle>
             <AlertDialogDescription>
-              Marking &quot;{item.title}&quot; as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
+              Marking &quot;{item.title}&quot; as complete will automatically
+              mark all seasons and episodes as watched. This action will update
+              your overall progress to 100%. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -296,12 +300,18 @@ export function WatchedItemCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Show Progress?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will reset &quot;{item.title}&quot; back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
+              This will reset &quot;{item.title}&quot; back to planned status
+              and mark all episodes as unwatched. Your progress will be set to
+              0% and all episode tracking will be cleared. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleConfirmReset}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Yes, Reset Progress
             </AlertDialogAction>
           </AlertDialogFooter>
