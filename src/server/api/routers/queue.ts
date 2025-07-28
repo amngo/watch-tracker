@@ -311,19 +311,8 @@ export const queueRouter = createTRPCRouter({
     return { deletedCount: deletedItems.count }
   }),
 
-  // Clear entire queue (both watched and unwatched items)
+  // Clear entire active queue (unwatched items only)
   clearQueue: protectedProcedure.mutation(async ({ ctx }) => {
-    const deletedItems = await ctx.db.queueItem.deleteMany({
-      where: {
-        userId: ctx.user.id,
-      },
-    })
-
-    return { deletedCount: deletedItems.count }
-  }),
-
-  // Clear only active queue items (unwatched)
-  clearActiveQueue: protectedProcedure.mutation(async ({ ctx }) => {
     const deletedItems = await ctx.db.queueItem.deleteMany({
       where: {
         userId: ctx.user.id,
@@ -357,11 +346,7 @@ export const queueRouter = createTRPCRouter({
       // In a real app, you'd fetch this from TMDB API
       const maxEpisodesPerSeason = 50
 
-      if (
-        nextEpisode > maxEpisodesPerSeason &&
-        input.totalSeasons &&
-        nextSeason < input.totalSeasons
-      ) {
+      if (nextEpisode > maxEpisodesPerSeason && input.totalSeasons && nextSeason < input.totalSeasons) {
         nextSeason += 1
         nextEpisode = 1
       }
@@ -395,21 +380,6 @@ export const queueRouter = createTRPCRouter({
 
       const nextPosition = lastItem ? lastItem.position + 1 : 1
 
-      // Fetch episode name from TMDB
-      let episodeName: string | null = null
-      try {
-        const tmdb = new TMDBService()
-        const episodeData = await tmdb.getTVEpisodeDetails(
-          input.tmdbId,
-          nextSeason,
-          nextEpisode
-        )
-        episodeName = episodeData.name
-      } catch (error) {
-        // If TMDB fetch fails, continue without episode name
-        console.warn('Failed to fetch next episode name from TMDB:', error)
-      }
-
       // Create the queue item for next episode
       const queueItem = await ctx.db.queueItem.create({
         data: {
@@ -421,7 +391,6 @@ export const queueRouter = createTRPCRouter({
           tmdbId: input.tmdbId,
           seasonNumber: nextSeason,
           episodeNumber: nextEpisode,
-          episodeName: episodeName,
           position: nextPosition,
         },
       })
