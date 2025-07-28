@@ -77,6 +77,17 @@ export interface Note {
   watchedItemId: string
 }
 
+export interface NoteWithMedia extends Note {
+  watchedItem: {
+    id: string
+    tmdbId: number
+    mediaType: 'MOVIE' | 'TV'
+    title: string
+    poster: string | null
+    releaseDate: Date | null
+  }
+}
+
 export interface UserStats {
   totalItems: number
   currentlyWatching: number

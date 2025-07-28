@@ -15,7 +15,7 @@ import { NoteCardSkeleton } from '@/components/ui/skeletons'
 import { api } from '@/trpc/react'
 import { useMedia } from '@/hooks/use-media'
 import Link from 'next/link'
-import type { Note, WatchedItem } from '@/types'
+import type { Note, NoteWithMedia, WatchedItem } from '@/types'
 
 export default function NotesPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -114,7 +114,7 @@ export default function NotesPage() {
     }
     acc[mediaKey].notes.push(note)
     return acc
-  }, {} as Record<string, { watchedItem: Partial<WatchedItem> | null; notes: Note[] }>)
+  }, {} as Record<string, { watchedItem: Partial<WatchedItem> | null; notes: NoteWithMedia[] }>)
 
   return (
     <DashboardLayout stats={stats || undefined}>

@@ -1,4 +1,17 @@
 import type { WatchedItem, EpisodeWatchStatus } from '@/types'
+import { TMDBService } from './tmdb'
+
+const tmdb = new TMDBService()
+
+export interface EpisodeInfo {
+  seasonNumber: number
+  episodeNumber: number
+  episodeName?: string
+  tmdbId: number
+}
+
+// Cache for episode names to avoid repeated API calls
+const episodeNameCache = new Map<string, string>()
 
 /**
  * Calculate flexible progress for TV shows that allows non-linear watching
@@ -181,4 +194,67 @@ export function getShowStatistics(
     completedSeasons,
     overallProgress
   }
+}
+
+/**
+ * Fetch episode name from TMDB
+ */
+export async function getEpisodeName(
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number
+): Promise<string | null> {
+  const cacheKey = `${tmdbId}-${seasonNumber}-${episodeNumber}`
+  
+  // Check cache first
+  if (episodeNameCache.has(cacheKey)) {
+    return episodeNameCache.get(cacheKey) || null
+  }
+
+  try {
+    const episodeDetails = await tmdb.getTVEpisodeDetails(tmdbId, seasonNumber, episodeNumber)
+    const episodeName = episodeDetails.name
+    
+    // Cache the result
+    if (episodeName) {
+      episodeNameCache.set(cacheKey, episodeName)
+    }
+    
+    return episodeName
+  } catch (error) {
+    console.warn(`Failed to fetch episode name for ${cacheKey}:`, error)
+    return null
+  }
+}
+
+/**
+ * Format episode display with episode name if available
+ */
+export function formatEpisodeDisplay(
+  seasonNumber: number,
+  episodeNumber: number,
+  episodeName?: string | null
+): string {
+  const episodeCode = `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`
+  
+  if (episodeName) {
+    return `${episodeCode}: ${episodeName}`
+  }
+  
+  return episodeCode
+}
+
+/**
+ * Format episode reference for notes display
+ */
+export function formatEpisodeReference(
+  seasonNumber: number,
+  episodeNumber: number,
+  episodeName?: string | null
+): string {
+  if (episodeName) {
+    return `${episodeName} (S${seasonNumber}E${episodeNumber})`
+  }
+  
+  return `Season ${seasonNumber}, Episode ${episodeNumber}`
 }

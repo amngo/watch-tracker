@@ -18,10 +18,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { api } from '@/trpc/react'
-import type { Note } from '@/types'
+import { useEpisodeName } from '@/hooks/use-episode-name'
+import { formatEpisodeReference } from '@/lib/episode-utils'
+import type { Note, NoteWithMedia } from '@/types'
 
 interface NoteCardProps {
-  note: Note
+  note: Note | NoteWithMedia
   onDeleted?: () => void
   formatTimestamp?: (timestamp: string | null) => string | null
   showSpoilers?: boolean
@@ -34,6 +36,18 @@ export function NoteCard({ note, onDeleted, formatTimestamp, showSpoilers = true
   const [editTimestamp, setEditTimestamp] = useState(note.timestamp || '')
   const [editIsPublic, setEditIsPublic] = useState(note.isPublic)
   const [editHasSpoilers, setEditHasSpoilers] = useState(note.hasSpoilers)
+
+  // Get episode name if this is an episode note for a TV show
+  const isNoteWithMedia = 'watchedItem' in note
+  const tmdbId = isNoteWithMedia ? note.watchedItem.tmdbId : undefined
+  const isEpisodeNote = note.noteType === 'EPISODE' && note.seasonNumber && note.episodeNumber
+  const isTV = isNoteWithMedia && note.watchedItem.mediaType === 'TV'
+  
+  const { episodeName } = useEpisodeName(
+    isEpisodeNote && isTV ? tmdbId : undefined,
+    note.seasonNumber,
+    note.episodeNumber
+  )
 
   const utils = api.useUtils()
   const updateNoteMutation = api.note.update.useMutation({
@@ -88,15 +102,25 @@ export function NoteCard({ note, onDeleted, formatTimestamp, showSpoilers = true
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              {/* Timestamp */}
-              {note.timestamp && (
-                <div className="flex items-center gap-1 mb-2">
-                  <Clock className="h-3 w-3 text-muted-foreground" />
-                  <Badge variant="outline" className="text-xs">
-                    {formatTimestamp ? formatTimestamp(note.timestamp) : note.timestamp}
+              {/* Episode info and timestamp */}
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                {/* Episode information for TV show episode notes */}
+                {isEpisodeNote && isTV && note.seasonNumber && note.episodeNumber && (
+                  <Badge variant="secondary" className="text-xs">
+                    {formatEpisodeReference(note.seasonNumber, note.episodeNumber, episodeName)}
                   </Badge>
-                </div>
-              )}
+                )}
+                
+                {/* Timestamp */}
+                {note.timestamp && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-muted-foreground" />
+                    <Badge variant="outline" className="text-xs">
+                      {formatTimestamp ? formatTimestamp(note.timestamp) : note.timestamp}
+                    </Badge>
+                  </div>
+                )}
+              </div>
 
               {/* Content */}
               <div className={`${shouldBlurContent ? 'blur-sm select-none' : ''} transition-all`}>
