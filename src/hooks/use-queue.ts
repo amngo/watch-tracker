@@ -113,7 +113,16 @@ export function useQueue() {
     },
   })
 
-
+  const clearQueueMutation = api.queue.clearQueue.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Cleared ${result.deletedCount} items from queue`)
+      utils.queue.getQueue.invalidate()
+      utils.stats.navigationCounts.invalidate()
+    },
+    onError: () => {
+      toast.error('Failed to clear queue')
+    },
+  })
 
   const addNextEpisodeMutation = api.queue.addNextEpisode.useMutation({
     onSuccess: () => {
@@ -163,7 +172,9 @@ export function useQueue() {
     clearWatchedMutation.mutate()
   }, [clearWatchedMutation])
 
-
+  const clearQueue = useCallback(() => {
+    clearQueueMutation.mutate()
+  }, [clearQueueMutation])
 
   const addNextEpisode = useCallback(
     (data: {
@@ -228,6 +239,7 @@ export function useQueue() {
     reorderQueue,
     markAsWatched,
     clearWatchedItems,
+    clearQueue,
     addNextEpisode,
     
     // Utilities
@@ -239,6 +251,7 @@ export function useQueue() {
     isRemovingFromQueue: removeFromQueueMutation.isPending,
     isMarkingWatched: markAsWatchedMutation.isPending,
     isClearingWatched: clearWatchedMutation.isPending,
+    isClearingQueue: clearQueueMutation.isPending,
     isAddingNextEpisode: addNextEpisodeMutation.isPending,
   }
 }
