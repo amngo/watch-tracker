@@ -300,9 +300,14 @@ export interface TRPCContext {
     id: string
     email: string
   }
+  session?: {
+    userId: string
+  }
   req?: {
     ip?: string
     headers: Record<string, string | string[] | undefined>
+    connection?: { remoteAddress?: string }
+    socket?: { remoteAddress?: string }
   }
   rateLimit?: {
     remaining: number
@@ -312,14 +317,14 @@ export interface TRPCContext {
 
 export interface TRPCMiddlewareOpts {
   ctx: TRPCContext
-  next: () => Promise<any>
+  next: () => Promise<unknown>
 }
 
 // Error types
 export interface ErrorDetails {
   field?: string
   code?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // Navigation types

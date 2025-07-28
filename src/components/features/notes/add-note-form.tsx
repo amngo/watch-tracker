@@ -28,7 +28,7 @@ export function AddNoteForm({
   mediaType,
   noteType = 'GENERAL',
   totalSeasons,
-  totalEpisodes,
+  totalEpisodes: _totalEpisodes,
   currentSeason,
   currentEpisode,
   onSuccess,

@@ -6,7 +6,7 @@ export interface StandardAPIError {
   code: string
   message: string
   status: number
-  details?: any
+  details?: unknown
 }
 
 // Error codes following HTTP status patterns
@@ -44,7 +44,7 @@ export class WatchTrackerError extends Error {
     code: ErrorCode,
     message: string,
     status: number = 500,
-    details?: any
+    details?: unknown
   ) {
     super(message)
     this.name = 'WatchTrackerError'
@@ -65,7 +65,7 @@ export class WatchTrackerError extends Error {
 
 // Helper functions to create specific errors
 export const createError = {
-  badRequest: (message: string, details?: any) =>
+  badRequest: (message: string, details?: unknown) =>
     new WatchTrackerError(ERROR_CODES.BAD_REQUEST, message, 400, details),
     
   unauthorized: (message = 'Unauthorized access') =>
@@ -81,16 +81,16 @@ export const createError = {
       404
     ),
     
-  validation: (message: string, details?: any) =>
+  validation: (message: string, details?: unknown) =>
     new WatchTrackerError(ERROR_CODES.VALIDATION_ERROR, message, 400, details),
     
   rateLimited: (message = 'Rate limit exceeded') =>
     new WatchTrackerError(ERROR_CODES.RATE_LIMITED, message, 429),
     
-  internal: (message = 'Internal server error', details?: any) =>
+  internal: (message = 'Internal server error', details?: unknown) =>
     new WatchTrackerError(ERROR_CODES.INTERNAL_ERROR, message, 500, details),
     
-  database: (message = 'Database operation failed', details?: any) =>
+  database: (message = 'Database operation failed', details?: unknown) =>
     new WatchTrackerError(ERROR_CODES.DATABASE_ERROR, message, 500, details),
     
   externalAPI: (service: string, message?: string) =>
@@ -131,7 +131,7 @@ export const createError = {
 
 // Convert Zod validation errors to user-friendly messages
 export function formatZodError(error: ZodError): WatchTrackerError {
-  const details = error.issues.map((err: any) => ({
+  const details = error.issues.map((err) => ({
     path: err.path.join('.'),
     message: err.message,
     code: err.code,

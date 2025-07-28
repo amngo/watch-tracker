@@ -7,7 +7,7 @@ export interface LogContext {
   userId?: string
   component?: string
   action?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface LogEntry {
@@ -15,7 +15,7 @@ export interface LogEntry {
   level: 'debug' | 'info' | 'warn' | 'error'
   message: string
   context?: LogContext
-  error?: Error | any
+  error?: Error | unknown
 }
 
 class Logger {
@@ -74,7 +74,7 @@ class Logger {
     this.logToConsole(entry)
   }
 
-  warn(message: string, context?: LogContext, error?: Error | any) {
+  warn(message: string, context?: LogContext, error?: Error | unknown) {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: 'warn',
@@ -85,7 +85,7 @@ class Logger {
     this.logToConsole(entry)
   }
 
-  error(message: string, context?: LogContext, error?: Error | any) {
+  error(message: string, context?: LogContext, error?: Error | unknown) {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: 'error',
@@ -103,7 +103,7 @@ export const logger = new Logger()
 // Convenience functions for common use cases
 export const logError = (
   message: string, 
-  error: Error | any, 
+  error: Error | unknown, 
   context?: Omit<LogContext, 'action'>
 ) => {
   logger.error(message, { ...context, action: 'error' }, error)

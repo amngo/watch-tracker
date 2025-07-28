@@ -136,7 +136,9 @@ export function createRateLimitMiddleware(
 }
 
 // Helper function to get client IP
-export function getClientIP(req: any): string {
+export function getClientIP(req: TRPCContext['req']): string {
+  if (!req) return 'unknown'
+  
   // Check various headers for the real IP
   const forwarded = req.headers['x-forwarded-for']
   const realIP = req.headers['x-real-ip']
@@ -156,26 +158,26 @@ export function getClientIP(req: any): string {
 }
 
 // Specific middleware creators
-export const createSearchRateLimit = (ctx: any) => {
+export const createSearchRateLimit = (ctx: TRPCContext) => {
   const ip = getClientIP(ctx.req)
   return ctx.session?.userId 
     ? rateLimitKeys.byUser(ctx.session.userId, 'search')
     : rateLimitKeys.byIP(ip, 'search')
 }
 
-export const createTMDBRateLimit = (ctx: any) => {
+export const createTMDBRateLimit = (_ctx: TRPCContext) => {
   // TMDB rate limiting is global since it affects external API
   return rateLimitKeys.global('tmdb')
 }
 
-export const createUserModificationRateLimit = (ctx: any) => {
+export const createUserModificationRateLimit = (ctx: TRPCContext) => {
   if (!ctx.session?.userId) {
     throw new Error('Authentication required')
   }
   return rateLimitKeys.byUser(ctx.session.userId, 'user-modification')
 }
 
-export const createPublicProfileRateLimit = (ctx: any) => {
+export const createPublicProfileRateLimit = (ctx: TRPCContext) => {
   const ip = getClientIP(ctx.req)
   return rateLimitKeys.byIP(ip, 'public-profile')
 }

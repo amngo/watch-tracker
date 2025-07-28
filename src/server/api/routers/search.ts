@@ -33,7 +33,7 @@ export const searchRouter = createTRPCRouter({
   // Public search endpoint - anyone can search for content
   search: publicProcedure
     .input(SearchInputSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       try {
         // // Apply rate limiting
         // const searchKey = createSearchRateLimit(ctx)
@@ -243,9 +243,6 @@ export const searchRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       try {
-        // TMDB trending endpoint
-        const endpoint = `/trending/${input.mediaType}/${input.timeWindow}`
-
         // For now, we'll return a simple response structure
         // In a full implementation, you'd make the actual TMDB API call
         return {
@@ -256,7 +253,7 @@ export const searchRouter = createTRPCRouter({
           mediaType: input.mediaType,
           timeWindow: input.timeWindow,
         }
-      } catch (error) {
+      } catch (_error) {
         throw toTRPCError(
           createError.externalAPI('TMDB', 'Failed to fetch trending content')
         )
@@ -282,7 +279,7 @@ export const searchRouter = createTRPCRouter({
           total_results: 0,
           mediaType: input.mediaType,
         }
-      } catch (error) {
+      } catch (_error) {
         throw toTRPCError(
           createError.externalAPI('TMDB', 'Failed to fetch popular content')
         )
