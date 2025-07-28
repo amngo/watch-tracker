@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Star, MessageSquare } from 'lucide-react'
 import type { WatchStatus } from '@/types'
+import { STATUS_LABELS } from '@/lib/constants/status'
 
 interface StatusBadgeProps {
   status: WatchStatus
@@ -25,21 +26,19 @@ interface ReleaseDateProps {
   date?: Date | string | null
 }
 
-const statusConfig = {
-  PLANNED: { label: 'Planned', variant: 'secondary' as const },
-  WATCHING: { label: 'Watching', variant: 'default' as const },
-  COMPLETED: { label: 'Completed', variant: 'default' as const },
-  PAUSED: { label: 'Paused', variant: 'secondary' as const },
-  DROPPED: { label: 'Dropped', variant: 'destructive' as const },
-}
+const STATUS_VARIANTS = {
+  PLANNED: 'secondary' as const,
+  WATCHING: 'default' as const,
+  COMPLETED: 'default' as const,
+  PAUSED: 'secondary' as const,
+  DROPPED: 'destructive' as const,
+} satisfies Record<WatchStatus, 'default' | 'secondary' | 'destructive' | 'outline'>
 
 export function StatusBadge({ status, icon: Icon }: StatusBadgeProps) {
-  const config = statusConfig[status]
-
   return (
-    <Badge variant={config.variant} className="flex items-center gap-1">
+    <Badge variant={STATUS_VARIANTS[status]} className="flex items-center gap-1">
       {Icon && <Icon className="h-3 w-3" />}
-      {config.label}
+      {STATUS_LABELS[status]}
     </Badge>
   )
 }

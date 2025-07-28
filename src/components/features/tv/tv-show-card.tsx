@@ -1,17 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import {
   MoreHorizontal,
-  Clock,
-  Play,
-  Pause,
-  Check,
-  X,
   Edit3,
   ChevronRight,
   RefreshCw,
   RotateCcw,
+  X,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,13 +19,6 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -39,8 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { MediaPoster } from '@/components/ui/media-poster'
 import Link from 'next/link'
@@ -52,74 +39,43 @@ import {
 } from '@/components/ui/media-badges'
 import type { WatchStatus, WatchedItemCardProps } from '@/types'
 import { useMedia } from '@/hooks/use-media'
-
-const statusConfig = {
-  PLANNED: { label: 'Planned', icon: Clock },
-  WATCHING: { label: 'Watching', icon: Play },
-  COMPLETED: { label: 'Completed', icon: Check },
-  PAUSED: { label: 'Paused', icon: Pause },
-  DROPPED: { label: 'Dropped', icon: X },
-}
+import { useStatusActions } from '@/hooks/use-status-actions'
+import { STATUS_CONFIG } from '@/lib/constants/status'
+import { ProgressUpdateDialog } from './progress-update-dialog'
 
 interface TVShowCardProps extends WatchedItemCardProps {
   showSeasonProgress?: boolean
   showRefreshButton?: boolean
 }
 
-export function TVShowCard({
+function TVShowCardComponent({
   item,
   onUpdate,
   onDelete,
   showSeasonProgress = true,
   showRefreshButton = true,
 }: TVShowCardProps) {
-  const [isEditingRating, setIsEditingRating] = useState(false)
   const [isEditingProgress, setIsEditingProgress] = useState(false)
-  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
-  const [newSeason, setNewSeason] = useState(item.currentSeason || 1)
-  const [newEpisode, setNewEpisode] = useState(item.currentEpisode || 1)
 
   const { updateTVShowDetails } = useMedia()
+  const {
+    handleStatusChange,
+    handleConfirmComplete,
+    handleResetProgress: handleStatusReset,
+    isCompletionDialogOpen,
+    setIsCompletionDialogOpen,
+  } = useStatusActions(item, {
+    onUpdate,
+    requiresConfirmation: true,
+  })
 
-  const handleStatusChange = (newStatus: WatchStatus) => {
-    // Show confirmation dialog for TV shows when marking as complete
-    if (newStatus === 'COMPLETED' && item.mediaType === 'TV') {
-      setIsCompletionDialogOpen(true)
-      return
-    }
 
+  const handleProgressUpdate = (season: number, episode: number) => {
     onUpdate(item.id, {
-      status: newStatus,
-      // Preserve existing progress when changing status
-      progress: item.progress,
-      ...(newStatus === 'COMPLETED' && { finishDate: new Date() }),
-      ...(newStatus === 'WATCHING' &&
-        !item.startDate && { startDate: new Date() }),
+      currentSeason: season,
+      currentEpisode: episode,
     })
-  }
-
-  const handleConfirmComplete = () => {
-    onUpdate(item.id, {
-      status: 'COMPLETED',
-      progress: 100,
-      finishDate: new Date(),
-      // Mark all episodes as watched - this will be handled by the backend
-    })
-    setIsCompletionDialogOpen(false)
-  }
-
-  const handleRatingChange = (rating: number | null) => {
-    onUpdate(item.id, { rating })
-    setIsEditingRating(false)
-  }
-
-  const handleProgressUpdate = () => {
-    onUpdate(item.id, {
-      currentSeason: newSeason,
-      currentEpisode: newEpisode,
-    })
-    setIsEditingProgress(false)
   }
 
   const handleRefreshDetails = () => {
@@ -131,16 +87,7 @@ export function TVShowCard({
   }
 
   const handleConfirmReset = () => {
-    onUpdate(item.id, {
-      status: 'PLANNED',
-      progress: 0,
-      currentSeason: 1,
-      currentEpisode: 1,
-      startDate: null,
-      finishDate: null,
-      // Reset all episodes to unwatched by providing empty array
-      watchedEpisodes: [],
-    })
+    handleStatusReset()
     setIsResetDialogOpen(false)
   }
 
@@ -162,11 +109,6 @@ export function TVShowCard({
     return 'In progress'
   }
 
-  // Calculate season progress
-  const getSeasonProgress = () => {
-    if (!item.totalSeasons || !item.currentSeason) return 0
-    return Math.min((item.currentSeason / item.totalSeasons) * 100, 100)
-  }
 
   const nextEpisode =
     item.currentSeason && item.currentEpisode
@@ -200,7 +142,7 @@ export function TVShowCard({
                   <MediaTypeBadge mediaType={item.mediaType} />
                   <StatusBadge
                     status={item.status}
-                    icon={statusConfig[item.status].icon}
+                    icon={STATUS_CONFIG[item.status].icon}
                   />
                   {item.rating && <RatingBadge rating={item.rating} />}
                   {item._count?.notes > 0 && (
@@ -221,7 +163,7 @@ export function TVShowCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {Object.entries(statusConfig).map(([status, config]) => (
+                  {Object.entries(STATUS_CONFIG).map(([status, config]) => (
                     <DropdownMenuItem
                       key={status}
                       onClick={() => handleStatusChange(status as WatchStatus)}
@@ -348,58 +290,12 @@ export function TVShowCard({
       </CardContent>
 
       {/* Progress Update Dialog */}
-      <Dialog open={isEditingProgress} onOpenChange={setIsEditingProgress}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Progress</DialogTitle>
-            <DialogDescription>
-              Set your current season and episode progress for {item.title}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="season">Season</Label>
-              <Input
-                id="season"
-                type="number"
-                min="1"
-                max={item.totalSeasons || undefined}
-                value={newSeason}
-                onChange={e => setNewSeason(parseInt(e.target.value) || 1)}
-              />
-              {item.totalSeasons && (
-                <p className="text-xs text-muted-foreground">
-                  Total: {item.totalSeasons} seasons
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="episode">Episode</Label>
-              <Input
-                id="episode"
-                type="number"
-                min="1"
-                value={newEpisode}
-                onChange={e => setNewEpisode(parseInt(e.target.value) || 1)}
-              />
-              {item.totalEpisodes && (
-                <p className="text-xs text-muted-foreground">
-                  Total: {item.totalEpisodes} episodes
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsEditingProgress(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleProgressUpdate}>Update Progress</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ProgressUpdateDialog
+        isOpen={isEditingProgress}
+        onOpenChange={setIsEditingProgress}
+        item={item}
+        onUpdate={handleProgressUpdate}
+      />
 
       {/* Completion Confirmation Dialog */}
       <AlertDialog open={isCompletionDialogOpen} onOpenChange={setIsCompletionDialogOpen}>
@@ -439,3 +335,5 @@ export function TVShowCard({
     </Card>
   )
 }
+
+export const TVShowCard = memo(TVShowCardComponent)
