@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef, memo } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data'
 
@@ -19,18 +19,89 @@ interface BreadcrumbProps {
   maxItems?: number
 }
 
-export function Breadcrumb({ className = '', maxItems = 5 }: BreadcrumbProps) {
+function BreadcrumbComponent({
+  className = '',
+  maxItems = 5,
+}: BreadcrumbProps) {
   const pathname = usePathname()
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [fetchingTitles, setFetchingTitles] = useState<Set<string>>(new Set())
+
+  // Use ref to track previous pathname to avoid unnecessary processing
+  const prevPathnameRef = useRef<string | null>(null)
+  const breadcrumbsRef = useRef<BreadcrumbItem[]>([])
 
   // Use breadcrumb data hook
   const { breadcrumbData, getTVShowTitle, getMovieTitle, getSeasonName } =
     useBreadcrumbData()
 
-  // Generate basic breadcrumbs without async data
-  const basicBreadcrumbs = useMemo(() => {
+  // Check if all required titles are available
+  const areAllTitlesReady = useMemo(() => {
+    const pathSegments = pathname.split('/').filter(Boolean)
+    const requiredTitles: string[] = []
+
+    // Identify what titles we need
+    for (let i = 0; i < pathSegments.length; i++) {
+      const segment = pathSegments[i]
+
+      if (
+        segment === 'tv' &&
+        pathSegments[i + 1] &&
+        !isNaN(Number(pathSegments[i + 1]))
+      ) {
+        const tvId = pathSegments[i + 1]
+        if (!breadcrumbData.tvShows[tvId]) {
+          requiredTitles.push(`tv-${tvId}`)
+        }
+
+        // Check for season
+        if (pathSegments[i + 2] === 'season' && pathSegments[i + 3]) {
+          const seasonNumber = pathSegments[i + 3]
+          const cacheKey = `${tvId}-${seasonNumber}`
+          if (!breadcrumbData.seasons[cacheKey]) {
+            requiredTitles.push(`season-${cacheKey}`)
+          }
+        }
+      } else if (
+        segment === 'movie' &&
+        pathSegments[i + 1] &&
+        !isNaN(Number(pathSegments[i + 1]))
+      ) {
+        const movieId = pathSegments[i + 1]
+        if (!breadcrumbData.movies[movieId]) {
+          requiredTitles.push(`movie-${movieId}`)
+        }
+      }
+    }
+
+    // Check if any required titles are still being fetched or missing
+    const hasUnresolvedTitles = requiredTitles.some(titleKey => {
+      if (fetchingTitles.has(titleKey)) return true
+
+      if (titleKey.startsWith('tv-')) {
+        const tvId = titleKey.replace('tv-', '')
+        return !breadcrumbData.tvShows[tvId]
+      }
+
+      if (titleKey.startsWith('movie-')) {
+        const movieId = titleKey.replace('movie-', '')
+        return !breadcrumbData.movies[movieId]
+      }
+
+      if (titleKey.startsWith('season-')) {
+        const seasonKey = titleKey.replace('season-', '')
+        return !breadcrumbData.seasons[seasonKey]
+      }
+
+      return false
+    })
+
+    return requiredTitles.length === 0 || !hasUnresolvedTitles
+  }, [pathname, breadcrumbData, fetchingTitles])
+
+  // Generate breadcrumbs with better memoization
+  const breadcrumbs = useMemo(() => {
+    // Only recalculate if pathname or relevant data changed
     const pathSegments = pathname.split('/').filter(Boolean)
     const items: BreadcrumbItem[] = []
 
@@ -203,12 +274,18 @@ export function Breadcrumb({ className = '', maxItems = 5 }: BreadcrumbProps) {
     }
 
     // Limit items if needed
-    return maxItems && items.length > maxItems
-      ? [
-          { label: '...', href: '', isActive: false },
-          ...items.slice(-maxItems + 2),
-        ]
-      : items
+    const finalItems =
+      maxItems && items.length > maxItems
+        ? [
+            { label: '...', href: '', isActive: false },
+            ...items.slice(-maxItems + 2),
+          ]
+        : items
+
+    // Cache the result
+    breadcrumbsRef.current = finalItems
+
+    return finalItems
   }, [pathname, breadcrumbData, maxItems])
 
   // Fetch missing titles asynchronously
@@ -320,21 +397,18 @@ export function Breadcrumb({ className = '', maxItems = 5 }: BreadcrumbProps) {
     getSeasonName,
   ])
 
-  // Set breadcrumbs from basic breadcrumbs
+  // Fetch missing titles when needed - either on initial load or when pathname changes
   useEffect(() => {
-    setBreadcrumbs(basicBreadcrumbs)
-  }, [basicBreadcrumbs])
+    if (prevPathnameRef.current !== pathname) {
+      fetchMissingTitles()
+      prevPathnameRef.current = pathname
+    }
+  }, [pathname, fetchMissingTitles])
 
-  // Fetch missing titles when needed
-  useEffect(() => {
-    fetchMissingTitles()
-  }, [fetchMissingTitles])
-
-  if (breadcrumbs.length <= 1 || isLoading || fetchingTitles.size > 0) {
+  // Show nothing when titles are being fetched
+  if (!areAllTitlesReady || (isLoading && fetchingTitles.size > 0)) {
     return null
   }
-
-  console.log('Breadcrumbs:', breadcrumbs)
 
   return (
     <nav
@@ -344,12 +418,28 @@ export function Breadcrumb({ className = '', maxItems = 5 }: BreadcrumbProps) {
       )}
     >
       {breadcrumbs.map((item, index) => (
-        <div key={`${index}`} className="flex items-center space-x-1">
+        <motion.div
+          key={item.href}
+          className="flex items-center space-x-1"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{
+            delay: index * 0.05,
+            duration: 0.2,
+            ease: 'easeOut',
+          }}
+        >
           {index > 0 && (
-            <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 + 0.1 }}
+            >
+              <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+            </motion.div>
           )}
 
-          {item.href && !item.isActive ? (
+          {item.href && index !== breadcrumbs.length - 1 ? (
             <Link
               href={item.href}
               className="hover:text-foreground transition-colors duration-200 flex items-center gap-1"
@@ -360,21 +450,28 @@ export function Breadcrumb({ className = '', maxItems = 5 }: BreadcrumbProps) {
             <span
               className={cn(
                 'flex items-center gap-1',
-                item.isActive
-                  ? 'text-foreground font-medium'
+                index === breadcrumbs.length - 1
+                  ? 'text-foreground font-bold'
                   : 'text-muted-foreground'
               )}
             >
               <span>{item.label}</span>
             </span>
           )}
-        </div>
+        </motion.div>
       ))}
     </nav>
   )
 }
 
+// Memoized component to prevent unnecessary re-renders
+export const Breadcrumb = memo(BreadcrumbComponent)
+
 // Compact version for mobile
-export function BreadcrumbCompact({ className = '' }: { className?: string }) {
+export const BreadcrumbCompact = memo(function BreadcrumbCompact({
+  className = '',
+}: {
+  className?: string
+}) {
   return <Breadcrumb className={className} maxItems={2} />
-}
+})
