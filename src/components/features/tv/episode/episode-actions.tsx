@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
+import { AddEpisodeNoteButton } from './add-episode-note-button'
 import type { EpisodeWatchStatus, TMDBEpisodeItem, WatchedItem } from '@/types'
 
 interface EpisodeActionsProps {
@@ -72,16 +73,26 @@ export function EpisodeActions({
           </DropdownMenu>
         </div>
 
-        {/* Queue Button Row */}
-        {showQueueButton && episode && watchedItem && (
-          <AddToQueueButton
-            item={watchedItem}
-            seasonNumber={episode.season_number}
-            episodeNumber={episode.episode_number}
-            size="sm"
-            variant="outline"
-            className="w-full text-xs h-7"
-          />
+        {/* Queue and Note Buttons Row */}
+        {episode && watchedItem && (
+          <div className="grid grid-cols-2 gap-1">
+            {showQueueButton && (
+              <AddToQueueButton
+                item={watchedItem}
+                seasonNumber={episode.season_number}
+                episodeNumber={episode.episode_number}
+                size="sm"
+                variant="outline"
+                className="text-xs h-7"
+              />
+            )}
+            <AddEpisodeNoteButton
+              episode={episode}
+              watchedItem={watchedItem}
+              variant="grid"
+              size="sm"
+            />
+          </div>
         )}
       </div>
     )
@@ -115,16 +126,26 @@ export function EpisodeActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Queue Button for List View */}
-      {showQueueButton && episode && watchedItem && (
-        <AddToQueueButton
-          item={watchedItem}
-          seasonNumber={episode.season_number}
-          episodeNumber={episode.episode_number}
-          size="sm"
-          variant="outline"
-          className="text-xs px-2 py-1 h-auto"
-        />
+      {/* Queue and Note Buttons for List View */}
+      {episode && watchedItem && (
+        <>
+          {showQueueButton && (
+            <AddToQueueButton
+              item={watchedItem}
+              seasonNumber={episode.season_number}
+              episodeNumber={episode.episode_number}
+              size="sm"
+              variant="outline"
+              className="text-xs px-2 py-1 h-auto"
+            />
+          )}
+          <AddEpisodeNoteButton
+            episode={episode}
+            watchedItem={watchedItem}
+            variant="list"
+            size="sm"
+          />
+        </>
       )}
     </div>
   )
