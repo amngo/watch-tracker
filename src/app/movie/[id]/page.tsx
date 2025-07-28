@@ -1,9 +1,15 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { ArrowLeft, Star, Calendar, Clock, Plus, Edit3, MessageSquare } from 'lucide-react'
-import Image from 'next/image'
+import {
+  ArrowLeft,
+  Star,
+  Calendar,
+  Clock,
+  Plus,
+  Edit3,
+  MessageSquare,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -210,13 +216,11 @@ export default function MovieDetailPage() {
         <div className="relative">
           {backdropUrl && (
             <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
-              <Image
+              <img
                 src={backdropUrl}
                 alt={movieDetails.title}
-                fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
             </div>
@@ -230,10 +234,9 @@ export default function MovieDetailPage() {
             <div className="space-y-6">
               {posterUrl && (
                 <div className="aspect-[2/3] relative rounded-lg overflow-hidden">
-                  <Image
+                  <img
                     src={posterUrl}
                     alt={movieDetails.title}
-                    fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 400px"
                   />
@@ -409,7 +412,7 @@ export default function MovieDetailPage() {
                   <CardContent className="p-4 flex gap-4">
                     {castMember.profile_path ? (
                       <div className="relative rounded-lg overflow-hidden w-16 h-24">
-                        <Image
+                        <img
                           src={
                             TMDBService.getPosterUrl(
                               castMember.profile_path,
@@ -417,7 +420,6 @@ export default function MovieDetailPage() {
                             ) || ''
                           }
                           alt={castMember.name}
-                          fill
                           className="object-cover object-top"
                           sizes="64px"
                         />

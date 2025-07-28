@@ -23,7 +23,7 @@ const eslintConfig = [
       '@typescript-eslint/no-explicit-any': 'warn', // Change from error to warning
       'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',
-      '@next/next/no-img-element': 'warn', // Change from error to warning
+      '@next/next/no-img-element': 'off',
       'no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [

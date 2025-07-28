@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { PageTransition } from '@/components/common/page-transition'
 import { NavigationTransitionLink } from '@/components/common/transition-link'
+import { Breadcrumb, BreadcrumbCompact } from '@/components/common/breadcrumb'
 import {
   Home,
   Search,
@@ -29,12 +30,6 @@ import { UserButton } from '@clerk/nextjs'
 import { NavigationBadge } from '@/components/ui/navigation-badge'
 import { useNavigationCounts } from '@/hooks/use-navigation-counts'
 import type { DashboardLayoutProps, NavigationItem } from '@/types'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-} from '../ui/breadcrumb'
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -52,7 +47,6 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { counts } = useNavigationCounts()
-  const currentPage = navigation.find(item => pathname.startsWith(item.href))
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,6 +87,10 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
               <UserButton />
             </div>
           </div>
+          {/* Mobile Breadcrumb */}
+          <div className="px-4 py-2 border-b">
+            <BreadcrumbCompact />
+          </div>
         </header>
       </div>
 
@@ -116,33 +114,22 @@ export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
         {/* Main Content */}
         <div className="lg:pl-64 flex flex-col flex-1">
           {/* Desktop Header */}
-          <div className="hidden lg:block">
-            <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex h-16 items-center justify-between px-6">
-                <div className="flex items-center gap-4">
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        <BreadcrumbLink
-                          href={currentPage?.href || '/dashboard'}
-                        >
-                          {currentPage?.name || 'Dashboard'}
-                        </BreadcrumbLink>
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-                </div>
 
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm">
-                    <Bell className="h-4 w-4" />
-                  </Button>
-
-                  <UserButton />
-                </div>
+          <header className="hidden lg:block sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            <div className="flex h-16 items-center justify-between px-6">
+              <div className="flex items-center gap-4">
+                <Breadcrumb />
               </div>
-            </header>
-          </div>
+
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm">
+                  <Bell className="h-4 w-4" />
+                </Button>
+
+                <UserButton />
+              </div>
+            </div>
+          </header>
 
           {/* Page Content */}
           <main className="flex-1">

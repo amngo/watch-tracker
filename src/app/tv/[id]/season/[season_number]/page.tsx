@@ -8,8 +8,6 @@ import {
   Calendar,
   Clock,
   Play,
-  Eye,
-  EyeOff,
   Tv2,
   ChevronLeft,
   ChevronRight,
@@ -397,52 +395,6 @@ export default function TVSeasonPage() {
   return (
     <DashboardLayout stats={stats || undefined}>
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/tv/${tvId}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Show
-              </Link>
-            </Button>
-
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href="/tv" className="hover:text-foreground">
-                TV Shows
-              </Link>
-              <span>/</span>
-              <Link href={`/tv/${tvId}`} className="hover:text-foreground">
-                {tvShowTitle}
-              </Link>
-              <span>/</span>
-              <span className="text-foreground font-medium">
-                {seasonDetails.name}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSpoilerMode(!spoilerMode)}
-            >
-              {spoilerMode ? (
-                <>
-                  <EyeOff className="h-4 w-4 mr-2" />
-                  Hide Spoilers
-                </>
-              ) : (
-                <>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Show Spoilers
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
         {/* Season Navigation */}
         <div className="grid grid-cols-5 gap-4 items-center">
           <Button

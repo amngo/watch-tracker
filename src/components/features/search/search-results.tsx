@@ -71,7 +71,7 @@ export function SearchResults({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            Results for "{query}"
+            Results for &quot;{query}&quot;
             {results.length > 0 && (
               <Badge variant="outline">{results.length} results</Badge>
             )}
