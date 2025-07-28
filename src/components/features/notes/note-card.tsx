@@ -35,15 +35,23 @@ export function NoteCard({ note, onDeleted, formatTimestamp, showSpoilers = true
   const [editIsPublic, setEditIsPublic] = useState(note.isPublic)
   const [editHasSpoilers, setEditHasSpoilers] = useState(note.hasSpoilers)
 
+  const utils = api.useUtils()
   const updateNoteMutation = api.note.update.useMutation({
     onSuccess: () => {
       setIsEditing(false)
+      
+      // Invalidate navigation counts to update badges
+      utils.stats.navigationCounts.invalidate()
+      
       onDeleted?.()
     }
   })
 
   const deleteNoteMutation = api.note.delete.useMutation({
     onSuccess: () => {
+      // Invalidate navigation counts to update badges
+      utils.stats.navigationCounts.invalidate()
+      
       onDeleted?.()
     }
   })

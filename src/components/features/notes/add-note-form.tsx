@@ -42,6 +42,7 @@ export function AddNoteForm({
   const [isPublic, setIsPublic] = useState(false)
   const [hasSpoilers, setHasSpoilers] = useState(false)
 
+  const utils = api.useUtils()
   const createNoteMutation = api.note.create.useMutation({
     onSuccess: () => {
       // Reset form
@@ -52,6 +53,10 @@ export function AddNoteForm({
       setEpisodeNumber(currentEpisode || 1)
       setIsPublic(false)
       setHasSpoilers(false)
+      
+      // Invalidate navigation counts to update badges
+      utils.stats.navigationCounts.invalidate()
+      
       onSuccess?.()
     },
     onError: (error) => {

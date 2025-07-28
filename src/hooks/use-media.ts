@@ -9,6 +9,7 @@ import type { TMDBMediaItem, UpdateWatchedItemData, WatchedItem } from '@/types'
 
 export function useMedia() {
   const store = useMediaStore()
+  const utils = api.useUtils()
   
   // tRPC mutations
   const createMutation = api.watchedItem.create.useMutation({
@@ -44,6 +45,9 @@ export function useMedia() {
           data.totalRuntime
         ),
       })
+      
+      // Invalidate navigation counts to update badges
+      utils.stats.navigationCounts.invalidate()
       
       showToast.success('Media added successfully!')
     },
@@ -99,6 +103,10 @@ export function useMedia() {
     onSuccess: (_, variables) => {
       // Confirm the optimistic update
       store.confirmOptimisticUpdate(variables.id)
+      
+      // Invalidate navigation counts to update badges
+      utils.stats.navigationCounts.invalidate()
+      
       showToast.success('Item removed')
     },
     onError: (error, variables) => {

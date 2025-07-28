@@ -26,6 +26,7 @@ export function useQueue() {
     onSuccess: () => {
       toast.success('Added to queue')
       utils.queue.getQueue.invalidate()
+      utils.stats.navigationCounts.invalidate()
     },
     onError: (error) => {
       if (error.data?.code === 'CONFLICT') {
@@ -40,6 +41,7 @@ export function useQueue() {
     onSuccess: () => {
       toast.success('Removed from queue')
       utils.queue.getQueue.invalidate()
+      utils.stats.navigationCounts.invalidate()
     },
     onError: () => {
       toast.error('Failed to remove from queue')
@@ -92,6 +94,7 @@ export function useQueue() {
       toast.success('Marked as watched')
       utils.queue.getQueue.invalidate()
       utils.queue.getWatchHistory.invalidate()
+      utils.stats.navigationCounts.invalidate()
     },
     onError: () => {
       toast.error('Failed to mark as watched')
@@ -103,37 +106,20 @@ export function useQueue() {
       toast.success(`Cleared ${result.deletedCount} watched items`)
       utils.queue.getQueue.invalidate()
       utils.queue.getWatchHistory.invalidate()
+      utils.stats.navigationCounts.invalidate()
     },
     onError: () => {
       toast.error('Failed to clear watched items')
     },
   })
 
-  const clearQueueMutation = api.queue.clearQueue.useMutation({
-    onSuccess: (result) => {
-      toast.success(`Cleared ${result.deletedCount} items from queue`)
-      utils.queue.getQueue.invalidate()
-      utils.queue.getWatchHistory.invalidate()
-    },
-    onError: () => {
-      toast.error('Failed to clear queue')
-    },
-  })
 
-  const clearActiveQueueMutation = api.queue.clearActiveQueue.useMutation({
-    onSuccess: (result) => {
-      toast.success(`Cleared ${result.deletedCount} items from queue`)
-      utils.queue.getQueue.invalidate()
-    },
-    onError: () => {
-      toast.error('Failed to clear active queue')
-    },
-  })
 
   const addNextEpisodeMutation = api.queue.addNextEpisode.useMutation({
     onSuccess: () => {
       toast.success('Next episode added to queue')
       utils.queue.getQueue.invalidate()
+      utils.stats.navigationCounts.invalidate()
     },
     onError: (error) => {
       if (error.data?.code === 'CONFLICT') {
@@ -177,13 +163,7 @@ export function useQueue() {
     clearWatchedMutation.mutate()
   }, [clearWatchedMutation])
 
-  const clearQueue = useCallback(() => {
-    clearQueueMutation.mutate()
-  }, [clearQueueMutation])
 
-  const clearActiveQueue = useCallback(() => {
-    clearActiveQueueMutation.mutate()
-  }, [clearActiveQueueMutation])
 
   const addNextEpisode = useCallback(
     (data: {
@@ -248,8 +228,6 @@ export function useQueue() {
     reorderQueue,
     markAsWatched,
     clearWatchedItems,
-    clearQueue,
-    clearActiveQueue,
     addNextEpisode,
     
     // Utilities
@@ -261,8 +239,6 @@ export function useQueue() {
     isRemovingFromQueue: removeFromQueueMutation.isPending,
     isMarkingWatched: markAsWatchedMutation.isPending,
     isClearingWatched: clearWatchedMutation.isPending,
-    isClearingQueue: clearQueueMutation.isPending,
-    isClearingActiveQueue: clearActiveQueueMutation.isPending,
     isAddingNextEpisode: addNextEpisodeMutation.isPending,
   }
 }
