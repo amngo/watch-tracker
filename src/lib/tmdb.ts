@@ -39,6 +39,22 @@ export const TMDBTVSchema = z.object({
   vote_average: z.number(),
   vote_count: z.number(),
   original_country: z.array(z.string().nullish()).nullish(),
+  next_episode_to_air: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      overview: z.string(),
+      vote_average: z.number(),
+      vote_count: z.number(),
+      air_date: z.string(),
+      episode_number: z.number(),
+      production_code: z.string(),
+      runtime: z.number().nullish(),
+      season_number: z.number(),
+      show_id: z.number(),
+      still_path: z.string().nullish(),
+    })
+    .nullish(),
 })
 
 // Extended schemas for detailed information
@@ -380,6 +396,66 @@ export class TMDBService {
       `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`
     )
     return TMDBEpisodeSchema.parse(data)
+  }
+
+  // Get upcoming movies (theaters and streaming)
+  async getUpcomingMovies(page = 1): Promise<TMDBSearchResult> {
+    const data = await this.makeRequest('/movie/upcoming', {
+      page: page.toString(),
+    })
+    return TMDBSearchResultSchema.parse(data)
+  }
+
+  // Get movies releasing this week
+  async getNowPlayingMovies(page = 1): Promise<TMDBSearchResult> {
+    const data = await this.makeRequest('/movie/now_playing', {
+      page: page.toString(),
+    })
+    return TMDBSearchResultSchema.parse(data)
+  }
+
+  // Get TV shows airing today
+  async getTVAiringToday(page = 1): Promise<TMDBSearchResult> {
+    const data = await this.makeRequest('/tv/airing_today', {
+      page: page.toString(),
+    })
+    return TMDBSearchResultSchema.parse(data)
+  }
+
+  // Get TV shows airing this week
+  async getTVOnTheAir(page = 1): Promise<TMDBSearchResult> {
+    const data = await this.makeRequest('/tv/on_the_air', {
+      page: page.toString(),
+    })
+    return TMDBSearchResultSchema.parse(data)
+  }
+
+  // Get external IDs for a TV show (useful for checking episode schedules)
+  async getTVExternalIds(tvId: number): Promise<{
+    id: number
+    imdb_id?: string | null
+    freebase_mid?: string | null
+    freebase_id?: string | null
+    tvdb_id?: number | null
+    tvrage_id?: number | null
+    wikidata_id?: string | null
+    facebook_id?: string | null
+    instagram_id?: string | null
+    twitter_id?: string | null
+  }> {
+    const data = await this.makeRequest(`/tv/${tvId}/external_ids`)
+    return data as {
+      id: number
+      imdb_id?: string | null
+      freebase_mid?: string | null
+      freebase_id?: string | null
+      tvdb_id?: number | null
+      tvrage_id?: number | null
+      wikidata_id?: string | null
+      facebook_id?: string | null
+      instagram_id?: string | null
+      twitter_id?: string | null
+    }
   }
 
   // Helper methods for image URLs

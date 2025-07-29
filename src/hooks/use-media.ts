@@ -46,8 +46,9 @@ export function useMedia() {
         ),
       })
       
-      // Invalidate navigation counts to update badges
+      // Invalidate navigation counts to update badges and watchlist queries
       utils.stats.navigationCounts.invalidate()
+      utils.watchedItem.getAll.invalidate()
       
       showToast.success('Media added successfully!')
     },
@@ -89,6 +90,9 @@ export function useMedia() {
         ),
       })
       
+      // Invalidate watchlist queries to update releases page
+      utils.watchedItem.getAll.invalidate()
+      
       showToast.success('Progress updated!')
     },
     onError: (error, variables) => {
@@ -104,8 +108,9 @@ export function useMedia() {
       // Confirm the optimistic update
       store.confirmOptimisticUpdate(variables.id)
       
-      // Invalidate navigation counts to update badges
+      // Invalidate navigation counts to update badges and watchlist queries
       utils.stats.navigationCounts.invalidate()
+      utils.watchedItem.getAll.invalidate()
       
       showToast.success('Item removed')
     },

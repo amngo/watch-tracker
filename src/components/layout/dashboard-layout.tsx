@@ -37,6 +37,7 @@ const navigation: NavigationItem[] = [
   { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
   { name: 'Movies', href: '/movies', icon: Film, badgeKey: 'movies' },
   { name: 'TV Shows', href: '/tv', icon: Tv, badgeKey: 'tvShows' },
+  { name: 'Releases', href: '/releases', icon: Bell },
   { name: 'Notes', href: '/notes', icon: FileText, badgeKey: 'notes' },
   { name: 'Statistics', href: '/stats', icon: BarChart3 },
   { name: 'Profile', href: '/profile', icon: User },
