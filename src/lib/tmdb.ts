@@ -465,9 +465,11 @@ export class TMDBService {
       | 'w92'
       | 'w154'
       | 'w185'
+      | 'w300'
       | 'w342'
       | 'w500'
       | 'w780'
+      | 'w1280'
       | 'original' = 'w500'
   ): string | null {
     if (!path) return null
@@ -492,7 +494,7 @@ export class TMDBService {
     path: string | null,
     size: 'w300' | 'w780' | 'w1280' | 'original' = 'w780'
   ): string | null {
-    return this.getImageUrl(path, size as any)
+    return this.getImageUrl(path, size)
   }
 }
 

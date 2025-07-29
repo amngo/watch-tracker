@@ -165,6 +165,7 @@ export const createSearchRateLimit = (ctx: TRPCContext) => {
     : rateLimitKeys.byIP(ip, 'search')
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createTMDBRateLimit = (_ctx: TRPCContext) => {
   // TMDB rate limiting is global since it affects external API
   return rateLimitKeys.global('tmdb')
@@ -209,8 +210,13 @@ if (typeof window === 'undefined') {
   startRateLimitCleanup()
 }
 
+// Response object interface for rate limiting headers
+interface ResponseWithHeaders {
+  setHeader?: (name: string, value: string) => void
+}
+
 // Express-style rate limit headers helper
-export function setRateLimitHeaders(res: any, rateLimit: { remaining: number; resetTime: number }) {
+export function setRateLimitHeaders(res: ResponseWithHeaders, rateLimit: { remaining: number; resetTime: number }) {
   if (res && res.setHeader) {
     res.setHeader('X-RateLimit-Remaining', rateLimit.remaining.toString())
     res.setHeader('X-RateLimit-Reset', Math.ceil(rateLimit.resetTime / 1000).toString())
