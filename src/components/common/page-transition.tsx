@@ -63,7 +63,7 @@ export function PageTransition({
   const pathname = usePathname()
 
   return (
-    <motion.div
+    <motion.main
       key={pathname}
       initial="initial"
       animate="in"
@@ -73,7 +73,7 @@ export function PageTransition({
       className={className}
     >
       {children}
-    </motion.div>
+    </motion.main>
   )
 }
 

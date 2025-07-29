@@ -245,6 +245,32 @@ function BreadcrumbComponent({
           }
           break
 
+        case 'library':
+          items.push({
+            label: 'Library',
+            href: '/library',
+            isActive: isLast && pathSegments.length === 1,
+          })
+          
+          // Handle sub-routes
+          if (pathSegments[i + 1]) {
+            const subRoute = pathSegments[i + 1]
+            const subRouteLabels: Record<string, string> = {
+              movies: 'Movies',
+              'tv-shows': 'TV Shows'
+            }
+            
+            if (subRouteLabels[subRoute]) {
+              items.push({
+                label: subRouteLabels[subRoute],
+                href: `/library/${subRoute}`,
+                isActive: isLast,
+              })
+              i++ // Skip the next segment since we processed it
+            }
+          }
+          break
+
         case 'profile':
           items.push({
             label: 'Profile',

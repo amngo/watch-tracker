@@ -37,7 +37,16 @@ const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Search & Add', href: '/search', icon: Search },
   { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
-  { name: 'Library', href: '/library', icon: Library, badgeKey: 'library' },
+  {
+    name: 'Library',
+    href: '/library',
+    icon: Library,
+    badgeKey: 'library',
+    subItems: [
+      { name: 'Movies', href: '/library/movies' },
+      { name: 'TV Shows', href: '/library/tv-shows' },
+    ],
+  },
   { name: 'Releases', href: '/releases', icon: Bell },
   { name: 'Notes', href: '/notes', icon: FileText, badgeKey: 'notes' },
   {
@@ -78,6 +87,11 @@ export function AppSidebar() {
                           <SidebarMenuButton>
                             {item.icon && <item.icon />}
                             <span>{item.name}</span>
+                            {item.badgeKey && (
+                              <SidebarMenuBadge>
+                                {counts[item.badgeKey]}
+                              </SidebarMenuBadge>
+                            )}
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
 
