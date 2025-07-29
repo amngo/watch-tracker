@@ -27,7 +27,7 @@ export function ActiveFilters({
 }: ActiveFiltersProps) {
   if (getActiveFilterCount() === 0) return null
 
-  const handleRemoveFilter = (key: keyof FilterState, defaultValue: any) => {
+  const handleRemoveFilter = <K extends keyof FilterState>(key: K, defaultValue: FilterState[K]) => {
     onUpdateFilter(key, defaultValue)
     onApplyFilters()
   }

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import type { Prisma } from '@prisma/client'
 
 export const noteRouter = createTRPCRouter({
   create: protectedProcedure
@@ -44,7 +45,7 @@ export const noteRouter = createTRPCRouter({
       cursor: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const whereClause: any = {
+      const whereClause: Prisma.NoteWhereInput = {
         watchedItemId: input.watchedItemId,
         userId: ctx.user.id,
       }
@@ -124,7 +125,7 @@ export const noteRouter = createTRPCRouter({
       noteType: z.enum(['GENERAL', 'EPISODE']).optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const whereClause: any = {
+      const whereClause: Prisma.NoteWhereInput = {
         userId: ctx.user.id,
       }
 

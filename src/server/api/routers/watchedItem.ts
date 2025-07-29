@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { tmdbService } from '@/lib/tmdb'
+import type { Prisma } from '@prisma/client'
 
 const MediaTypeEnum = z.enum(['MOVIE', 'TV'])
 const WatchStatusEnum = z.enum([
@@ -328,7 +329,7 @@ export const watchedItemRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Build query based on input parameters
-      const where: any = {
+      const where: Prisma.WatchedItemWhereInput = {
         userId: ctx.user.id,
         mediaType: 'TV',
       }

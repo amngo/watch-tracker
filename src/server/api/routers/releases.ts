@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { tmdbService } from '@/lib/tmdb'
+import { tmdbService, type TMDBTVDetails } from '@/lib/tmdb'
 import { startOfDay, isBefore, parseISO } from 'date-fns'
+import type { WatchedItem as PrismaWatchedItem, WatchedEpisode } from '@prisma/client'
 
 export interface ReleaseEvent {
   id: string
@@ -159,7 +160,7 @@ export const releasesRouter = createTRPCRouter({
 
 // Helper function to get upcoming TV episodes using next_episode_to_air
 async function getUpcomingTVEpisodes(
-  watchedItem: any,
+  watchedItem: PrismaWatchedItem & { watchedEpisodes: WatchedEpisode[] },
   startDate: Date
 ): Promise<ReleaseEvent[]> {
   const releases: ReleaseEvent[] = []
@@ -224,9 +225,9 @@ async function getUpcomingTVEpisodes(
 
 // Fallback function for when next_episode_to_air is not available
 async function getFallbackUpcomingEpisodes(
-  watchedItem: any,
+  watchedItem: PrismaWatchedItem & { watchedEpisodes: WatchedEpisode[] },
   startDate: Date,
-  tvDetails: any
+  tvDetails: TMDBTVDetails
 ): Promise<ReleaseEvent[]> {
   const releases: ReleaseEvent[] = []
 
@@ -249,14 +250,14 @@ async function getFallbackUpcomingEpisodes(
     const maxEpisodesToCheck = 5
 
     // Iterate through seasons to find upcoming episodes
-    for (const season of tvDetails.seasons) {
+    for (const season of tvDetails.seasons!) {
       // Skip seasons before our current position
       if (season.season_number < checkingSeason) continue
 
       // Skip season 0 (specials) unless it's the only season or we're specifically watching it
       if (
         season.season_number === 0 &&
-        tvDetails.seasons.length > 1 &&
+        tvDetails.seasons!.length > 1 &&
         checkingSeason !== 0
       ) {
         continue

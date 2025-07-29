@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
 import { createError, toTRPCError } from '@/lib/errors'
+import type { Prisma } from '@prisma/client'
 
 export const userRouter = createTRPCRouter({
   create: protectedProcedure
@@ -163,7 +164,7 @@ export const userRouter = createTRPCRouter({
           throw toTRPCError(createError.forbidden('This profile is private'))
         }
 
-        const whereClause: any = { userId: user.id }
+        const whereClause: Prisma.WatchedItemWhereInput = { userId: user.id }
         if (input.status) whereClause.status = input.status
         if (input.mediaType) whereClause.mediaType = input.mediaType
 

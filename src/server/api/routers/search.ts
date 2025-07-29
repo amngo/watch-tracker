@@ -7,6 +7,7 @@ import {
 import { tmdbService, TMDBError } from '@/lib/tmdb'
 import { createError, toTRPCError } from '@/lib/errors'
 import { withCache, cacheKeys, cacheTTL } from '@/lib/cache'
+import type { Prisma } from '@prisma/client'
 
 
 
@@ -186,7 +187,7 @@ export const searchRouter = createTRPCRouter({
           throw toTRPCError(createError.userNotFound(ctx.session.userId))
         }
 
-        const whereClause: any = {
+        const whereClause: Prisma.WatchedItemWhereInput = {
           userId: user.id,
           title: {
             contains: input.query,
