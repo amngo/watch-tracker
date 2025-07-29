@@ -1,15 +1,6 @@
 import { Clock, Target, Star, Zap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
-
-const timeRangeLabels: Record<TimeRange, string> = {
-  week: 'This Week',
-  month: 'This Month',
-  quarter: 'This Quarter',
-  year: 'This Year',
-  all: 'All Time',
-}
+import { TIME_RANGE_LABELS, type TimeRange } from '@/lib/constants/formatting'
 
 interface KeyMetricsProps {
   timeRange: TimeRange
@@ -42,7 +33,7 @@ export function KeyMetrics({
             {watchTimeData.hours}h {watchTimeData.minutes}m
           </div>
           <p className="text-xs text-muted-foreground">
-            Estimated for {timeRangeLabels[timeRange].toLowerCase()}
+            Estimated for {TIME_RANGE_LABELS[timeRange].toLowerCase()}
           </p>
         </CardContent>
       </Card>

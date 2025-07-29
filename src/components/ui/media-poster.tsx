@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Film, Tv } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -28,6 +29,7 @@ export function MediaPoster({
   size = 'md',
   className,
 }: MediaPosterProps) {
+  const [imageError, setImageError] = useState(false)
   const config = sizeConfig[size]
   const isMovie = mediaType === 'MOVIE' || mediaType === 'movie'
   const posterSize = posterSizes[size]
@@ -40,19 +42,14 @@ export function MediaPoster({
         className
       )}
     >
-      {src ? (
+      {src && !imageError ? (
         <img
           src={`https://image.tmdb.org/t/p/${posterSize}${src}`}
           alt={alt}
           sizes={`(max-width: 768px) ${config.container.split(' ')[1]}, ${config.container.split(' ')[1]}`}
           className="object-cover h-full w-full"
           loading="lazy"
-          onError={e => {
-            // Fallback to placeholder on error
-            const target = e.target as HTMLImageElement
-            target.style.display = 'none'
-            target.parentElement?.classList.add('bg-muted')
-          }}
+          onError={() => setImageError(true)}
         />
       ) : (
         <div className="text-muted-foreground flex flex-col items-center justify-center p-1">
@@ -62,7 +59,7 @@ export function MediaPoster({
             <Tv className={config.iconSize} />
           )}
           <span className="text-xs mt-1 text-center leading-tight">
-            No Image
+            {imageError ? 'Failed to Load' : 'No Image'}
           </span>
         </div>
       )}

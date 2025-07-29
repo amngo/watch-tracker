@@ -22,17 +22,8 @@ import { MediaCardSkeleton } from '@/components/ui/skeletons'
 import { MediaResultCard } from './media-result-card'
 import { ActiveFilters } from './active-filters'
 import type { TMDBMediaItem } from '@/types'
+import type { FilterState, SortOption, SortDirection } from '@/types/search'
 
-interface FilterState {
-  mediaType: 'all' | 'movie' | 'tv'
-  minRating: number[]
-  year: string
-  sortBy: 'popularity' | 'vote_average' | 'release_date' | 'title'
-  sortDirection: 'asc' | 'desc'
-}
-
-type SortOption = 'popularity' | 'vote_average' | 'release_date' | 'title'
-type SortDirection = 'asc' | 'desc'
 
 interface SearchResultsProps {
   query: string

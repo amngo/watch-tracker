@@ -5,31 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SearchFilters } from './search-filters'
-
-interface FilterState {
-  mediaType: 'all' | 'movie' | 'tv'
-  minRating: number[]
-  year: string
-  sortBy: 'popularity' | 'vote_average' | 'release_date' | 'title'
-  sortDirection: 'asc' | 'desc'
-}
-
-interface SearchInterfaceProps {
-  searchType: 'movie' | 'tv'
-  onSetSearchType: (type: 'movie' | 'tv') => void
-  query: string
-  onSetQuery: (query: string) => void
-  showFilters: boolean
-  onToggleFilters: () => void
-  filters: FilterState
-  onUpdateFilter: <K extends keyof FilterState>(
-    key: K,
-    value: FilterState[K]
-  ) => void
-  onApplyFilters: () => void
-  onResetFilters: () => void
-  getActiveFilterCount: () => number
-}
+import type { SearchInterfaceProps } from '@/types/search'
 
 export function SearchInterface({
   searchType,
