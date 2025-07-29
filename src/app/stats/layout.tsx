@@ -96,7 +96,7 @@ export default function StatsLayout({
     >
       <div className="space-y-6">
         <StatsHeader timeRange={timeRange} onTimeRangeChange={setTimeRange} />
-        
+
         <KeyMetrics
           timeRange={timeRange}
           watchTimeData={watchTimeData}
@@ -105,20 +105,7 @@ export default function StatsLayout({
           itemsWithRatings={overviewData?.engagement.itemsWithRatings || 0}
         />
 
-        {/* Sub-Navigation Tabs */}
-        <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="patterns">Patterns</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          </TabsList>
-          
-          {/* Tab content will be rendered by the child pages */}
-          <div className="mt-6">
-            {children}
-          </div>
-        </Tabs>
+        {children}
       </div>
     </DashboardLayout>
   )

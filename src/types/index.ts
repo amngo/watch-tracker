@@ -331,7 +331,8 @@ export interface ErrorDetails {
 export interface NavigationItem {
   name: string
   href: string
-  icon: React.ComponentType<{ className?: string }>
+  icon?: React.ComponentType<{ className?: string }>
+  subItems?: NavigationItem[]
   active?: boolean
   badgeKey?: 'queue' | 'library' | 'notes'
 }
