@@ -187,6 +187,84 @@ export function useMedia() {
     },
   })
 
+  // Bulk operations
+  const bulkUpdateStatusMutation = api.watchedItem.bulkUpdateStatus.useMutation({
+    onSuccess: (result) => {
+      // Invalidate watchlist queries to refresh data
+      utils.watchedItem.getAll.invalidate()
+      utils.stats.navigationCounts.invalidate()
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
+      showToast.success(`Updated status for ${result.updatedCount} items`)
+    },
+    onError: (error) => {
+      showToast.error('Failed to update status', error.message)
+    },
+  })
+
+  const bulkDeleteMutation = api.watchedItem.bulkDelete.useMutation({
+    onSuccess: (result) => {
+      // Invalidate watchlist queries to refresh data
+      utils.watchedItem.getAll.invalidate()
+      utils.stats.navigationCounts.invalidate()
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
+      showToast.success(`Removed ${result.deletedCount} items from library`)
+    },
+    onError: (error) => {
+      showToast.error('Failed to remove items', error.message)
+    },
+  })
+
+  const bulkUpdateRatingMutation = api.watchedItem.bulkUpdateRating.useMutation({
+    onSuccess: (result) => {
+      // Invalidate watchlist queries to refresh data
+      utils.watchedItem.getAll.invalidate()
+      
+      showToast.success(`Updated rating for ${result.updatedCount} items`)
+    },
+    onError: (error) => {
+      showToast.error('Failed to update ratings', error.message)
+    },
+  })
+
+  const bulkUpdateDatesMutation = api.watchedItem.bulkUpdateDates.useMutation({
+    onSuccess: (result) => {
+      // Invalidate watchlist queries to refresh data
+      utils.watchedItem.getAll.invalidate()
+      
+      showToast.success(`Updated dates for ${result.updatedCount} items`)
+    },
+    onError: (error) => {
+      showToast.error('Failed to update dates', error.message)
+    },
+  })
+
+  const bulkUpdateTVShowDetailsMutation = api.watchedItem.bulkUpdateTVShowDetails.useMutation({
+    onSuccess: (result) => {
+      // Invalidate watchlist queries to refresh data
+      utils.watchedItem.getAll.invalidate()
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
+      let message = `Updated ${result.updatedCount} TV shows`
+      if (result.failedCount > 0) {
+        message += `, ${result.failedCount} failed`
+      }
+      
+      showToast.success(message)
+      
+      if (result.errors && result.errors.length > 0) {
+        console.warn('Bulk TV show update errors:', result.errors)
+      }
+    },
+    onError: (error) => {
+      showToast.error('Failed to update TV show details', error.message)
+    },
+  })
+
   const addMedia = useCallback(async (media: TMDBMediaItem) => {
     // Generate a temporary ID for optimistic update (outside try block for scope)
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -392,6 +470,74 @@ export function useMedia() {
     }
   }, [updateAllTVShowDetailsMutation])
 
+  // Bulk operations handlers
+  const bulkUpdateStatus = useCallback(async (
+    ids: string[],
+    status: 'PLANNED' | 'WATCHING' | 'COMPLETED' | 'PAUSED' | 'DROPPED',
+    options?: { startDate?: Date | null; finishDate?: Date | null }
+  ) => {
+    try {
+      await bulkUpdateStatusMutation.mutateAsync({
+        ids,
+        status,
+        startDate: options?.startDate,
+        finishDate: options?.finishDate,
+      })
+    } catch (error) {
+      logError('Failed to bulk update status', error, {
+        component: 'useMedia',
+        metadata: { ids, status }
+      })
+    }
+  }, [bulkUpdateStatusMutation])
+
+  const bulkDelete = useCallback(async (ids: string[]) => {
+    try {
+      await bulkDeleteMutation.mutateAsync({ ids })
+    } catch (error) {
+      logError('Failed to bulk delete items', error, {
+        component: 'useMedia',
+        metadata: { ids }
+      })
+    }
+  }, [bulkDeleteMutation])
+
+  const bulkUpdateRating = useCallback(async (ids: string[], rating: number | null) => {
+    try {
+      await bulkUpdateRatingMutation.mutateAsync({ ids, rating })
+    } catch (error) {
+      logError('Failed to bulk update ratings', error, {
+        component: 'useMedia',
+        metadata: { ids, rating }
+      })
+    }
+  }, [bulkUpdateRatingMutation])
+
+  const bulkUpdateDates = useCallback(async (
+    ids: string[],
+    options: { startDate?: Date | null; finishDate?: Date | null }
+  ) => {
+    try {
+      await bulkUpdateDatesMutation.mutateAsync({ ids, ...options })
+    } catch (error) {
+      logError('Failed to bulk update dates', error, {
+        component: 'useMedia',
+        metadata: { ids }
+      })
+    }
+  }, [bulkUpdateDatesMutation])
+
+  const bulkUpdateTVShowDetails = useCallback(async (ids: string[]) => {
+    try {
+      await bulkUpdateTVShowDetailsMutation.mutateAsync({ ids })
+    } catch (error) {
+      logError('Failed to bulk update TV show details', error, {
+        component: 'useMedia',
+        metadata: { ids }
+      })
+    }
+  }, [bulkUpdateTVShowDetailsMutation])
+
   return {
     // State
     watchedItems: store.watchedItems,
@@ -403,6 +549,13 @@ export function useMedia() {
     itemsError: store.itemsError,
     statsError: store.statsError,
     searchError: store.searchError,
+
+    // Bulk operation loading states
+    isBulkUpdatingStatus: bulkUpdateStatusMutation.isPending,
+    isBulkDeleting: bulkDeleteMutation.isPending,
+    isBulkUpdatingRating: bulkUpdateRatingMutation.isPending,
+    isBulkUpdatingDates: bulkUpdateDatesMutation.isPending,
+    isBulkUpdatingTVShowDetails: bulkUpdateTVShowDetailsMutation.isPending,
     lastUpdated: store.lastUpdated,
     hasNextPage: store.hasNextPage,
     currentPage: store.currentPage,
@@ -416,6 +569,13 @@ export function useMedia() {
     updateProgress,
     updateTVShowDetails,
     updateAllTVShowDetails,
+
+    // Bulk actions
+    bulkUpdateStatus,
+    bulkDelete,
+    bulkUpdateRating,
+    bulkUpdateDates,
+    bulkUpdateTVShowDetails,
 
     // Store actions (direct access)
     setWatchedItems: store.setWatchedItems,

@@ -139,6 +139,50 @@ export function useQueue() {
     },
   })
 
+  // Bulk operations
+  const bulkMarkAsWatchedMutation = api.queue.bulkMarkAsWatched.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Marked ${result.updatedCount} items as watched`)
+      utils.queue.getQueue.invalidate()
+      utils.queue.getWatchHistory.invalidate()
+      utils.stats.navigationCounts.invalidate()
+    },
+    onError: () => {
+      toast.error('Failed to mark items as watched')
+    },
+  })
+
+  const bulkRemoveFromQueueMutation = api.queue.bulkRemoveFromQueue.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Removed ${result.deletedCount} items from queue`)
+      utils.queue.getQueue.invalidate()
+      utils.stats.navigationCounts.invalidate()
+    },
+    onError: () => {
+      toast.error('Failed to remove items from queue')
+    },
+  })
+
+  const bulkMoveToTopMutation = api.queue.bulkMoveToTop.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Moved ${result.updatedCount} items to top`)
+      utils.queue.getQueue.invalidate()
+    },
+    onError: () => {
+      toast.error('Failed to move items to top')
+    },
+  })
+
+  const bulkMoveToBottomMutation = api.queue.bulkMoveToBottom.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Moved ${result.updatedCount} items to bottom`)
+      utils.queue.getQueue.invalidate()
+    },
+    onError: () => {
+      toast.error('Failed to move items to bottom')
+    },
+  })
+
   // Handlers
   const addToQueue = useCallback(
     (data: CreateQueueItemData) => {
@@ -192,6 +236,35 @@ export function useQueue() {
     [addNextEpisodeMutation]
   )
 
+  // Bulk handlers
+  const bulkMarkAsWatched = useCallback(
+    (ids: string[]) => {
+      bulkMarkAsWatchedMutation.mutate({ ids })
+    },
+    [bulkMarkAsWatchedMutation]
+  )
+
+  const bulkRemoveFromQueue = useCallback(
+    (ids: string[]) => {
+      bulkRemoveFromQueueMutation.mutate({ ids })
+    },
+    [bulkRemoveFromQueueMutation]
+  )
+
+  const bulkMoveToTop = useCallback(
+    (ids: string[]) => {
+      bulkMoveToTopMutation.mutate({ ids })
+    },
+    [bulkMoveToTopMutation]
+  )
+
+  const bulkMoveToBottom = useCallback(
+    (ids: string[]) => {
+      bulkMoveToBottomMutation.mutate({ ids })
+    },
+    [bulkMoveToBottomMutation]
+  )
+
   // Check if item is in queue
   const isInQueue = useCallback(
     (contentId: string, seasonNumber?: number, episodeNumber?: number) => {
@@ -242,6 +315,12 @@ export function useQueue() {
     clearQueue,
     addNextEpisode,
     
+    // Bulk actions
+    bulkMarkAsWatched,
+    bulkRemoveFromQueue,
+    bulkMoveToTop,
+    bulkMoveToBottom,
+    
     // Utilities
     isInQueue,
     getQueuePosition,
@@ -253,5 +332,11 @@ export function useQueue() {
     isClearingWatched: clearWatchedMutation.isPending,
     isClearingQueue: clearQueueMutation.isPending,
     isAddingNextEpisode: addNextEpisodeMutation.isPending,
+    
+    // Bulk mutation states
+    isBulkMarkingWatched: bulkMarkAsWatchedMutation.isPending,
+    isBulkRemoving: bulkRemoveFromQueueMutation.isPending,
+    isBulkMovingToTop: bulkMoveToTopMutation.isPending,
+    isBulkMovingToBottom: bulkMoveToBottomMutation.isPending,
   }
 }

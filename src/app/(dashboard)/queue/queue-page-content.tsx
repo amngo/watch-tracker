@@ -17,6 +17,10 @@ export function QueuePageContent() {
     markAsWatched,
     clearWatchedItems,
     clearQueue,
+    bulkMarkAsWatched,
+    bulkRemoveFromQueue,
+    bulkMoveToTop,
+    bulkMoveToBottom,
   } = useQueue()
 
   const activeQueue = queueItems.filter((item: QueueItem) => !item.watched)
@@ -77,6 +81,10 @@ export function QueuePageContent() {
         onMarkWatched={markAsWatched}
         onClearWatched={clearWatchedItems}
         onClearQueue={clearQueue}
+        onBulkMarkAsWatched={bulkMarkAsWatched}
+        onBulkRemoveFromQueue={bulkRemoveFromQueue}
+        onBulkMoveToTop={bulkMoveToTop}
+        onBulkMoveToBottom={bulkMoveToBottom}
       />
     </div>
   )

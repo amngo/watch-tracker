@@ -400,4 +400,247 @@ export const watchedItemRouter = createTRPCRouter({
         errors: errors.slice(0, 10), // Return first 10 errors to avoid overwhelming response
       }
     }),
+
+  // Bulk operations
+  bulkUpdateStatus: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+        status: WatchStatusEnum,
+        finishDate: z.date().nullable().optional(),
+        startDate: z.date().nullable().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const items = await ctx.db.watchedItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+      })
+
+      if (items.length !== input.ids.length) {
+        throw new Error('Some items do not belong to the user')
+      }
+
+      // Prepare update data
+      const updateData: Prisma.WatchedItemUpdateManyMutationInput = {
+        status: input.status,
+      }
+
+      // Add dates based on status
+      if (input.status === 'WATCHING' && input.startDate !== undefined) {
+        updateData.startDate = input.startDate
+      }
+      if (input.status === 'COMPLETED' && input.finishDate !== undefined) {
+        updateData.finishDate = input.finishDate
+      }
+
+      // Update all items
+      const result = await ctx.db.watchedItem.updateMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        data: updateData,
+      })
+
+      return { updatedCount: result.count }
+    }),
+
+  bulkDelete: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { deletedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const items = await ctx.db.watchedItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        select: { id: true },
+      })
+
+      if (items.length !== input.ids.length) {
+        throw new Error('Some items do not belong to the user')
+      }
+
+      // Delete all items (cascade will handle related data)
+      const result = await ctx.db.watchedItem.deleteMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+      })
+
+      return { deletedCount: result.count }
+    }),
+
+  bulkUpdateRating: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+        rating: z.number().min(1).max(10).nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const items = await ctx.db.watchedItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        select: { id: true },
+      })
+
+      if (items.length !== input.ids.length) {
+        throw new Error('Some items do not belong to the user')
+      }
+
+      // Update ratings
+      const result = await ctx.db.watchedItem.updateMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        data: {
+          rating: input.rating,
+        },
+      })
+
+      return { updatedCount: result.count }
+    }),
+
+  bulkUpdateDates: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()),
+        startDate: z.date().nullable().optional(),
+        finishDate: z.date().nullable().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const items = await ctx.db.watchedItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        select: { id: true },
+      })
+
+      if (items.length !== input.ids.length) {
+        throw new Error('Some items do not belong to the user')
+      }
+
+      // Prepare update data
+      const updateData: Prisma.WatchedItemUpdateManyMutationInput = {}
+      if (input.startDate !== undefined) {
+        updateData.startDate = input.startDate
+      }
+      if (input.finishDate !== undefined) {
+        updateData.finishDate = input.finishDate
+      }
+
+      // Update dates
+      const result = await ctx.db.watchedItem.updateMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        data: updateData,
+      })
+
+      return { updatedCount: result.count }
+    }),
+
+  bulkUpdateTVShowDetails: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0, failedCount: 0, errors: [] }
+      }
+
+      // Verify all items belong to the user and are TV shows
+      const tvShows = await ctx.db.watchedItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+          mediaType: 'TV',
+        },
+      })
+
+      if (tvShows.length === 0) {
+        throw new Error('No TV shows found')
+      }
+
+      // Process updates in batches to avoid overwhelming TMDB API
+      const batchSize = 3
+      let successfulUpdates = 0
+      let failedUpdates = 0
+      const errors: string[] = []
+
+      for (let i = 0; i < tvShows.length; i += batchSize) {
+        const batch = tvShows.slice(i, i + batchSize)
+        
+        const batchPromises = batch.map(async (tvShow) => {
+          try {
+            const tvDetails = await tmdbService.getTVDetailsExtended(tvShow.tmdbId)
+            
+            // Calculate total runtime if not present
+            let totalRuntime = tvShow.totalRuntime
+            if (!totalRuntime && tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0 && tvDetails.number_of_episodes) {
+              const avgEpisodeRuntime = tvDetails.episode_run_time.reduce((a, b) => a + b, 0) / tvDetails.episode_run_time.length
+              totalRuntime = Math.round(avgEpisodeRuntime * tvDetails.number_of_episodes)
+            }
+            
+            await ctx.db.watchedItem.update({
+              where: { id: tvShow.id },
+              data: {
+                totalSeasons: tvDetails.number_of_seasons || null,
+                totalEpisodes: tvDetails.number_of_episodes || null,
+                totalRuntime: totalRuntime || null,
+              },
+            })
+            
+            successfulUpdates++
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+            console.error(`Failed to update TV show ${tvShow.id} (${tvShow.title}):`, errorMessage)
+            errors.push(`${tvShow.title}: ${errorMessage}`)
+            failedUpdates++
+          }
+        })
+
+        // Wait for current batch to complete
+        await Promise.allSettled(batchPromises)
+        
+        // Add delay between batches
+        if (i + batchSize < tvShows.length) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
+
+      return {
+        updatedCount: successfulUpdates,
+        failedCount: failedUpdates,
+        errors: errors.slice(0, 5), // Return first 5 errors
+      }
+    }),
 })

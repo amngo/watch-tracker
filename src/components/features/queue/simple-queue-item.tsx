@@ -10,6 +10,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,6 +44,10 @@ interface SimpleQueueItemProps {
   onMoveDown?: (id: string) => void
   canMoveUp?: boolean
   canMoveDown?: boolean
+  // Selection props
+  isSelected?: boolean
+  onSelectionChange?: (id: string, selected: boolean) => void
+  showSelection?: boolean
 }
 
 export function SimpleQueueItem({
@@ -53,6 +58,9 @@ export function SimpleQueueItem({
   onMoveDown,
   canMoveUp = false,
   canMoveDown = false,
+  isSelected = false,
+  onSelectionChange,
+  showSelection = false,
 }: SimpleQueueItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -87,10 +95,27 @@ export function SimpleQueueItem({
 
   return (
     <Card
-      className={cn('transition-opacity p-0', item.watched && 'opacity-60')}
+      className={cn(
+        'transition-all p-0', 
+        item.watched && 'opacity-60',
+        isSelected && 'ring-2 ring-primary bg-primary/5'
+      )}
     >
       <CardContent className="p-4">
         <div className="flex items-center gap-4">
+          {/* Selection checkbox */}
+          {showSelection && onSelectionChange && (
+            <div className="flex-shrink-0">
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => 
+                  onSelectionChange(item.id, Boolean(checked))
+                }
+                aria-label={`Select ${getDisplayTitle()}`}
+              />
+            </div>
+          )}
+
           {/* Position and reorder controls */}
           <div className="flex flex-col items-center gap-1">
             <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full text-sm font-medium">

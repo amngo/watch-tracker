@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Progress } from '@/components/ui/progress'
 import { MediaPoster } from '@/components/ui/media-poster'
+import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 import {
   StatusBadge,
@@ -42,10 +43,15 @@ import { useMedia } from '@/hooks/use-media'
 import { useStatusActions } from '@/hooks/use-status-actions'
 import { STATUS_CONFIG } from '@/lib/constants/status'
 import { ProgressUpdateDialog } from './progress-update-dialog'
+import { cn } from '@/lib/utils'
 
 interface TVShowCardProps extends WatchedItemCardProps {
   showSeasonProgress?: boolean
   showRefreshButton?: boolean
+  // Selection props
+  isSelected?: boolean
+  onSelectionChange?: (id: string, selected: boolean) => void
+  showSelection?: boolean
 }
 
 function TVShowCardComponent({
@@ -54,6 +60,9 @@ function TVShowCardComponent({
   onDelete,
   showSeasonProgress = true,
   showRefreshButton = true,
+  isSelected = false,
+  onSelectionChange,
+  showSelection = false,
 }: TVShowCardProps) {
   const [isEditingProgress, setIsEditingProgress] = useState(false)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -116,9 +125,25 @@ function TVShowCardComponent({
       : 'S1E1'
 
   return (
-    <Card className="group transition-shadow hover:shadow-md p-0">
+    <Card className={cn(
+      "group transition-all hover:shadow-md p-0",
+      isSelected && "ring-2 ring-primary bg-primary/5"
+    )}>
       <CardContent className="p-4">
         <div className="flex gap-4">
+          {/* Selection checkbox */}
+          {showSelection && onSelectionChange && (
+            <div className="flex-shrink-0 self-start pt-1">
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => 
+                  onSelectionChange(item.id, Boolean(checked))
+                }
+                aria-label={`Select ${item.title}`}
+              />
+            </div>
+          )}
+
           <Link href={detailUrl} className="flex-shrink-0">
             <MediaPoster
               src={item.poster}

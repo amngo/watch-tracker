@@ -397,4 +397,224 @@ export const queueRouter = createTRPCRouter({
 
       return queueItem
     }),
+
+  // Bulk operations
+  bulkMarkAsWatched: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const queueItems = await ctx.db.queueItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+      })
+
+      if (queueItems.length !== input.ids.length) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Some items do not belong to the user',
+        })
+      }
+
+      // Use transaction to mark items as watched and reorder remaining items
+      await ctx.db.$transaction(async tx => {
+        // Mark selected items as watched
+        await tx.queueItem.updateMany({
+          where: {
+            id: { in: input.ids },
+            userId: ctx.user.id,
+          },
+          data: {
+            watched: true,
+          },
+        })
+
+        // Get the minimum position of watched items for reordering
+        const minPosition = Math.min(...queueItems.map(item => item.position))
+
+        // Reorder remaining unwatched items to fill gaps
+        await tx.queueItem.updateMany({
+          where: {
+            userId: ctx.user.id,
+            watched: false,
+            position: { gt: minPosition },
+          },
+          data: {
+            position: {
+              decrement: input.ids.length,
+            },
+          },
+        })
+      })
+
+      return { updatedCount: input.ids.length }
+    }),
+
+  bulkRemoveFromQueue: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { deletedCount: 0 }
+      }
+
+      // Verify all items belong to the user and get their positions
+      const queueItems = await ctx.db.queueItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+        },
+        select: { id: true, position: true },
+      })
+
+      if (queueItems.length !== input.ids.length) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Some items do not belong to the user',
+        })
+      }
+
+      const minPosition = Math.min(...queueItems.map(item => item.position))
+
+      // Use transaction to delete items and reorder remaining ones
+      await ctx.db.$transaction(async tx => {
+        // Delete the selected items
+        await tx.queueItem.deleteMany({
+          where: {
+            id: { in: input.ids },
+            userId: ctx.user.id,
+          },
+        })
+
+        // Reorder remaining items to fill gaps
+        await tx.queueItem.updateMany({
+          where: {
+            userId: ctx.user.id,
+            position: { gt: minPosition },
+          },
+          data: {
+            position: {
+              decrement: input.ids.length,
+            },
+          },
+        })
+      })
+
+      return { deletedCount: input.ids.length }
+    }),
+
+  bulkMoveToTop: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const queueItems = await ctx.db.queueItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+          watched: false, // Only move unwatched items
+        },
+        orderBy: { position: 'asc' },
+      })
+
+      if (queueItems.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      await ctx.db.$transaction(async tx => {
+        // Shift all other unwatched items down
+        await tx.queueItem.updateMany({
+          where: {
+            userId: ctx.user.id,
+            watched: false,
+            id: { notIn: input.ids },
+          },
+          data: {
+            position: {
+              increment: queueItems.length,
+            },
+          },
+        })
+
+        // Move selected items to top positions
+        for (let i = 0; i < queueItems.length; i++) {
+          await tx.queueItem.update({
+            where: { id: queueItems[i]!.id },
+            data: { position: i + 1 },
+          })
+        }
+      })
+
+      return { updatedCount: queueItems.length }
+    }),
+
+  bulkMoveToBottom: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Verify all items belong to the user
+      const queueItems = await ctx.db.queueItem.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.user.id,
+          watched: false, // Only move unwatched items
+        },
+        orderBy: { position: 'asc' },
+      })
+
+      if (queueItems.length === 0) {
+        return { updatedCount: 0 }
+      }
+
+      // Get the maximum position among unwatched items
+      const maxPositionResult = await ctx.db.queueItem.findFirst({
+        where: {
+          userId: ctx.user.id,
+          watched: false,
+        },
+        orderBy: { position: 'desc' },
+      })
+
+      const maxPosition = maxPositionResult?.position ?? 0
+
+      await ctx.db.$transaction(async tx => {
+        // Move selected items to bottom positions
+        for (let i = 0; i < queueItems.length; i++) {
+          await tx.queueItem.update({
+            where: { id: queueItems[i]!.id },
+            data: { position: maxPosition + i + 1 },
+          })
+        }
+
+        // Shift other items up to fill gaps
+        const positionsToFill = queueItems.map(item => item.position)
+        const minPosition = Math.min(...positionsToFill)
+
+        await tx.queueItem.updateMany({
+          where: {
+            userId: ctx.user.id,
+            watched: false,
+            id: { notIn: input.ids },
+            position: { gt: minPosition },
+          },
+          data: {
+            position: {
+              decrement: queueItems.length,
+            },
+          },
+        })
+      })
+
+      return { updatedCount: queueItems.length }
+    }),
 })

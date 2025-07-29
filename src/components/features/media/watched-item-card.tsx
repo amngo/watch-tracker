@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { MediaPoster } from '@/components/ui/media-poster'
+import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 import {
   StatusBadge,
@@ -44,6 +45,7 @@ import {
 import { ProgressDisplay } from '@/components/ui/progress-display'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import type { WatchStatus, WatchedItemCardProps } from '@/types'
+import { cn } from '@/lib/utils'
 
 const statusConfig = {
   PLANNED: { label: 'Planned', icon: Clock },
@@ -53,11 +55,21 @@ const statusConfig = {
   DROPPED: { label: 'Dropped', icon: X },
 }
 
+interface ExtendedWatchedItemCardProps extends WatchedItemCardProps {
+  // Selection props
+  isSelected?: boolean
+  onSelectionChange?: (id: string, selected: boolean) => void
+  showSelection?: boolean
+}
+
 export function WatchedItemCard({
   item,
   onUpdate,
   onDelete,
-}: WatchedItemCardProps) {
+  isSelected = false,
+  onSelectionChange,
+  showSelection = false,
+}: ExtendedWatchedItemCardProps) {
   const [isEditingRating, setIsEditingRating] = useState(false)
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
@@ -114,9 +126,25 @@ export function WatchedItemCard({
     item.mediaType === 'MOVIE' ? `/movie/${item.tmdbId}` : `/tv/${item.tmdbId}`
 
   return (
-    <Card className="group transition-shadow hover:shadow-md p-0">
+    <Card className={cn(
+      "group transition-all hover:shadow-md p-0",
+      isSelected && "ring-2 ring-primary bg-primary/5"
+    )}>
       <CardContent className="p-4">
         <div className="flex gap-4">
+          {/* Selection checkbox */}
+          {showSelection && onSelectionChange && (
+            <div className="flex-shrink-0 self-start pt-1">
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => 
+                  onSelectionChange(item.id, Boolean(checked))
+                }
+                aria-label={`Select ${item.title}`}
+              />
+            </div>
+          )}
+
           <Link href={detailUrl} className="flex-shrink-0">
             <MediaPoster
               src={item.poster}
