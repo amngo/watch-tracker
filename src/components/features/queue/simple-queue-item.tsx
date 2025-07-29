@@ -33,6 +33,7 @@ import { MediaPoster } from '@/components/ui/media-poster'
 import { MediaTypeBadge } from '@/components/ui/media-badges'
 import type { QueueItem } from '@/types'
 import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 interface SimpleQueueItemProps {
   item: QueueItem
@@ -85,7 +86,9 @@ export function SimpleQueueItem({
   }
 
   return (
-    <Card className={`${item.watched ? 'opacity-60' : ''} transition-opacity`}>
+    <Card
+      className={cn('transition-opacity p-0', item.watched && 'opacity-60')}
+    >
       <CardContent className="p-4">
         <div className="flex items-center gap-4">
           {/* Position and reorder controls */}
@@ -169,11 +172,7 @@ export function SimpleQueueItem({
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                    >
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="sr-only">Open menu</span>
                     </Button>
@@ -181,7 +180,9 @@ export function SimpleQueueItem({
                   <DropdownMenuContent align="end">
                     {!item.watched && (
                       <>
-                        <DropdownMenuItem onClick={() => onMarkWatched(item.id)}>
+                        <DropdownMenuItem
+                          onClick={() => onMarkWatched(item.id)}
+                        >
                           <Check className="mr-2 h-4 w-4" />
                           Mark as Watched
                         </DropdownMenuItem>
@@ -217,8 +218,8 @@ export function SimpleQueueItem({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove from Queue</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove &ldquo;{getDisplayTitle()}&rdquo; from your
-              queue? This action cannot be undone.
+              Are you sure you want to remove &ldquo;{getDisplayTitle()}&rdquo;
+              from your queue? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
