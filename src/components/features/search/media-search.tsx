@@ -33,11 +33,12 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
     clearSearch()
   }
 
+  // Clear search when component unmounts to prevent stale results
   useEffect(() => {
     return () => {
       clearSearch()
     }
-  }, [])
+  }, [clearSearch])
 
   return (
     <div className={cn(className, 'h-[600px] overflow-y-auto')}>

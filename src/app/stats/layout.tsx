@@ -8,6 +8,12 @@ import { api } from '@/trpc/react'
 
 type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
 
+// Constants for watch time estimation
+const AVERAGE_MOVIE_RUNTIME_MINUTES = 120
+const AVERAGE_TV_EPISODE_RUNTIME_MINUTES = 45
+const AVERAGE_TV_SEASONS_WATCHED = 2
+const AVERAGE_EPISODES_PER_SEASON = 12
+
 export default function StatsLayout({
   children,
 }: {
@@ -35,17 +41,12 @@ export default function StatsLayout({
     }
 
     // Fallback to estimate for demo
-    const avgMovieRuntime = 120
-    const avgTVEpisodeRuntime = 45
-    const avgTVSeasonsWatched = 2
-    const avgEpisodesPerSeason = 12
-
-    const movieMinutes = overviewData.content.movies * avgMovieRuntime
+    const movieMinutes = overviewData.content.movies * AVERAGE_MOVIE_RUNTIME_MINUTES
     const tvMinutes =
       overviewData.content.tvShows *
-      avgTVEpisodeRuntime *
-      avgTVSeasonsWatched *
-      avgEpisodesPerSeason
+      AVERAGE_TV_EPISODE_RUNTIME_MINUTES *
+      AVERAGE_TV_SEASONS_WATCHED *
+      AVERAGE_EPISODES_PER_SEASON
 
     const totalMinutes = movieMinutes + tvMinutes
     const hours = Math.floor(totalMinutes / 60)
@@ -56,8 +57,8 @@ export default function StatsLayout({
       minutes,
       episodesWatched:
         overviewData.content.tvShows *
-        avgTVSeasonsWatched *
-        avgEpisodesPerSeason,
+        AVERAGE_TV_SEASONS_WATCHED *
+        AVERAGE_EPISODES_PER_SEASON,
     }
   }, [overviewData])
 
