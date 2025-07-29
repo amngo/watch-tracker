@@ -50,6 +50,10 @@ export function useMedia() {
       utils.stats.navigationCounts.invalidate()
       utils.watchedItem.getAll.invalidate()
       
+      // Invalidate releases queries to update calendar and upcoming releases
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
       showToast.success('Media added successfully!')
     },
     onError: (error) => {
@@ -93,6 +97,10 @@ export function useMedia() {
       // Invalidate watchlist queries to update releases page
       utils.watchedItem.getAll.invalidate()
       
+      // Invalidate releases queries to update calendar and upcoming releases
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
       showToast.success('Progress updated!')
     },
     onError: (error, variables) => {
@@ -112,6 +120,10 @@ export function useMedia() {
       utils.stats.navigationCounts.invalidate()
       utils.watchedItem.getAll.invalidate()
       
+      // Invalidate releases queries to update calendar and upcoming releases
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
       showToast.success('Item removed')
     },
     onError: (error, variables) => {
@@ -130,6 +142,11 @@ export function useMedia() {
         totalEpisodes: data.totalEpisodes,
         updatedAt: data.updatedAt,
       })
+      
+      // Invalidate releases queries since TV show details affect upcoming episodes
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
+      
       showToast.success('TV show details updated!')
     },
     onError: (error) => {
@@ -142,6 +159,10 @@ export function useMedia() {
     onSuccess: (result) => {
       // Refresh the watched items to get updated data
       store.setLastUpdated()
+      
+      // Invalidate releases queries since bulk TV show updates affect upcoming episodes
+      utils.releases.getUpcoming.invalidate()
+      utils.releases.getByDateRange.invalidate()
       
       let successMessage = `Updated ${result.successfulUpdates} TV shows`
       if (result.totalProcessed === 0) {
