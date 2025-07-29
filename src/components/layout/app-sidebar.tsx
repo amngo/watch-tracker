@@ -105,7 +105,7 @@ export function AppSidebar() {
                                 >
                                   <Link href={subItem.href}>
                                     {subItem.icon && <subItem.icon />}
-                                    <span>{subItem.name}</span>
+                                    <span className="pl-4">{subItem.name}</span>
                                   </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuSubItem>
