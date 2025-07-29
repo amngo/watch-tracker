@@ -4,6 +4,7 @@ import { SimpleQueueList } from '@/components/features/queue/simple-queue-list'
 import { useQueue } from '@/hooks/use-queue'
 import { Card, CardContent } from '@/components/ui/card'
 import { ListPlus, Clock, History } from 'lucide-react'
+import type { QueueItem } from '@/types'
 
 export function QueuePageContent() {
   const {
@@ -18,7 +19,7 @@ export function QueuePageContent() {
     clearQueue,
   } = useQueue()
 
-  const activeQueue = queueItems.filter(item => !item.watched)
+  const activeQueue = queueItems.filter((item: QueueItem) => !item.watched)
 
   return (
     <div className="space-y-6">

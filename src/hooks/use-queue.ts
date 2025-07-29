@@ -3,20 +3,20 @@
 import { useCallback } from 'react'
 import { api } from '@/trpc/react'
 import { toast } from 'sonner'
-import type { CreateQueueItemData } from '@/types'
+import type { CreateQueueItemData, QueueItem } from '@/types'
 
 export function useQueue() {
   const utils = api.useUtils()
 
   // Queries
   const {
-    data: queueItems = [],
+    data: queueItems = [] as QueueItem[],
     isLoading: isLoadingQueue,
     error: queueError,
   } = api.queue.getQueue.useQuery()
 
   const {
-    data: watchHistory = [],
+    data: watchHistory = [] as QueueItem[],
     isLoading: isLoadingHistory,
     error: historyError,
   } = api.queue.getWatchHistory.useQuery()
@@ -196,7 +196,7 @@ export function useQueue() {
   const isInQueue = useCallback(
     (contentId: string, seasonNumber?: number, episodeNumber?: number) => {
       return queueItems.some(
-        (item) =>
+        (item: QueueItem) =>
           item.contentId === contentId &&
           item.seasonNumber === seasonNumber &&
           item.episodeNumber === episodeNumber
@@ -209,7 +209,7 @@ export function useQueue() {
   const getQueuePosition = useCallback(
     (contentId: string, seasonNumber?: number, episodeNumber?: number) => {
       const item = queueItems.find(
-        (item) =>
+        (item: QueueItem) =>
           item.contentId === contentId &&
           item.seasonNumber === seasonNumber &&
           item.episodeNumber === episodeNumber
