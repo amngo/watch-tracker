@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo, useRef, memo } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data'
 
@@ -221,8 +221,28 @@ function BreadcrumbComponent({
           items.push({
             label: 'Statistics',
             href: '/stats',
-            isActive: isLast,
+            isActive: isLast && pathSegments.length === 1,
           })
+          
+          // Handle sub-routes
+          if (pathSegments[i + 1]) {
+            const subRoute = pathSegments[i + 1]
+            const subRouteLabels: Record<string, string> = {
+              overview: 'Overview',
+              activity: 'Activity', 
+              patterns: 'Patterns',
+              achievements: 'Achievements'
+            }
+            
+            if (subRouteLabels[subRoute]) {
+              items.push({
+                label: subRouteLabels[subRoute],
+                href: `/stats/${subRoute}`,
+                isActive: isLast,
+              })
+              i++ // Skip the next segment since we processed it
+            }
+          }
           break
 
         case 'profile':
