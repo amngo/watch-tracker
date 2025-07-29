@@ -93,13 +93,48 @@ export function SimpleQueueItem({
     return null
   }
 
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // Only handle click if in selection mode and not clicking on interactive elements
+    if (showSelection && onSelectionChange) {
+      const target = e.target as HTMLElement
+      
+      // Don't trigger selection if clicking on buttons, inputs, or other interactive elements
+      if (
+        target.tagName === 'BUTTON' ||
+        target.closest('button') ||
+        target.tagName === 'INPUT' ||
+        target.closest('input') ||
+        target.closest('[role="menuitem"]') ||
+        target.closest('[role="menu"]') ||
+        target.closest('.dropdown-trigger')
+      ) {
+        return
+      }
+      
+      e.preventDefault()
+      onSelectionChange(item.id, !isSelected)
+    }
+  }
+
   return (
     <Card
       className={cn(
         'transition-all p-0', 
         item.watched && 'opacity-60',
-        isSelected && 'ring-2 ring-primary bg-primary/5'
+        isSelected && 'ring-2 ring-primary bg-primary/5 shadow-md',
+        showSelection && 'cursor-pointer hover:bg-muted/30 hover:shadow-sm',
+        showSelection && !isSelected && 'border-dashed'
       )}
+      onClick={handleContainerClick}
+      role={showSelection ? 'button' : undefined}
+      aria-label={showSelection ? `${isSelected ? 'Deselect' : 'Select'} ${getDisplayTitle()}` : undefined}
+      tabIndex={showSelection ? 0 : undefined}
+      onKeyDown={showSelection ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelectionChange?.(item.id, !isSelected)
+        }
+      } : undefined}
     >
       <CardContent className="p-4">
         <div className="flex items-center gap-4">
@@ -121,14 +156,17 @@ export function SimpleQueueItem({
             <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full text-sm font-medium">
               {item.position}
             </div>
-            {(onMoveUp || onMoveDown) && (
+            {(onMoveUp || onMoveDown) && !showSelection && (
               <div className="flex flex-col gap-1">
                 {onMoveUp && (
                   <Button
                     size="sm"
                     variant="ghost"
                     className="h-6 w-6 p-0"
-                    onClick={() => onMoveUp(item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onMoveUp(item.id)
+                    }}
                     disabled={!canMoveUp}
                   >
                     <ChevronUp className="h-3 w-3" />
@@ -139,7 +177,10 @@ export function SimpleQueueItem({
                     size="sm"
                     variant="ghost"
                     className="h-6 w-6 p-0"
-                    onClick={() => onMoveDown(item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onMoveDown(item.id)
+                    }}
                     disabled={!canMoveDown}
                   >
                     <ChevronDown className="h-3 w-3" />
@@ -182,48 +223,73 @@ export function SimpleQueueItem({
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 ml-4">
-                {!item.watched && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onMarkWatched(item.id)}
-                    className="h-8 px-3"
-                  >
-                    <Play className="h-3 w-3 mr-1" />
-                    Watch
-                  </Button>
-                )}
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {!item.watched && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => onMarkWatched(item.id)}
-                        >
-                          <Check className="mr-2 h-4 w-4" />
-                          Mark as Watched
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    <DropdownMenuItem
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="text-destructive"
+              {!showSelection && (
+                <div className="flex items-center gap-2 ml-4">
+                  {!item.watched && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onMarkWatched(item.id)
+                      }}
+                      className="h-8 px-3"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Remove from Queue
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                      <Play className="h-3 w-3 mr-1" />
+                      Watch
+                    </Button>
+                  )}
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0 dropdown-trigger"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {!item.watched && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onMarkWatched(item.id)
+                            }}
+                          >
+                            <Check className="mr-2 h-4 w-4" />
+                            Mark as Watched
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setShowDeleteDialog(true)
+                        }}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Remove from Queue
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+              
+              {/* Selection mode indicator */}
+              {showSelection && (
+                <div className="flex items-center gap-2 ml-4">
+                  <span className="text-xs text-muted-foreground">
+                    {isSelected ? '✓ Selected' : 'Click to select'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

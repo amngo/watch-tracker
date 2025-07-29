@@ -72,11 +72,11 @@ export function BulkActionsBar({
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-3 mb-4">
+      <div className="sticky top-0 z-10 bg-primary/5 border-2 border-primary/20 rounded-lg p-3 mb-4 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           {/* Selection Info */}
           <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="font-medium">
+            <Badge variant="default" className="font-medium bg-primary">
               {selectedCount} selected
             </Badge>
             

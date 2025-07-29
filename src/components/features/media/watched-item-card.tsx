@@ -125,16 +125,34 @@ export function WatchedItemCard({
   const detailUrl =
     item.mediaType === 'MOVIE' ? `/movie/${item.tmdbId}` : `/tv/${item.tmdbId}`
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (showSelection && onSelectionChange) {
+      // Prevent propagation if clicked on interactive elements during selection mode
+      e.preventDefault()
+      e.stopPropagation()
+      onSelectionChange(item.id, !isSelected)
+    }
+  }
+
   return (
-    <Card className={cn(
-      "group transition-all hover:shadow-md p-0",
-      isSelected && "ring-2 ring-primary bg-primary/5"
-    )}>
+    <Card 
+      className={cn(
+        "group transition-all hover:shadow-md p-0",
+        isSelected && "ring-2 ring-primary bg-primary/5",
+        showSelection && "cursor-pointer select-none"
+      )}
+      onClick={showSelection ? handleCardClick : undefined}
+    >
       <CardContent className="p-4">
         <div className="flex gap-4">
           {/* Selection checkbox */}
           {showSelection && onSelectionChange && (
-            <div className="flex-shrink-0 self-start pt-1">
+            <div 
+              className="flex-shrink-0 self-start pt-1 z-10"
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) => 
@@ -145,24 +163,41 @@ export function WatchedItemCard({
             </div>
           )}
 
-          <Link href={detailUrl} className="flex-shrink-0">
-            <MediaPoster
-              src={item.poster}
-              alt={item.title}
-              mediaType={item.mediaType}
-              size="md"
-            />
-          </Link>
+          {showSelection ? (
+            <div className="flex-shrink-0 pointer-events-none">
+              <MediaPoster
+                src={item.poster}
+                alt={item.title}
+                mediaType={item.mediaType}
+                size="md"
+              />
+            </div>
+          ) : (
+            <Link href={detailUrl} className="flex-shrink-0">
+              <MediaPoster
+                src={item.poster}
+                alt={item.title}
+                mediaType={item.mediaType}
+                size="md"
+              />
+            </Link>
+          )}
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <Link href={detailUrl} className="block">
-                  <h3 className="font-semibold text-sm leading-tight truncate hover:text-primary transition-colors">
+                {showSelection ? (
+                  <h3 className="font-semibold text-sm leading-tight truncate pointer-events-none">
                     {item.title}
                   </h3>
-                </Link>
+                ) : (
+                  <Link href={detailUrl} className="block">
+                    <h3 className="font-semibold text-sm leading-tight truncate hover:text-primary transition-colors">
+                      {item.title}
+                    </h3>
+                  </Link>
+                )}
 
                 <div className="flex items-center gap-2 mt-2">
                   <MediaTypeBadge mediaType={item.mediaType} />
@@ -175,47 +210,49 @@ export function WatchedItemCard({
                 </div>
               </div>
 
-              {/* Actions Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {Object.entries(statusConfig).map(([status, config]) => (
-                    <DropdownMenuItem
-                      key={status}
-                      onClick={() => handleStatusChange(status as WatchStatus)}
-                      className="flex items-center gap-2"
+              {/* Actions Menu - Hidden during selection mode */}
+              {!showSelection && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <config.icon className="h-4 w-4" />
-                      Mark as {config.label}
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  {item.mediaType === 'TV' && (
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {Object.entries(statusConfig).map(([status, config]) => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => handleStatusChange(status as WatchStatus)}
+                        className="flex items-center gap-2"
+                      >
+                        <config.icon className="h-4 w-4" />
+                        Mark as {config.label}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    {item.mediaType === 'TV' && (
+                      <DropdownMenuItem
+                        onClick={handleResetProgress}
+                        className="flex items-center gap-2"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        Reset Progress
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
-                      onClick={handleResetProgress}
-                      className="flex items-center gap-2"
+                      onClick={() => onDelete(item.id)}
+                      className="text-destructive"
                     >
-                      <RotateCcw className="h-4 w-4" />
-                      Reset Progress
+                      <X className="h-4 w-4 mr-2" />
+                      Remove
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    onClick={() => onDelete(item.id)}
-                    className="text-destructive"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Remove
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
 
             <ProgressDisplay
@@ -251,12 +288,14 @@ export function WatchedItemCard({
                 <NotesBadge count={item._count.notes} />
               </div> */}
 
-              <AddToQueueButton
-                item={item}
-                showDropdown={item.mediaType === 'TV'}
-                size="sm"
-                variant="outline"
-              />
+              {!showSelection && (
+                <AddToQueueButton
+                  item={item}
+                  showDropdown={item.mediaType === 'TV'}
+                  size="sm"
+                  variant="outline"
+                />
+              )}
             </div>
           </div>
         </div>

@@ -102,6 +102,16 @@ function TVShowCardComponent({
 
   const detailUrl = `/tv/${item.tmdbId}`
 
+  // Handle card click for selection
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (showSelection && onSelectionChange) {
+      // Prevent propagation if clicked on interactive elements during selection mode
+      e.preventDefault()
+      e.stopPropagation()
+      onSelectionChange(item.id, !isSelected)
+    }
+  }
+
   // Calculate progress text for TV shows
   const getProgressText = () => {
     if (item.status === 'COMPLETED') return 'Completed'
@@ -125,15 +135,24 @@ function TVShowCardComponent({
       : 'S1E1'
 
   return (
-    <Card className={cn(
-      "group transition-all hover:shadow-md p-0",
-      isSelected && "ring-2 ring-primary bg-primary/5"
-    )}>
+    <Card 
+      className={cn(
+        "group transition-all hover:shadow-md p-0",
+        isSelected && "ring-2 ring-primary bg-primary/5",
+        showSelection && "cursor-pointer select-none"
+      )}
+      onClick={showSelection ? handleCardClick : undefined}
+    >
       <CardContent className="p-4">
         <div className="flex gap-4">
           {/* Selection checkbox */}
           {showSelection && onSelectionChange && (
-            <div className="flex-shrink-0 self-start pt-1">
+            <div 
+              className="flex-shrink-0 self-start pt-1 z-10"
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) => 
@@ -144,24 +163,41 @@ function TVShowCardComponent({
             </div>
           )}
 
-          <Link href={detailUrl} className="flex-shrink-0">
-            <MediaPoster
-              src={item.poster}
-              alt={item.title}
-              mediaType={item.mediaType}
-              size="md"
-            />
-          </Link>
+          {showSelection ? (
+            <div className="flex-shrink-0 pointer-events-none">
+              <MediaPoster
+                src={item.poster}
+                alt={item.title}
+                mediaType={item.mediaType}
+                size="md"
+              />
+            </div>
+          ) : (
+            <Link href={detailUrl} className="flex-shrink-0">
+              <MediaPoster
+                src={item.poster}
+                alt={item.title}
+                mediaType={item.mediaType}
+                size="md"
+              />
+            </Link>
+          )}
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <Link href={detailUrl} className="block">
-                  <h3 className="font-semibold text-sm leading-tight truncate hover:text-primary transition-colors">
+                {showSelection ? (
+                  <h3 className="font-semibold text-sm leading-tight truncate pointer-events-none">
                     {item.title}
                   </h3>
-                </Link>
+                ) : (
+                  <Link href={detailUrl} className="block">
+                    <h3 className="font-semibold text-sm leading-tight truncate hover:text-primary transition-colors">
+                      {item.title}
+                    </h3>
+                  </Link>
+                )}
 
                 <div className="flex items-center gap-2 mt-2">
                   <MediaTypeBadge mediaType={item.mediaType} />
@@ -176,62 +212,64 @@ function TVShowCardComponent({
                 </div>
               </div>
 
-              {/* Actions Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+              {/* Actions Menu - Hidden during selection mode */}
+              {!showSelection && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => handleStatusChange(status as WatchStatus)}
+                        className="flex items-center gap-2"
+                      >
+                        <config.icon className="h-4 w-4" />
+                        Mark as {config.label}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      key={status}
-                      onClick={() => handleStatusChange(status as WatchStatus)}
+                      onClick={() => setIsEditingProgress(true)}
                       className="flex items-center gap-2"
                     >
-                      <config.icon className="h-4 w-4" />
-                      Mark as {config.label}
+                      <Edit3 className="h-4 w-4" />
+                      Update Progress
                     </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => setIsEditingProgress(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                    Update Progress
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleResetProgress}
-                    className="flex items-center gap-2"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Reset Progress
-                  </DropdownMenuItem>
-                  {showRefreshButton && item.mediaType === 'TV' && (
                     <DropdownMenuItem
-                      onClick={handleRefreshDetails}
+                      onClick={handleResetProgress}
                       className="flex items-center gap-2"
                     >
-                      <RefreshCw className="h-4 w-4" />
-                      Refresh Details
+                      <RotateCcw className="h-4 w-4" />
+                      Reset Progress
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => onDelete(item.id)}
-                    className="text-destructive"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Remove
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {showRefreshButton && item.mediaType === 'TV' && (
+                      <DropdownMenuItem
+                        onClick={handleRefreshDetails}
+                        className="flex items-center gap-2"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Refresh Details
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => onDelete(item.id)}
+                      className="text-destructive"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Remove
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
 
             {/* TV Show Specific Progress */}
@@ -270,7 +308,7 @@ function TVShowCardComponent({
                   </div>
 
                   {/* Show refresh button if season/episode data is missing */}
-                  {showRefreshButton &&
+                  {!showSelection && showRefreshButton &&
                     (!item.totalSeasons || !item.totalEpisodes) && (
                       <div className="flex justify-center mt-2">
                         <Button
@@ -287,28 +325,30 @@ function TVShowCardComponent({
                 </div>
               )}
 
-              {/* Quick Actions */}
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsEditingProgress(true)}
-                  className="text-xs px-2 py-1 h-auto"
-                >
-                  <Edit3 className="h-3 w-3 mr-1" />
-                  Update Progress
-                </Button>
-                <Link href={detailUrl}>
+              {/* Quick Actions - Hidden during selection mode */}
+              {!showSelection && (
+                <div className="flex items-center justify-between pt-2">
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="outline"
+                    onClick={() => setIsEditingProgress(true)}
                     className="text-xs px-2 py-1 h-auto"
                   >
-                    View Seasons
-                    <ChevronRight className="h-3 w-3 ml-1" />
+                    <Edit3 className="h-3 w-3 mr-1" />
+                    Update Progress
                   </Button>
-                </Link>
-              </div>
+                  <Link href={detailUrl}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs px-2 py-1 h-auto"
+                    >
+                      View Seasons
+                      <ChevronRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
