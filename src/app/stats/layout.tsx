@@ -15,8 +15,8 @@ export default function StatsLayout({
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
-  const router = useRouter()
+  const _pathname = usePathname()
+  const _router = useRouter()
   const [timeRange, setTimeRange] = useState<TimeRange>('month')
 
   // Fetch statistics data for shared components

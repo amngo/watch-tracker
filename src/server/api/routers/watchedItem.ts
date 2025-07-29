@@ -313,7 +313,7 @@ export const watchedItemRouter = createTRPCRouter({
             },
           },
         })
-      } catch (error) {
+      } catch (_error) {
         throw new Error('Failed to fetch TV show details from TMDB')
       }
     }),

@@ -80,7 +80,7 @@ export function useOptimisticUpdates() {
               rollbackAction,
               { ...options, retryCount: retryCount - 1 }
             )
-          } catch (retryError) {
+          } catch (_retryError) {
             // Final failure after retries
             showToast.error(`${errorMessage} after ${options.retryCount} retries`)
           }

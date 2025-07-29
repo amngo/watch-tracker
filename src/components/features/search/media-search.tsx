@@ -19,7 +19,7 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
     query,
     results,
     isLoading,
-    error,
+    error: _error,
     searchType,
     setQuery,
     setSearchType,

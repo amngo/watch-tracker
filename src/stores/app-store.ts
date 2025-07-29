@@ -22,7 +22,7 @@ const initialState = {
 
 export const useAppStore = create<AppStoreState>()(
   devtools(
-    subscribeWithSelector((set, get) => ({
+    subscribeWithSelector((set, _get) => ({
       ...initialState,
 
       setInitialized: (initialized: boolean) =>

@@ -216,7 +216,7 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
 export function FlexibleSeasonOverview({
   watchedItem,
   tvDetails,
-  onUpdateEpisodeStatus,
+  onUpdateEpisodeStatus: _onUpdateEpisodeStatus,
   onBulkUpdateEpisodes,
   className,
 }: FlexibleSeasonOverviewProps) {

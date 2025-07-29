@@ -41,7 +41,7 @@ export function ViewingHeatmap({ data }: ViewingHeatmapProps) {
                   {hour.toString().padStart(2, '0')}
                 </div>
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
-                  (day, dayIndex) => {
+                  (day, _dayIndex) => {
                     const activity =
                       data.find(d => d.day === day && d.hour === hour)
                         ?.activity || 0

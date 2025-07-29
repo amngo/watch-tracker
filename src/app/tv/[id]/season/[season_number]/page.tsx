@@ -44,7 +44,7 @@ export default function TVSeasonPage() {
   const [tvShowTitle, setTvShowTitle] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [spoilerMode, setSpoilerMode] = useState(false)
+  const [spoilerMode, _setSpoilerMode] = useState(false)
 
   const {
     watchedItems,

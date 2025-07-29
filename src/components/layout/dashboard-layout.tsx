@@ -8,7 +8,7 @@ import type { DashboardLayoutProps } from '@/types'
 import { SidebarProvider, SidebarTrigger } from '../ui/sidebar'
 import { AppSidebar } from './app-sidebar'
 
-export function DashboardLayout({ children, stats }: DashboardLayoutProps) {
+export function DashboardLayout({ children, stats: _stats }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />

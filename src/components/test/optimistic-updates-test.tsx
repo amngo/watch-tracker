@@ -46,7 +46,7 @@ export function OptimisticUpdatesTest() {
       await media.addMedia(mockMediaItem)
       setCreateSuccess()
       setTestResults(prev => ({ ...prev, create: 'success' }))
-    } catch (error) {
+    } catch (_error) {
       setCreateError()
       setTestResults(prev => ({ ...prev, create: 'error' }))
     }
@@ -63,7 +63,7 @@ export function OptimisticUpdatesTest() {
       await media.markCompleted(firstItem.id)
       setUpdateSuccess()
       setTestResults(prev => ({ ...prev, update: 'success' }))
-    } catch (error) {
+    } catch (_error) {
       setUpdateError()
       setTestResults(prev => ({ ...prev, update: 'error' }))
     }
@@ -80,7 +80,7 @@ export function OptimisticUpdatesTest() {
       await media.deleteItem(firstItem.id)
       setDeleteSuccess()
       setTestResults(prev => ({ ...prev, delete: 'success' }))
-    } catch (error) {
+    } catch (_error) {
       setDeleteError()
       setTestResults(prev => ({ ...prev, delete: 'error' }))
     }

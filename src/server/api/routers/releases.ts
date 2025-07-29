@@ -30,7 +30,7 @@ export const releasesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const {
         startDate = startOfDay(new Date()),
-        endDate = addDays(new Date(), 30),
+        endDate: _endDate = addDays(new Date(), 30),
         mediaType,
         limit,
       } = input
@@ -100,7 +100,7 @@ export const releasesRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate, mediaType } = input
+      const { startDate, endDate: _endDate, mediaType } = input
 
       // Get user's currently watching items
       const watchedItems = await ctx.db.watchedItem.findMany({

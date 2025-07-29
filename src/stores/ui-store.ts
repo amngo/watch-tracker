@@ -88,7 +88,7 @@ const initialState = {
 
 export const useUIStore = create<UIStoreState>()(
   devtools(
-    subscribeWithSelector((set, get) => ({
+    subscribeWithSelector((set, _get) => ({
       ...initialState,
 
       // Modal actions

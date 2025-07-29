@@ -360,7 +360,7 @@ export const statsRouter = createTRPCRouter({
             startDate = undefined
         }
 
-        const whereClause = {
+        const _whereClause = {
           userId: user.id,
           ...(startDate && { updatedAt: { gte: startDate } }),
           ...(input.mediaType !== 'ALL' && { mediaType: input.mediaType }),
