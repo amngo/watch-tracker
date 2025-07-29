@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { tmdbService } from '@/lib/tmdb'
-import { addDays, startOfDay, isBefore, parseISO } from 'date-fns'
+import { startOfDay, isBefore, parseISO } from 'date-fns'
 
 export interface ReleaseEvent {
   id: string
@@ -28,12 +28,7 @@ export const releasesRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const {
-        startDate = startOfDay(new Date()),
-        endDate: _endDate = addDays(new Date(), 30),
-        mediaType,
-        limit,
-      } = input
+      const { startDate = startOfDay(new Date()), mediaType, limit } = input
 
       // Get user's currently watching items
       const watchedItems = await ctx.db.watchedItem.findMany({
@@ -100,7 +95,7 @@ export const releasesRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate: _endDate, mediaType } = input
+      const { startDate, mediaType } = input
 
       // Get user's currently watching items
       const watchedItems = await ctx.db.watchedItem.findMany({

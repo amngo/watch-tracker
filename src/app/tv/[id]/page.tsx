@@ -35,6 +35,7 @@ import type {
   TMDBMediaItem,
   EpisodeWatchStatus,
   WatchedItem,
+  UpdateWatchedItemData,
 } from '@/types'
 
 export default function TVDetailPage() {
@@ -211,7 +212,7 @@ export default function TVDetailPage() {
     await updateItem(userWatchedItem.id, {
       watchedEpisodes: updatedWatchedEpisodes,
       progress: newProgress,
-    } as any)
+    } as UpdateWatchedItemData)
   }
 
   const handleBulkUpdateEpisodes = async (
@@ -269,7 +270,7 @@ export default function TVDetailPage() {
     await updateItem(userWatchedItem.id, {
       watchedEpisodes: updatedWatchedEpisodes,
       progress: newProgress,
-    } as any)
+    } as UpdateWatchedItemData)
   }
 
   const formatRuntime = (minutes: number[] | undefined): string => {

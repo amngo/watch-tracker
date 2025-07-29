@@ -3,6 +3,7 @@ import { useUIStore } from '@/stores/ui-store'
 import { useMediaStore } from '@/stores/media-store'
 import { api } from '@/trpc/react'
 import { useDebounce } from './use-debounce'
+import type { TMDBSearchResultItem } from '@/types'
 
 export function useSearch() {
   const ui = useUIStore()
@@ -21,7 +22,7 @@ export function useSearch() {
   // Update store when search results change
   useEffect(() => {
     if (data?.results) {
-      media.setSearchResults(data.results as any)
+      media.setSearchResults(data.results as TMDBSearchResultItem[])
     }
   }, [data])
 

@@ -21,14 +21,14 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
-import type { Note, WatchedItem } from '@/types'
+import type { Note, WatchedItem, TMDBTVDetailsExtended } from '@/types'
 
 export default function TVNotesPage() {
   const params = useParams()
   const tvId = params.id as string
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false)
   const [noteType, setNoteType] = useState<'GENERAL' | 'EPISODE'>('GENERAL')
-  const [tvDetails, setTvDetails] = useState<any>(null)
+  const [tvDetails, setTvDetails] = useState<TMDBTVDetailsExtended | null>(null)
 
   const { 
     watchedItems, 
@@ -150,7 +150,7 @@ export default function TVNotesPage() {
 
   useEffect(() => {
     if (tvDetailsData) {
-      setTvDetails(tvDetailsData)
+      setTvDetails(tvDetailsData as TMDBTVDetailsExtended)
     }
   }, [tvDetailsData])
 

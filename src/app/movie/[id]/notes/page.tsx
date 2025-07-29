@@ -19,13 +19,13 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
-import type { Note, WatchedItem } from '@/types'
+import type { Note, WatchedItem, TMDBMovieDetailsExtended } from '@/types'
 
 export default function MovieNotesPage() {
   const params = useParams()
   const movieId = params.id as string
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false)
-  const [movieDetails, setMovieDetails] = useState<any>(null)
+  const [movieDetails, setMovieDetails] = useState<TMDBMovieDetailsExtended | null>(null)
 
   const { 
     watchedItems, 
@@ -131,7 +131,7 @@ export default function MovieNotesPage() {
 
   useEffect(() => {
     if (movieDetailsData) {
-      setMovieDetails(movieDetailsData)
+      setMovieDetails(movieDetailsData as TMDBMovieDetailsExtended)
     }
   }, [movieDetailsData])
 

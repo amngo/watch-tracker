@@ -40,28 +40,26 @@ export function ViewingHeatmap({ data }: ViewingHeatmapProps) {
                 <div className="text-right p-1 text-muted-foreground">
                   {hour.toString().padStart(2, '0')}
                 </div>
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
-                  (day, _dayIndex) => {
-                    const activity =
-                      data.find(d => d.day === day && d.hour === hour)
-                        ?.activity || 0
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => {
+                  const activity =
+                    data.find(d => d.day === day && d.hour === hour)
+                      ?.activity || 0
 
-                    return (
-                      <div
-                        key={`${day}-${hour}`}
-                        className={cn(
-                          'aspect-square rounded-sm border border-border',
-                          activity === 0 && 'bg-muted/20',
-                          activity === 1 && 'bg-primary/20',
-                          activity === 2 && 'bg-primary/40',
-                          activity === 3 && 'bg-primary/60',
-                          activity >= 4 && 'bg-primary/80'
-                        )}
-                        title={`${day} ${hour}:00 - Activity: ${activity}`}
-                      />
-                    )
-                  }
-                )}
+                  return (
+                    <div
+                      key={`${day}-${hour}`}
+                      className={cn(
+                        'aspect-square rounded-sm border border-border',
+                        activity === 0 && 'bg-muted/20',
+                        activity === 1 && 'bg-primary/20',
+                        activity === 2 && 'bg-primary/40',
+                        activity === 3 && 'bg-primary/60',
+                        activity >= 4 && 'bg-primary/80'
+                      )}
+                      title={`${day} ${hour}:00 - Activity: ${activity}`}
+                    />
+                  )
+                })}
               </div>
             ))}
           </div>

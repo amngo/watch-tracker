@@ -23,20 +23,21 @@ interface AddNoteFormProps {
   onCancel?: () => void
 }
 
-export function AddNoteForm({ 
+export function AddNoteForm({
   watchedItemId,
   mediaType,
   noteType = 'GENERAL',
   totalSeasons,
-  totalEpisodes: _totalEpisodes,
   currentSeason,
   currentEpisode,
   onSuccess,
-  onCancel
+  onCancel,
 }: AddNoteFormProps) {
   const [content, setContent] = useState('')
   const [timestamp, setTimestamp] = useState('')
-  const [selectedNoteType, setSelectedNoteType] = useState<'GENERAL' | 'EPISODE'>(noteType)
+  const [selectedNoteType, setSelectedNoteType] = useState<
+    'GENERAL' | 'EPISODE'
+  >(noteType)
   const [seasonNumber, setSeasonNumber] = useState(currentSeason || 1)
   const [episodeNumber, setEpisodeNumber] = useState(currentEpisode || 1)
   const [isPublic, setIsPublic] = useState(false)
@@ -53,20 +54,20 @@ export function AddNoteForm({
       setEpisodeNumber(currentEpisode || 1)
       setIsPublic(false)
       setHasSpoilers(false)
-      
+
       // Invalidate navigation counts to update badges
       utils.stats.navigationCounts.invalidate()
-      
+
       onSuccess?.()
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Error adding note:', error)
-    }
+    },
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!content.trim()) return
 
     createNoteMutation.mutate({
@@ -77,7 +78,7 @@ export function AddNoteForm({
       seasonNumber: selectedNoteType === 'EPISODE' ? seasonNumber : undefined,
       episodeNumber: selectedNoteType === 'EPISODE' ? episodeNumber : undefined,
       isPublic,
-      hasSpoilers
+      hasSpoilers,
     })
   }
 
@@ -108,7 +109,7 @@ export function AddNoteForm({
         <Textarea
           id="note-content"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={e => setContent(e.target.value)}
           placeholder="Write your thoughts, observations, or reactions..."
           className="min-h-[120px]"
           required
@@ -120,10 +121,10 @@ export function AddNoteForm({
         <div className="space-y-3">
           <Label>Note Type</Label>
           <div className="grid grid-cols-2 gap-3">
-            <Card 
+            <Card
               className={`cursor-pointer transition-all ${
-                selectedNoteType === 'GENERAL' 
-                  ? 'ring-2 ring-primary border-primary' 
+                selectedNoteType === 'GENERAL'
+                  ? 'ring-2 ring-primary border-primary'
                   : 'hover:border-border'
               }`}
               onClick={() => setSelectedNoteType('GENERAL')}
@@ -135,10 +136,10 @@ export function AddNoteForm({
                 </p>
               </CardContent>
             </Card>
-            <Card 
+            <Card
               className={`cursor-pointer transition-all ${
-                selectedNoteType === 'EPISODE' 
-                  ? 'ring-2 ring-primary border-primary' 
+                selectedNoteType === 'EPISODE'
+                  ? 'ring-2 ring-primary border-primary'
                   : 'hover:border-border'
               }`}
               onClick={() => setSelectedNoteType('EPISODE')}
@@ -167,7 +168,7 @@ export function AddNoteForm({
                 min="1"
                 max={totalSeasons || 50}
                 value={seasonNumber}
-                onChange={(e) => setSeasonNumber(parseInt(e.target.value) || 1)}
+                onChange={e => setSeasonNumber(parseInt(e.target.value) || 1)}
               />
             </div>
             <div className="space-y-2">
@@ -178,15 +179,18 @@ export function AddNoteForm({
                 min="1"
                 max={100}
                 value={episodeNumber}
-                onChange={(e) => setEpisodeNumber(parseInt(e.target.value) || 1)}
+                onChange={e => setEpisodeNumber(parseInt(e.target.value) || 1)}
               />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
-              S{seasonNumber.toString().padStart(2, '0')}E{episodeNumber.toString().padStart(2, '0')}
+              S{seasonNumber.toString().padStart(2, '0')}E
+              {episodeNumber.toString().padStart(2, '0')}
             </Badge>
-            <span className="text-sm text-muted-foreground">Episode reference</span>
+            <span className="text-sm text-muted-foreground">
+              Episode reference
+            </span>
           </div>
         </div>
       )}
@@ -196,7 +200,7 @@ export function AddNoteForm({
         <Input
           id="timestamp"
           value={timestamp}
-          onChange={(e) => setTimestamp(e.target.value)}
+          onChange={e => setTimestamp(e.target.value)}
           placeholder={getTimestampPlaceholder()}
         />
         <p className="text-xs text-muted-foreground">
@@ -239,16 +243,16 @@ export function AddNoteForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={onCancel}
           disabled={createNoteMutation.isPending}
         >
           Cancel
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={!content.trim() || createNoteMutation.isPending}
         >
           {createNoteMutation.isPending ? 'Adding...' : 'Add Note'}
@@ -257,4 +261,3 @@ export function AddNoteForm({
     </form>
   )
 }
-

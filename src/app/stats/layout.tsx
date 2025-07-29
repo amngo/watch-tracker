@@ -1,10 +1,8 @@
 'use client'
-
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { StatsPageLoading } from '@/components/common/loading-states'
 import { StatsHeader } from '@/components/features/stats/stats-header'
 import { KeyMetrics } from '@/components/features/stats/key-metrics'
-import { usePathname, useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
 import { api } from '@/trpc/react'
 
@@ -15,8 +13,6 @@ export default function StatsLayout({
 }: {
   children: React.ReactNode
 }) {
-  const _pathname = usePathname()
-  const _router = useRouter()
   const [timeRange, setTimeRange] = useState<TimeRange>('month')
 
   // Fetch statistics data for shared components

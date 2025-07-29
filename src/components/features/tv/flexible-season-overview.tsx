@@ -1,13 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Check,
-  Clock,
-  ChevronRight,
-  Tv2,
-  BarChart3,
-} from 'lucide-react'
+import { Check, Clock, ChevronRight, Tv2, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,15 +16,33 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { TMDBService } from '@/lib/tmdb'
-import { calculateSeasonProgress, getShowStatistics, getNextUnwatchedEpisode } from '@/lib/episode-utils'
+import {
+  calculateSeasonProgress,
+  getShowStatistics,
+  getNextUnwatchedEpisode,
+} from '@/lib/episode-utils'
 import Link from 'next/link'
-import type { WatchedItem, TMDBTVDetailsExtended, EpisodeWatchStatus } from '@/types'
+import type {
+  WatchedItem,
+  TMDBTVDetailsExtended,
+  EpisodeWatchStatus,
+} from '@/types'
 
 interface FlexibleSeasonOverviewProps {
   watchedItem: WatchedItem
   tvDetails: TMDBTVDetailsExtended
-  onUpdateEpisodeStatus: (seasonNumber: number, episodeNumber: number, status: EpisodeWatchStatus) => void
-  onBulkUpdateEpisodes: (episodes: { seasonNumber: number; episodeNumber: number; status: EpisodeWatchStatus }[]) => void
+  onUpdateEpisodeStatus: (
+    seasonNumber: number,
+    episodeNumber: number,
+    status: EpisodeWatchStatus
+  ) => void
+  onBulkUpdateEpisodes: (
+    episodes: {
+      seasonNumber: number
+      episodeNumber: number
+      status: EpisodeWatchStatus
+    }[]
+  ) => void
   className?: string
 }
 
@@ -38,10 +50,21 @@ interface SeasonCardProps {
   season: NonNullable<TMDBTVDetailsExtended['seasons']>[number]
   watchedItem: WatchedItem
   tvId: string
-  onBulkUpdateEpisodes: (episodes: { seasonNumber: number; episodeNumber: number; status: EpisodeWatchStatus }[]) => void
+  onBulkUpdateEpisodes: (
+    episodes: {
+      seasonNumber: number
+      episodeNumber: number
+      status: EpisodeWatchStatus
+    }[]
+  ) => void
 }
 
-function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonCardProps) {
+function SeasonCard({
+  season,
+  watchedItem,
+  tvId,
+  onBulkUpdateEpisodes,
+}: SeasonCardProps) {
   if (!season) return null
 
   const posterUrl = season.poster_path
@@ -56,13 +79,31 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
     })
   }
 
-  const { watchedCount, skippedCount, unwatchedCount, progressPercentage } = 
-    calculateSeasonProgress(watchedItem, season.season_number, season.episode_count)
+  const { watchedCount, skippedCount, unwatchedCount, progressPercentage } =
+    calculateSeasonProgress(
+      watchedItem,
+      season.season_number,
+      season.episode_count
+    )
 
   const getSeasonStatus = () => {
-    if (unwatchedCount === 0) return { label: 'Completed', variant: 'default' as const, color: 'text-green-600' }
-    if (watchedCount > 0 || skippedCount > 0) return { label: 'In Progress', variant: 'secondary' as const, color: 'text-blue-600' }
-    return { label: 'Not Started', variant: 'outline' as const, color: 'text-muted-foreground' }
+    if (unwatchedCount === 0)
+      return {
+        label: 'Completed',
+        variant: 'default' as const,
+        color: 'text-green-600',
+      }
+    if (watchedCount > 0 || skippedCount > 0)
+      return {
+        label: 'In Progress',
+        variant: 'secondary' as const,
+        color: 'text-blue-600',
+      }
+    return {
+      label: 'Not Started',
+      variant: 'outline' as const,
+      color: 'text-muted-foreground',
+    }
   }
 
   const status = getSeasonStatus()
@@ -73,7 +114,7 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
       episodeNumber: i + 1,
       status: 'WATCHED' as EpisodeWatchStatus,
     }))
-    
+
     // Use bulk update instead of individual calls
     onBulkUpdateEpisodes(episodes)
   }
@@ -84,17 +125,19 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
       episodeNumber: i + 1,
       status: 'UNWATCHED' as EpisodeWatchStatus,
     }))
-    
+
     // Use bulk update instead of individual calls
     onBulkUpdateEpisodes(episodes)
   }
 
   return (
-    <Card className={`group transition-all hover:shadow-md ${unwatchedCount === 0 ? 'ring-1 ring-green-200' : ''}`}>
+    <Card
+      className={`group transition-all hover:shadow-md ${unwatchedCount === 0 ? 'ring-1 ring-green-200' : ''}`}
+    >
       <CardContent className="p-4">
         <div className="flex gap-4">
           {/* Season Poster */}
-          <Link 
+          <Link
             href={`/tv/${tvId}/season/${season.season_number}`}
             className="flex-shrink-0"
           >
@@ -141,9 +184,13 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
                   )}
                 </div>
               </div>
-              
+
               <Link href={`/tv/${tvId}/season/${season.season_number}`}>
-                <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -158,15 +205,19 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
                 </span>
               </div>
               <Progress value={progressPercentage} className="h-1.5" />
-              
+
               {/* Episode Breakdown */}
               <div className="grid grid-cols-3 gap-2 text-xs pt-1">
                 <div className="text-center">
-                  <div className="font-medium text-green-600">{watchedCount}</div>
+                  <div className="font-medium text-green-600">
+                    {watchedCount}
+                  </div>
                   <div className="text-muted-foreground">Watched</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-medium text-orange-600">{skippedCount}</div>
+                  <div className="font-medium text-orange-600">
+                    {skippedCount}
+                  </div>
                   <div className="text-muted-foreground">Skipped</div>
                 </div>
                 <div className="text-center">
@@ -189,7 +240,7 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
                   Mark All Watched
                 </Button>
               )}
-              
+
               {watchedCount > 0 || skippedCount > 0 ? (
                 <Button
                   size="sm"
@@ -201,7 +252,7 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
                   Reset Season
                 </Button>
               ) : null}
-              
+
               <span className="text-xs text-muted-foreground ml-auto">
                 {Math.round(progressPercentage)}% complete
               </span>
@@ -216,7 +267,6 @@ function SeasonCard({ season, watchedItem, tvId, onBulkUpdateEpisodes }: SeasonC
 export function FlexibleSeasonOverview({
   watchedItem,
   tvDetails,
-  onUpdateEpisodeStatus: _onUpdateEpisodeStatus,
   onBulkUpdateEpisodes,
   className,
 }: FlexibleSeasonOverviewProps) {
@@ -238,7 +288,7 @@ export function FlexibleSeasonOverview({
   // Calculate overall statistics
   const allSeasons = mainSeasons.map(s => ({
     season_number: s.season_number,
-    episode_count: s.episode_count
+    episode_count: s.episode_count,
   }))
 
   const showStats = getShowStatistics(watchedItem, allSeasons)
@@ -251,9 +301,12 @@ export function FlexibleSeasonOverview({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Flexible Season Progress</CardTitle>
+              <CardTitle className="text-lg">
+                Flexible Season Progress
+              </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Track episodes in any order across all {mainSeasons.length} seasons
+                Track episodes in any order across all {mainSeasons.length}{' '}
+                seasons
               </p>
             </div>
             <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
@@ -274,27 +327,46 @@ export function FlexibleSeasonOverview({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Overall Progress</Label>
-                      <div className="text-2xl font-bold">{Math.round(showStats.overallProgress)}%</div>
-                      <Progress value={showStats.overallProgress} className="h-2" />
+                      <div className="text-2xl font-bold">
+                        {Math.round(showStats.overallProgress)}%
+                      </div>
+                      <Progress
+                        value={showStats.overallProgress}
+                        className="h-2"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Completed Seasons</Label>
-                      <div className="text-2xl font-bold">{showStats.completedSeasons}/{mainSeasons.length}</div>
+                      <div className="text-2xl font-bold">
+                        {showStats.completedSeasons}/{mainSeasons.length}
+                      </div>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-green-600">{showStats.watchedEpisodes}</div>
-                      <div className="text-xs text-muted-foreground">Watched</div>
+                      <div className="text-lg font-semibold text-green-600">
+                        {showStats.watchedEpisodes}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Watched
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-orange-600">{showStats.skippedEpisodes}</div>
-                      <div className="text-xs text-muted-foreground">Skipped</div>
+                      <div className="text-lg font-semibold text-orange-600">
+                        {showStats.skippedEpisodes}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Skipped
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-semibold">{showStats.unwatchedEpisodes}</div>
-                      <div className="text-xs text-muted-foreground">Remaining</div>
+                      <div className="text-lg font-semibold">
+                        {showStats.unwatchedEpisodes}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Remaining
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -309,7 +381,9 @@ export function FlexibleSeasonOverview({
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Overall Progress</span>
                 <span className="font-medium">
-                  {showStats.watchedEpisodes + showStats.skippedEpisodes}/{showStats.totalEpisodes} episodes ({Math.round(showStats.overallProgress)}%)
+                  {showStats.watchedEpisodes + showStats.skippedEpisodes}/
+                  {showStats.totalEpisodes} episodes (
+                  {Math.round(showStats.overallProgress)}%)
                 </span>
               </div>
               <Progress value={showStats.overallProgress} className="h-2" />
@@ -318,19 +392,29 @@ export function FlexibleSeasonOverview({
             {/* Current Progress Info */}
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-lg font-semibold text-green-600">{showStats.watchedEpisodes}</div>
+                <div className="text-lg font-semibold text-green-600">
+                  {showStats.watchedEpisodes}
+                </div>
                 <div className="text-xs text-muted-foreground">Watched</div>
               </div>
               <div>
-                <div className="text-lg font-semibold text-orange-600">{showStats.skippedEpisodes}</div>
+                <div className="text-lg font-semibold text-orange-600">
+                  {showStats.skippedEpisodes}
+                </div>
                 <div className="text-xs text-muted-foreground">Skipped</div>
               </div>
               <div>
-                <div className="text-lg font-semibold">{showStats.unwatchedEpisodes}</div>
+                <div className="text-lg font-semibold">
+                  {showStats.unwatchedEpisodes}
+                </div>
                 <div className="text-xs text-muted-foreground">Remaining</div>
               </div>
               <div>
-                <div className="text-lg font-semibold">{nextEpisode ? `S${nextEpisode.seasonNumber}E${nextEpisode.episodeNumber}` : 'None'}</div>
+                <div className="text-lg font-semibold">
+                  {nextEpisode
+                    ? `S${nextEpisode.seasonNumber}E${nextEpisode.episodeNumber}`
+                    : 'None'}
+                </div>
                 <div className="text-xs text-muted-foreground">Next Up</div>
               </div>
             </div>
@@ -342,7 +426,7 @@ export function FlexibleSeasonOverview({
       <div>
         <h3 className="text-lg font-semibold mb-4">Seasons</h3>
         <div className="space-y-3">
-          {mainSeasons.map((season) => (
+          {mainSeasons.map(season => (
             <SeasonCard
               key={season.id}
               season={season}
@@ -359,7 +443,7 @@ export function FlexibleSeasonOverview({
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-4">Specials</h3>
           <div className="space-y-3">
-            {specialSeasons.map((season) => (
+            {specialSeasons.map(season => (
               <SeasonCard
                 key={season.id}
                 season={season}

@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react'
 import { FileText, Film, Tv, Search, Library } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
@@ -20,12 +26,8 @@ import type { Note, NoteWithMedia, WatchedItem } from '@/types'
 export default function NotesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTab, setSelectedTab] = useState<'all' | 'movies' | 'tv'>('all')
-  
-  const { 
-    stats, 
-    setStats, 
-    setStatsLoading,
-  } = useMedia()
+
+  const { stats, setStats, setStatsLoading } = useMedia()
 
   // Fetch user stats
   const { data: statsData, isLoading: statsDataLoading } =
@@ -55,12 +57,12 @@ export default function NotesPage() {
 
   const formatTimestamp = (timestamp: string | null) => {
     if (!timestamp) return null
-    
+
     // For TV shows, timestamp can be:
     // "S02E05" - episode reference
     // "S02E05 12:34" - episode with time
     // "12:34" - just time (for current episode context)
-    
+
     const episodeMatch = timestamp.match(/^S(\d+)E(\d+)(?:\s+(.+))?$/)
     if (episodeMatch) {
       const [, season, episode, time] = episodeMatch
@@ -70,13 +72,13 @@ export default function NotesPage() {
         return `S${season}E${episode}`
       }
     }
-    
+
     // If it's just a time format, return it as is
     const timeMatch = timestamp.match(/^\d+:\d+(?::\d+)?$/)
     if (timeMatch) {
       return timestamp
     }
-    
+
     return timestamp
   }
 
@@ -100,21 +102,29 @@ export default function NotesPage() {
   }
 
   const notes = allNotesData?.notes || []
-  const movieNotes = notes.filter(note => note.watchedItem?.mediaType === 'MOVIE')
+  const movieNotes = notes.filter(
+    note => note.watchedItem?.mediaType === 'MOVIE'
+  )
   const tvNotes = notes.filter(note => note.watchedItem?.mediaType === 'TV')
 
   // Group notes by media item
-  const notesByMedia = notes.reduce((acc, note) => {
-    const mediaKey = `${note.watchedItem?.mediaType}-${note.watchedItem?.tmdbId}`
-    if (!acc[mediaKey]) {
-      acc[mediaKey] = {
-        watchedItem: note.watchedItem,
-        notes: []
+  const notesByMedia = notes.reduce(
+    (acc, note) => {
+      const mediaKey = `${note.watchedItem?.mediaType}-${note.watchedItem?.tmdbId}`
+      if (!acc[mediaKey]) {
+        acc[mediaKey] = {
+          watchedItem: note.watchedItem,
+          notes: [],
+        }
       }
-    }
-    acc[mediaKey].notes.push(note)
-    return acc
-  }, {} as Record<string, { watchedItem: Partial<WatchedItem> | null; notes: NoteWithMedia[] }>)
+      acc[mediaKey].notes.push(note)
+      return acc
+    },
+    {} as Record<
+      string,
+      { watchedItem: Partial<WatchedItem> | null; notes: NoteWithMedia[] }
+    >
+  )
 
   return (
     <DashboardLayout stats={stats || undefined}>
@@ -136,7 +146,7 @@ export default function NotesPage() {
             <Input
               placeholder="Search notes..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -156,7 +166,12 @@ export default function NotesPage() {
             </Button>
           </EmptyState>
         ) : (
-          <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
+          <Tabs
+            value={selectedTab}
+            onValueChange={value =>
+              setSelectedTab(value as 'all' | 'movies' | 'tv')
+            }
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
@@ -183,65 +198,35 @@ export default function NotesPage() {
 
             {/* All Notes Tab */}
             <TabsContent value="all" className="space-y-6">
-              {Object.entries(notesByMedia).map(([mediaKey, { watchedItem, notes: mediaNotes }]) => (
-                <Card key={mediaKey}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {watchedItem?.mediaType === 'MOVIE' ? (
-                        <Film className="h-4 w-4" />
-                      ) : (
-                        <Tv className="h-4 w-4" />
-                      )}
-                      <Link 
-                        href={`/${watchedItem?.mediaType === 'MOVIE' ? 'movie' : 'tv'}/${watchedItem?.tmdbId}/notes`}
-                        className="hover:underline"
-                      >
-                        {watchedItem?.title}
-                      </Link>
-                      <Badge variant="outline">
-                        {mediaNotes.length} note{mediaNotes.length > 1 ? 's' : ''}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      {watchedItem?.mediaType === 'MOVIE' ? 'Movie' : 'TV Show'} • {watchedItem?.releaseDate ? new Date(watchedItem.releaseDate).getFullYear() : 'Unknown'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {mediaNotes.map((note: Note) => (
-                      <NoteCard
-                        key={note.id}
-                        note={note}
-                        onDeleted={handleNoteDeleted}
-                        formatTimestamp={formatTimestamp}
-                        showMediaInfo={false}
-                      />
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            {/* Movies Tab */}
-            <TabsContent value="movies" className="space-y-6">
-              {Object.entries(notesByMedia)
-                .filter(([, { watchedItem }]) => watchedItem?.mediaType === 'MOVIE')
-                .map(([mediaKey, { watchedItem, notes: mediaNotes }]) => (
+              {Object.entries(notesByMedia).map(
+                ([mediaKey, { watchedItem, notes: mediaNotes }]) => (
                   <Card key={mediaKey}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Film className="h-4 w-4" />
-                        <Link 
-                          href={`/movie/${watchedItem?.tmdbId}/notes`}
+                        {watchedItem?.mediaType === 'MOVIE' ? (
+                          <Film className="h-4 w-4" />
+                        ) : (
+                          <Tv className="h-4 w-4" />
+                        )}
+                        <Link
+                          href={`/${watchedItem?.mediaType === 'MOVIE' ? 'movie' : 'tv'}/${watchedItem?.tmdbId}/notes`}
                           className="hover:underline"
                         >
                           {watchedItem?.title}
                         </Link>
                         <Badge variant="outline">
-                          {mediaNotes.length} note{mediaNotes.length > 1 ? 's' : ''}
+                          {mediaNotes.length} note
+                          {mediaNotes.length > 1 ? 's' : ''}
                         </Badge>
                       </CardTitle>
                       <CardDescription>
-                        Movie • {watchedItem?.releaseDate ? new Date(watchedItem.releaseDate).getFullYear() : 'Unknown'}
+                        {watchedItem?.mediaType === 'MOVIE'
+                          ? 'Movie'
+                          : 'TV Show'}{' '}
+                        •{' '}
+                        {watchedItem?.releaseDate
+                          ? new Date(watchedItem.releaseDate).getFullYear()
+                          : 'Unknown'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -251,7 +236,50 @@ export default function NotesPage() {
                           note={note}
                           onDeleted={handleNoteDeleted}
                           formatTimestamp={formatTimestamp}
-                          showMediaInfo={false}
+                        />
+                      ))}
+                    </CardContent>
+                  </Card>
+                )
+              )}
+            </TabsContent>
+
+            {/* Movies Tab */}
+            <TabsContent value="movies" className="space-y-6">
+              {Object.entries(notesByMedia)
+                .filter(
+                  ([, { watchedItem }]) => watchedItem?.mediaType === 'MOVIE'
+                )
+                .map(([mediaKey, { watchedItem, notes: mediaNotes }]) => (
+                  <Card key={mediaKey}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Film className="h-4 w-4" />
+                        <Link
+                          href={`/movie/${watchedItem?.tmdbId}/notes`}
+                          className="hover:underline"
+                        >
+                          {watchedItem?.title}
+                        </Link>
+                        <Badge variant="outline">
+                          {mediaNotes.length} note
+                          {mediaNotes.length > 1 ? 's' : ''}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        Movie •{' '}
+                        {watchedItem?.releaseDate
+                          ? new Date(watchedItem.releaseDate).getFullYear()
+                          : 'Unknown'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {mediaNotes.map((note: Note) => (
+                        <NoteCard
+                          key={note.id}
+                          note={note}
+                          onDeleted={handleNoteDeleted}
+                          formatTimestamp={formatTimestamp}
                         />
                       ))}
                     </CardContent>
@@ -262,24 +290,30 @@ export default function NotesPage() {
             {/* TV Shows Tab */}
             <TabsContent value="tv" className="space-y-6">
               {Object.entries(notesByMedia)
-                .filter(([, { watchedItem }]) => watchedItem?.mediaType === 'TV')
+                .filter(
+                  ([, { watchedItem }]) => watchedItem?.mediaType === 'TV'
+                )
                 .map(([mediaKey, { watchedItem, notes: mediaNotes }]) => (
                   <Card key={mediaKey}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Tv className="h-4 w-4" />
-                        <Link 
+                        <Link
                           href={`/tv/${watchedItem?.tmdbId}/notes`}
                           className="hover:underline"
                         >
                           {watchedItem?.title}
                         </Link>
                         <Badge variant="outline">
-                          {mediaNotes.length} note{mediaNotes.length > 1 ? 's' : ''}
+                          {mediaNotes.length} note
+                          {mediaNotes.length > 1 ? 's' : ''}
                         </Badge>
                       </CardTitle>
                       <CardDescription>
-                        TV Show • {watchedItem?.releaseDate ? new Date(watchedItem.releaseDate).getFullYear() : 'Unknown'}
+                        TV Show •{' '}
+                        {watchedItem?.releaseDate
+                          ? new Date(watchedItem.releaseDate).getFullYear()
+                          : 'Unknown'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -289,7 +323,6 @@ export default function NotesPage() {
                           note={note}
                           onDeleted={handleNoteDeleted}
                           formatTimestamp={formatTimestamp}
-                          showMediaInfo={false}
                         />
                       ))}
                     </CardContent>

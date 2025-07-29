@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { showToast } from '@/components/common/toast-provider'
 import { logError } from '@/lib/logger'
 
-export interface OptimisticUpdateOptions<T = any> {
+export interface OptimisticUpdateOptions<T = unknown> {
   onSuccess?: (result: T) => void
   onError?: (error: Error) => void
   successMessage?: string

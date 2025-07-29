@@ -30,6 +30,7 @@ import type {
   TMDBTVDetailsExtended,
   EpisodeWatchStatus,
   WatchedItem,
+  UpdateWatchedItemData,
 } from '@/types'
 
 export default function TVSeasonPage() {
@@ -55,7 +56,6 @@ export default function TVSeasonPage() {
     setWatchedItems,
     setItemsLoading,
   } = useMedia()
-  console.log('watchedItems', watchedItems)
 
   // Fetch user stats
   const { data: statsData, isLoading: statsDataLoading } =
@@ -275,7 +275,7 @@ export default function TVSeasonPage() {
     await updateItem(userWatchedItem.id, {
       watchedEpisodes: updatedWatchedEpisodes,
       progress: newProgress,
-    } as any)
+    } as UpdateWatchedItemData)
   }
 
   const handleBulkUpdateEpisodes = async (
@@ -333,7 +333,7 @@ export default function TVSeasonPage() {
     await updateItem(userWatchedItem.id, {
       watchedEpisodes: updatedWatchedEpisodes,
       progress: newProgress,
-    } as any)
+    } as UpdateWatchedItemData)
   }
 
   if (isLoading) {
