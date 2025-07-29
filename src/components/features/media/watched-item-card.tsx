@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import {
   MoreHorizontal,
-  Star,
   Clock,
   Play,
   Pause,
@@ -41,8 +40,6 @@ import Link from 'next/link'
 import {
   StatusBadge,
   MediaTypeBadge,
-  RatingBadge,
-  NotesBadge,
 } from '@/components/ui/media-badges'
 import { ProgressDisplay } from '@/components/ui/progress-display'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'

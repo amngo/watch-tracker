@@ -3,9 +3,7 @@
 import { SimpleQueueList } from '@/components/features/queue/simple-queue-list'
 import { useQueue } from '@/hooks/use-queue'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Plus, ListPlus, Clock, History } from 'lucide-react'
-import Link from 'next/link'
+import { ListPlus, Clock, History } from 'lucide-react'
 
 export function QueuePageContent() {
   const {

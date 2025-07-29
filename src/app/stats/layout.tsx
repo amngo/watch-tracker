@@ -1,6 +1,5 @@
 'use client'
 
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { StatsPageLoading } from '@/components/common/loading-states'
 import { StatsHeader } from '@/components/features/stats/stats-header'
@@ -66,12 +65,7 @@ export default function StatsLayout({
     }
   }, [overviewData])
 
-  // Determine current tab from pathname
-  const currentTab = pathname.split('/').pop() || 'overview'
-
-  const handleTabChange = (value: string) => {
-    router.push(`/stats/${value}`)
-  }
+  // Tab navigation handled by individual pages
 
   if (overviewLoading) {
     return (

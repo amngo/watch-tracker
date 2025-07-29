@@ -247,7 +247,7 @@ async function getFallbackUpcomingEpisodes(
       latestWatchedEpisode?.episodeNumber || currentEpisode
 
     // Start checking from the next episode after the last watched
-    let checkingSeason = watchedSeason
+    const checkingSeason = watchedSeason
     let checkingEpisode = watchedEpisodeNum + 1
 
     // Only check the next few episodes to avoid overwhelming API calls
