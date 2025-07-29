@@ -7,7 +7,7 @@ import { SimpleQueueItem } from './simple-queue-item'
 import { EmptyState } from '@/components/common/empty-state'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import type { QueueItem } from '@/types'
-import { ListPlus, History, Trash2 } from 'lucide-react'
+import { ListPlus, History, Trash2, Plus } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import Link from 'next/link'
 
 interface SimpleQueueListProps {
   queueItems: QueueItem[]
@@ -45,8 +46,8 @@ export function SimpleQueueList({
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [showClearQueueDialog, setShowClearQueueDialog] = useState(false)
 
-  const activeQueue = queueItems.filter((item) => !item.watched)
-  const completedQueue = queueItems.filter((item) => item.watched)
+  const activeQueue = queueItems.filter(item => !item.watched)
+  const completedQueue = queueItems.filter(item => item.watched)
 
   const handleMoveUp = (itemId: string) => {
     const item = activeQueue.find(i => i.id === itemId)
@@ -116,17 +117,18 @@ export function SimpleQueueList({
               Clear Queue
             </Button>
           )}
-          
-          {activeTab === 'history' && (completedQueue.length > 0 || watchedItems.length > 0) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowClearDialog(true)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear History
-            </Button>
-          )}
+
+          {activeTab === 'history' &&
+            (completedQueue.length > 0 || watchedItems.length > 0) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowClearDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear History
+              </Button>
+            )}
         </div>
 
         <TabsContent value="queue" className="mt-6">
@@ -136,14 +138,19 @@ export function SimpleQueueList({
               title="Your queue is empty"
               description="Add movies and TV episodes to start building your watch queue."
             >
-              <Button variant="outline">
-                <ListPlus className="h-4 w-4 mr-2" />
-                Browse Media
+              <Button asChild>
+                <Link href="/search">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Browse Content
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard">View Library</Link>
               </Button>
             </EmptyState>
           ) : (
             <div className="space-y-3">
-              {activeQueue.map((item) => (
+              {activeQueue.map(item => (
                 <SimpleQueueItem
                   key={item.id}
                   item={item}
@@ -169,7 +176,7 @@ export function SimpleQueueList({
           ) : (
             <div className="space-y-3">
               {/* Use watchHistory only to avoid duplicates */}
-              {watchedItems.map((item) => (
+              {watchedItems.map(item => (
                 <SimpleQueueItem
                   key={item.id}
                   item={item}
@@ -188,8 +195,8 @@ export function SimpleQueueList({
           <AlertDialogHeader>
             <AlertDialogTitle>Clear Watch History</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to clear all watched items from your history?
-              This action cannot be undone.
+              Are you sure you want to clear all watched items from your
+              history? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -205,13 +212,16 @@ export function SimpleQueueList({
       </AlertDialog>
 
       {/* Clear Queue Confirmation Dialog */}
-      <AlertDialog open={showClearQueueDialog} onOpenChange={setShowClearQueueDialog}>
+      <AlertDialog
+        open={showClearQueueDialog}
+        onOpenChange={setShowClearQueueDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Clear Queue</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to clear all items from your queue?
-              This action cannot be undone.
+              Are you sure you want to clear all items from your queue? This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

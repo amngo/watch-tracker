@@ -20,7 +20,7 @@ export function QueuePageContent() {
     clearQueue,
   } = useQueue()
 
-  const activeQueue = queueItems.filter((item) => !item.watched)
+  const activeQueue = queueItems.filter(item => !item.watched)
 
   return (
     <div className="space-y-6">
@@ -37,7 +37,7 @@ export function QueuePageContent() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
@@ -45,10 +45,9 @@ export function QueuePageContent() {
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Next Up</p>
                 <p className="text-sm text-muted-foreground truncate">
-                  {activeQueue.length > 0 
+                  {activeQueue.length > 0
                     ? activeQueue[0]?.title || 'Unknown'
-                    : 'Nothing queued'
-                  }
+                    : 'Nothing queued'}
                 </p>
               </div>
             </div>
@@ -67,37 +66,6 @@ export function QueuePageContent() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Add Content Button */}
-      {activeQueue.length === 0 && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-center text-center space-y-4">
-              <ListPlus className="h-12 w-12 text-muted-foreground" />
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Start building your queue</h3>
-                <p className="text-muted-foreground max-w-md">
-                  Search for movies and TV shows to add them to your watch queue. 
-                  You can reorder items and track your progress as you watch.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button asChild>
-                  <Link href="/search">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Browse Content
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard">
-                    View Library
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Queue List */}
       <SimpleQueueList
