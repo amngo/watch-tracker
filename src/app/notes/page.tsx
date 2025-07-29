@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FileText, Film, Tv, Search } from 'lucide-react'
+import { FileText, Film, Tv, Search, Library } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -148,16 +148,10 @@ export default function NotesPage() {
             title="No notes yet"
             description="Start taking notes on your movies and TV shows to track your thoughts and reactions"
           >
-            <Button asChild variant="outline">
-              <Link href="/movies">
-                <Film className="h-4 w-4 mr-2" />
-                Browse Movies
-              </Link>
-            </Button>
             <Button asChild>
-              <Link href="/tv">
-                <Tv className="h-4 w-4 mr-2" />
-                Browse TV Shows
+              <Link href="/library">
+                <Library className="h-4 w-4 mr-2" />
+                Browse Library
               </Link>
             </Button>
           </EmptyState>

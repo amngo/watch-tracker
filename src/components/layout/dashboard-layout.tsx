@@ -16,6 +16,7 @@ import {
   Bell,
   FileText,
   ListOrdered,
+  Library,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,8 +36,7 @@ const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Search & Add', href: '/search', icon: Search },
   { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
-  { name: 'Movies', href: '/movies', icon: Film, badgeKey: 'movies' },
-  { name: 'TV Shows', href: '/tv', icon: Tv, badgeKey: 'tvShows' },
+  { name: 'Library', href: '/library', icon: Library, badgeKey: 'library' },
   { name: 'Releases', href: '/releases', icon: Bell },
   { name: 'Notes', href: '/notes', icon: FileText, badgeKey: 'notes' },
   { name: 'Statistics', href: '/stats', icon: BarChart3 },
@@ -155,8 +155,7 @@ function DesktopNavigation({
   stats?: DashboardLayoutProps['stats']
   counts?: {
     queue: number
-    movies: number
-    tvShows: number
+    library: number
     notes: number
   }
 }) {
@@ -226,8 +225,7 @@ function MobileNavigation({
   stats?: DashboardLayoutProps['stats']
   counts?: {
     queue: number
-    movies: number
-    tvShows: number
+    library: number
     notes: number
   }
   onItemClick: () => void

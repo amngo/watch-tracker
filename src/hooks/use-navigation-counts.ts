@@ -18,8 +18,7 @@ export function useNavigationCounts() {
   return {
     counts: counts || {
       queue: 0,
-      movies: 0,
-      tvShows: 0,
+      library: 0,
       notes: 0,
     },
     isLoading,

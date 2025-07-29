@@ -230,7 +230,7 @@ export default function TVNotesPage() {
                   Unable to load TV show details
                 </p>
                 <Button asChild>
-                  <Link href="/tv">Return to TV Shows</Link>
+                  <Link href="/library">Return to Library</Link>
                 </Button>
               </div>
             </CardContent>

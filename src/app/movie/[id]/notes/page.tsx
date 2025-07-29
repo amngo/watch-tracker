@@ -205,7 +205,7 @@ export default function MovieNotesPage() {
                   Unable to load movie details
                 </p>
                 <Button asChild>
-                  <Link href="/movies">Return to Movies</Link>
+                  <Link href="/library">Return to Library</Link>
                 </Button>
               </div>
             </CardContent>

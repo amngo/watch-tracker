@@ -117,8 +117,8 @@ function BreadcrumbComponent({
             // This is a TV show detail page
             const tvId = pathSegments[i + 1]
             items.push({
-              label: 'TV Shows',
-              href: '/tv',
+              label: 'Library',
+              href: '/library',
             })
 
             // Use cached title or placeholder
@@ -155,10 +155,10 @@ function BreadcrumbComponent({
             // Skip the next segments as they're processed above
             i += Math.max(0, pathSegments.length - i - 1)
           } else {
-            // Regular TV shows page
+            // Regular TV shows page - redirect to library
             items.push({
-              label: 'TV Shows',
-              href: '/tv',
+              label: 'Library',
+              href: '/library',
               isActive: isLast,
             })
           }
@@ -174,8 +174,8 @@ function BreadcrumbComponent({
             // This is a movie detail page
             const movieId = pathSegments[i + 1]
             items.push({
-              label: 'Movies',
-              href: '/movies',
+              label: 'Library',
+              href: '/library',
             })
 
             // Use cached title or placeholder
@@ -200,10 +200,10 @@ function BreadcrumbComponent({
             // Skip processed segments
             i += Math.max(0, pathSegments.length - i - 1)
           } else {
-            // Regular movies page
+            // Regular movies page - redirect to library
             items.push({
-              label: 'Movies',
-              href: '/movies',
+              label: 'Library',
+              href: '/library',
               isActive: isLast,
             })
           }

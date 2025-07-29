@@ -17,8 +17,7 @@ export const statsRouter = createTRPCRouter({
 
     const [
       queueCount,
-      moviesCount,
-      tvShowsCount,
+      libraryCount,
       notesCount,
     ] = await Promise.all([
       // Active queue items (not watched)
@@ -28,18 +27,10 @@ export const statsRouter = createTRPCRouter({
           watched: false,
         } 
       }),
-      // Movies count
+      // Total library count (movies + TV shows)
       ctx.db.watchedItem.count({ 
         where: { 
           userId: user.id,
-          mediaType: 'MOVIE',
-        } 
-      }),
-      // TV Shows count
-      ctx.db.watchedItem.count({ 
-        where: { 
-          userId: user.id,
-          mediaType: 'TV',
         } 
       }),
       // Total notes count
@@ -52,8 +43,7 @@ export const statsRouter = createTRPCRouter({
 
     return {
       queue: queueCount,
-      movies: moviesCount,
-      tvShows: tvShowsCount,
+      library: libraryCount,
       notes: notesCount,
     }
   }),
