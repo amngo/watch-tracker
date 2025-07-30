@@ -4,20 +4,17 @@ import { Play } from 'lucide-react'
 
 export function Navigation() {
   return (
-    <nav className="relative z-50 px-6 py-4">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
+    <nav className="relative z-50 px-6 py-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-center sm:justify-between">
         <div className="flex items-center gap-2">
           <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-2">
             <Play className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-bold">Watch Tracker</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="items-center gap-4 hidden sm:flex">
           <SignInButton>
-            <Button
-              variant="ghost"
-              className="text-gray-300 hover:text-white"
-            >
+            <Button variant="ghost" className="text-gray-300 hover:text-white">
               Sign In
             </Button>
           </SignInButton>

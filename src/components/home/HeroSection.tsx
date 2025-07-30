@@ -9,7 +9,7 @@ import {
 
 export function HeroSection() {
   return (
-    <section className="relative px-6 py-24">
+    <section className="relative px-6 py-12">
       <div className="mx-auto max-w-6xl text-center">
         <AnimatedSection delay={0.1}>
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-800 bg-gray-900/50 px-4 py-2 backdrop-blur-sm">
@@ -29,9 +29,8 @@ export function HeroSection() {
 
         <AnimatedSection delay={0.3}>
           <p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-gray-300">
-            Never lose track of your movies and TV shows again. Add
-            timestamped notes, track progress, and share your viewing journey
-            with friends.
+            Never lose track of your movies and TV shows again. Add timestamped
+            notes, track progress, and share your viewing journey with friends.
           </p>
         </AnimatedSection>
 
