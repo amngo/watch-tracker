@@ -18,6 +18,7 @@ import { ChevronLeft, ChevronRight, Calendar, Film, Tv } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { api } from '@/trpc/react'
 import { cn } from '@/lib/utils'
 
@@ -97,6 +98,61 @@ export function ReleasesCalendar() {
 
   const getReleaseForDay = (date: Date): ReleaseEvent[] => {
     return upcomingReleases.filter(release => isSameDay(release.date, date))
+  }
+
+  // Component to render detailed release information in tooltip
+  const DayReleasesTooltip = ({ releases, date }: { releases: ReleaseEvent[], date: Date }) => {
+    if (releases.length === 0) {
+      return <span>No releases on {format(date, 'MMM d, yyyy')}</span>
+    }
+
+    const movies = releases.filter(r => r.mediaType === 'MOVIE')
+    const tvEpisodes = releases.filter(r => r.mediaType === 'TV')
+
+    return (
+      <div className="space-y-3 min-w-64 max-w-sm">
+        <div className="font-semibold text-sm text-center border-b border-border pb-2">
+          {format(date, 'EEEE, MMM d, yyyy')}
+        </div>
+        
+        {movies.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Film className="h-4 w-4 text-blue-500" />
+              Movies ({movies.length})
+            </div>
+            <div className="space-y-1 pl-2">
+              {movies.map(movie => (
+                <div key={movie.id} className="text-sm py-1 px-2 bg-background/10 rounded border-l-2 border-blue-500/50">
+                  {movie.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tvEpisodes.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Tv className="h-4 w-4 text-green-500" />
+              TV Episodes ({tvEpisodes.length})
+            </div>
+            <div className="space-y-2 pl-2">
+              {tvEpisodes.map(episode => (
+                <div key={episode.id} className="text-sm py-2 px-2 bg-background/10 rounded border-l-2 border-green-500/50">
+                  <div className="font-medium text-foreground">{episode.title}</div>
+                  {episode.episodeName && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      S{episode.seasonNumber}E{episode.episodeNumber}: {episode.episodeName}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -186,50 +242,63 @@ export function ReleasesCalendar() {
               const isDayToday = isToday(day)
 
               return (
-                <div
-                  key={day.toISOString()}
-                  className={cn(
-                    'aspect-square border rounded-lg p-2 transition-colors',
-                    isCurrentMonth ? 'bg-background' : 'bg-muted/20',
-                    isDayToday && 'ring-2 ring-primary ring-offset-2',
-                    dayReleases.length > 0 && 'border-primary/50 bg-primary/5'
-                  )}
-                >
-                  <div className="text-sm font-medium mb-1">
-                    {format(day, 'd')}
-                  </div>
+                <Tooltip key={day.toISOString()}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        'aspect-square border rounded-lg p-2 transition-all duration-200 cursor-pointer',
+                        'hover:shadow-md hover:scale-105',
+                        isCurrentMonth ? 'bg-background' : 'bg-muted/20',
+                        isDayToday && 'ring-2 ring-primary ring-offset-2',
+                        dayReleases.length > 0 ? 
+                          'border-primary/50 bg-primary/5 hover:bg-primary/10 hover:border-primary/70' : 
+                          'hover:bg-muted/30 hover:border-muted-foreground/30'
+                      )}
+                    >
+                      <div className="text-sm font-medium mb-1">
+                        {format(day, 'd')}
+                      </div>
 
-                  {/* Release Events */}
-                  <div className="space-y-1">
-                    {dayReleases.slice(0, 2).map(release => (
-                      <div
-                        key={release.id}
-                        className="text-xs p-1 rounded bg-primary/10 text-primary border border-primary/20 flex items-center gap-1 truncate"
-                        title={`${release.title}${release.episodeName ? ` - ${release.episodeName}` : ''}`}
-                      >
-                        {release.mediaType === 'TV' ? (
-                          <Tv className="h-3 w-3 flex-shrink-0" />
-                        ) : (
-                          <Film className="h-3 w-3 flex-shrink-0" />
-                        )}
-                        <span className="truncate">
-                          {release.title}
-                          {release.episodeName && (
-                            <span className="text-muted-foreground">
-                              {' '}
-                              S{release.seasonNumber}E{release.episodeNumber}
+                      {/* Release Events */}
+                      <div className="space-y-1">
+                        {dayReleases.slice(0, 2).map(release => (
+                          <div
+                            key={release.id}
+                            className="text-xs p-1 rounded bg-primary/10 text-primary border border-primary/20 flex items-center gap-1 truncate"
+                          >
+                            {release.mediaType === 'TV' ? (
+                              <Tv className="h-3 w-3 flex-shrink-0" />
+                            ) : (
+                              <Film className="h-3 w-3 flex-shrink-0" />
+                            )}
+                            <span className="truncate">
+                              {release.title}
+                              {release.episodeName && (
+                                <span className="text-muted-foreground">
+                                  {' '}
+                                  S{release.seasonNumber}E{release.episodeNumber}
+                                </span>
+                              )}
                             </span>
-                          )}
-                        </span>
+                          </div>
+                        ))}
+                        {dayReleases.length > 2 && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            +{dayReleases.length - 2} more
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    {dayReleases.length > 2 && (
-                      <div className="text-xs text-muted-foreground text-center">
-                        +{dayReleases.length - 2} more
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent 
+                    side="top" 
+                    sideOffset={10}
+                    className="bg-popover text-popover-foreground border border-border shadow-lg p-4 max-w-md z-50"
+                    avoidCollisions
+                  >
+                    <DayReleasesTooltip releases={dayReleases} date={day} />
+                  </TooltipContent>
+                </Tooltip>
               )
             })}
           </div>
