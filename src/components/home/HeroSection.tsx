@@ -10,8 +10,8 @@ import Background from './Background'
 
 export function HeroSection() {
   return (
-    <section className="relative px-6 py-12">
-      <div className="mx-auto max-w-6xl text-center z-10 relative">
+    <section className="relative py-12 lg:py-24">
+      <div className="px-6 mx-auto max-w-6xl text-center z-10 relative">
         <AnimatedSection delay={0.1}>
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-800 bg-gray-900/50 px-4 py-2 backdrop-blur-sm">
             <CheckCircle className="h-4 w-4 text-green-400" />

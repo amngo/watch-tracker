@@ -3,8 +3,6 @@ import { redirect } from 'next/navigation'
 import { Navigation } from '@/components/home/Navigation'
 import { HeroSection } from '@/components/home/HeroSection'
 import { FeaturesSection } from '@/components/home/FeaturesSection'
-import { StatsSection } from '@/components/home/StatsSection'
-import { CTASection } from '@/components/home/CTASection'
 import { Footer } from '@/components/home/Footer'
 
 export default async function Home() {
@@ -19,8 +17,7 @@ export default async function Home() {
       <Navigation />
       <HeroSection />
       <FeaturesSection />
-      <StatsSection />
-      <CTASection />
+      {/* <StatsSection /> */}
       <Footer />
     </div>
   )

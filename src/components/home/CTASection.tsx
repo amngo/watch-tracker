@@ -5,7 +5,7 @@ import { AnimatedSection } from '@/components/common/animated-section'
 
 export function CTASection() {
   return (
-    <section className="px-6 py-24">
+    <section className="py-24">
       <div className="mx-auto max-w-4xl text-center">
         <AnimatedSection>
           <h2 className="mb-6 text-4xl font-bold">Start tracking today</h2>
