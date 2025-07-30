@@ -50,9 +50,11 @@ export function useMedia() {
       utils.stats.navigationCounts.invalidate()
       utils.watchedItem.getAll.invalidate()
       
-      // Invalidate releases queries to update calendar and upcoming releases
-      utils.releases.getUpcoming.invalidate()
-      utils.releases.getByDateRange.invalidate()
+      // Only invalidate releases queries for TV shows (they have upcoming episodes)
+      if (data.mediaType === 'TV') {
+        utils.releases.getUpcoming.invalidate()
+        utils.releases.getByDateRange.invalidate()
+      }
       
       showToast.success('Media added successfully!')
     },

@@ -1,8 +1,7 @@
 'use client'
 import { PageTransition } from '@/components/common/page-transition'
 import { Breadcrumb } from '@/components/common/breadcrumb'
-import { Bell } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Notifications } from '@/components/common/notifications'
 import { UserButton } from '@clerk/nextjs'
 import type { DashboardLayoutProps } from '@/types'
 import { SidebarProvider, SidebarTrigger } from '../ui/sidebar'
@@ -21,10 +20,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
 
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm">
-                <Bell className="h-4 w-4" />
-              </Button>
-
+              <Notifications />
               <UserButton />
             </div>
           </div>
