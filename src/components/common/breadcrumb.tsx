@@ -32,7 +32,7 @@ function BreadcrumbComponent({
   const breadcrumbsRef = useRef<BreadcrumbItem[]>([])
 
   // Use breadcrumb data hook
-  const { breadcrumbData, getTVShowTitle, getMovieTitle, getSeasonName } =
+  const { breadcrumbData, getTVShowTitle, getMovieTitle, getSeasonName, getEpisodeName } =
     useBreadcrumbData()
 
   // Check if all required titles are available
@@ -60,6 +60,15 @@ function BreadcrumbComponent({
           const cacheKey = `${tvId}-${seasonNumber}`
           if (!breadcrumbData.seasons[cacheKey]) {
             requiredTitles.push(`season-${cacheKey}`)
+          }
+
+          // Check for episode
+          if (pathSegments[i + 4] === 'episode' && pathSegments[i + 5]) {
+            const episodeNumber = pathSegments[i + 5]
+            const episodeCacheKey = `${tvId}-${seasonNumber}-${episodeNumber}`
+            if (!breadcrumbData.episodes[episodeCacheKey]) {
+              requiredTitles.push(`episode-${episodeCacheKey}`)
+            }
           }
         }
       } else if (
@@ -91,6 +100,11 @@ function BreadcrumbComponent({
       if (titleKey.startsWith('season-')) {
         const seasonKey = titleKey.replace('season-', '')
         return !breadcrumbData.seasons[seasonKey]
+      }
+
+      if (titleKey.startsWith('episode-')) {
+        const episodeKey = titleKey.replace('episode-', '')
+        return !breadcrumbData.episodes[episodeKey]
       }
 
       return false
@@ -139,8 +153,21 @@ function BreadcrumbComponent({
               items.push({
                 label: seasonName,
                 href: `/tv/${tvId}/season/${seasonNumber}`,
-                isActive: isLast,
+                isActive: isLast && pathSegments.length === 4,
               })
+
+              // Handle episode pages
+              if (pathSegments[i + 4] === 'episode' && pathSegments[i + 5]) {
+                const episodeNumber = pathSegments[i + 5]
+                const episodeCacheKey = `${tvId}-${seasonNumber}-${episodeNumber}`
+                const episodeName =
+                  breadcrumbData.episodes[episodeCacheKey] || `Episode ${episodeNumber}`
+                items.push({
+                  label: episodeName,
+                  href: `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`,
+                  isActive: isLast,
+                })
+              }
             }
 
             // Handle notes pages
@@ -338,9 +365,10 @@ function BreadcrumbComponent({
   const fetchMissingTitles = useCallback(async () => {
     const pathSegments = pathname.split('/').filter(Boolean)
     const toFetch: Array<{
-      type: 'tv' | 'movie' | 'season'
+      type: 'tv' | 'movie' | 'season' | 'episode'
       id: string
       seasonNumber?: string
+      episodeNumber?: string
     }> = []
 
     // Check what needs to be fetched
@@ -370,6 +398,18 @@ function BreadcrumbComponent({
           ) {
             toFetch.push({ type: 'season', id: tvId, seasonNumber })
           }
+
+          // Check for episode
+          if (pathSegments[i + 4] === 'episode' && pathSegments[i + 5]) {
+            const episodeNumber = pathSegments[i + 5]
+            const episodeCacheKey = `${tvId}-${seasonNumber}-${episodeNumber}`
+            if (
+              !breadcrumbData.episodes[episodeCacheKey] &&
+              !fetchingTitles.has(`episode-${episodeCacheKey}`)
+            ) {
+              toFetch.push({ type: 'episode', id: tvId, seasonNumber, episodeNumber })
+            }
+          }
         }
       } else if (
         segment === 'movie' &&
@@ -394,6 +434,8 @@ function BreadcrumbComponent({
       toFetch.forEach(item => {
         if (item.type === 'season') {
           newSet.add(`season-${item.id}-${item.seasonNumber}`)
+        } else if (item.type === 'episode') {
+          newSet.add(`episode-${item.id}-${item.seasonNumber}-${item.episodeNumber}`)
         } else {
           newSet.add(`${item.type}-${item.id}`)
         }
@@ -413,6 +455,8 @@ function BreadcrumbComponent({
               await getMovieTitle(item.id)
             } else if (item.type === 'season' && item.seasonNumber) {
               await getSeasonName(item.id, item.seasonNumber)
+            } else if (item.type === 'episode' && item.seasonNumber && item.episodeNumber) {
+              await getEpisodeName(item.id, item.seasonNumber, item.episodeNumber)
             }
           } catch (error) {
             console.error(`Failed to fetch ${item.type} title:`, error)
@@ -427,6 +471,8 @@ function BreadcrumbComponent({
         toFetch.forEach(item => {
           if (item.type === 'season') {
             newSet.delete(`season-${item.id}-${item.seasonNumber}`)
+          } else if (item.type === 'episode') {
+            newSet.delete(`episode-${item.id}-${item.seasonNumber}-${item.episodeNumber}`)
           } else {
             newSet.delete(`${item.type}-${item.id}`)
           }
@@ -441,6 +487,7 @@ function BreadcrumbComponent({
     getTVShowTitle,
     getMovieTitle,
     getSeasonName,
+    getEpisodeName,
   ])
 
   // Fetch missing titles when needed - either on initial load or when pathname changes
