@@ -95,6 +95,8 @@ export function useQueue() {
       utils.queue.getQueue.invalidate()
       utils.queue.getWatchHistory.invalidate()
       utils.stats.navigationCounts.invalidate()
+      // Invalidate watched items to reflect progress updates
+      utils.watchedItem.getAll.invalidate()
     },
     onError: () => {
       toast.error('Failed to mark as watched')
@@ -146,6 +148,8 @@ export function useQueue() {
       utils.queue.getQueue.invalidate()
       utils.queue.getWatchHistory.invalidate()
       utils.stats.navigationCounts.invalidate()
+      // Invalidate watched items to reflect progress updates
+      utils.watchedItem.getAll.invalidate()
     },
     onError: () => {
       toast.error('Failed to mark items as watched')

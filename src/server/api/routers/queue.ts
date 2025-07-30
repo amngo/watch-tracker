@@ -254,15 +254,95 @@ export const queueRouter = createTRPCRouter({
         })
       }
 
-      // Use a transaction to update watched status and reorder remaining items
+      // Use a transaction to update watched status, sync with WatchedItem, and reorder remaining items
       await ctx.db.$transaction(async tx => {
-        // Mark the item as watched
+        // Mark the queue item as watched
         await tx.queueItem.update({
           where: { id: input.id },
           data: {
             watched: true,
           },
         })
+
+        // Find or create the corresponding WatchedItem
+        let watchedItem = await tx.watchedItem.findFirst({
+          where: {
+            userId: ctx.user.id,
+            tmdbId: queueItem.tmdbId,
+            mediaType: queueItem.contentType,
+          },
+          include: {
+            watchedEpisodes: true,
+          },
+        })
+
+        // If WatchedItem doesn't exist, create it
+        if (!watchedItem) {
+          watchedItem = await tx.watchedItem.create({
+            data: {
+              userId: ctx.user.id,
+              tmdbId: queueItem.tmdbId,
+              mediaType: queueItem.contentType,
+              title: queueItem.title,
+              poster: queueItem.poster,
+              releaseDate: queueItem.releaseDate,
+              status: 'WATCHING',
+              startDate: new Date(),
+            },
+            include: {
+              watchedEpisodes: true,
+            },
+          })
+        }
+
+        // Handle TV show episode progress
+        if (queueItem.contentType === 'TV' && queueItem.seasonNumber && queueItem.episodeNumber) {
+          // Mark the specific episode as watched
+          await tx.watchedEpisode.upsert({
+            where: {
+              watchedItemId_seasonNumber_episodeNumber: {
+                watchedItemId: watchedItem.id,
+                seasonNumber: queueItem.seasonNumber,
+                episodeNumber: queueItem.episodeNumber,
+              },
+            },
+            update: {
+              status: 'WATCHED',
+              watchedAt: new Date(),
+            },
+            create: {
+              watchedItemId: watchedItem.id,
+              seasonNumber: queueItem.seasonNumber,
+              episodeNumber: queueItem.episodeNumber,
+              status: 'WATCHED',
+              watchedAt: new Date(),
+            },
+          })
+
+          // Update the watched item's current progress
+          await tx.watchedItem.update({
+            where: { id: watchedItem.id },
+            data: {
+              currentSeason: queueItem.seasonNumber,
+              currentEpisode: queueItem.episodeNumber,
+              status: 'WATCHING', // Keep as watching unless it's the final episode
+            },
+          })
+        }
+        // Handle movie completion
+        else if (queueItem.contentType === 'MOVIE') {
+          await tx.watchedItem.update({
+            where: { id: watchedItem.id },
+            data: {
+              status: 'COMPLETED',
+              finishDate: new Date(),
+              // Set runtime progress to 100% if totalRuntime is known
+              ...(watchedItem.totalRuntime && {
+                currentRuntime: watchedItem.totalRuntime,
+              }),
+            },
+          })
+        }
 
         // Reorder remaining items to fill the gap
         await tx.queueItem.updateMany({
@@ -421,9 +501,9 @@ export const queueRouter = createTRPCRouter({
         })
       }
 
-      // Use transaction to mark items as watched and reorder remaining items
+      // Use transaction to mark items as watched, sync with WatchedItems, and reorder remaining items
       await ctx.db.$transaction(async tx => {
-        // Mark selected items as watched
+        // Mark selected queue items as watched
         await tx.queueItem.updateMany({
           where: {
             id: { in: input.ids },
@@ -433,6 +513,89 @@ export const queueRouter = createTRPCRouter({
             watched: true,
           },
         })
+
+        // Process each queue item to sync with WatchedItem
+        for (const queueItem of queueItems) {
+          // Find or create the corresponding WatchedItem
+          let watchedItem = await tx.watchedItem.findFirst({
+            where: {
+              userId: ctx.user.id,
+              tmdbId: queueItem.tmdbId,
+              mediaType: queueItem.contentType,
+            },
+            include: {
+              watchedEpisodes: true,
+            },
+          })
+
+          // If WatchedItem doesn't exist, create it
+          if (!watchedItem) {
+            watchedItem = await tx.watchedItem.create({
+              data: {
+                userId: ctx.user.id,
+                tmdbId: queueItem.tmdbId,
+                mediaType: queueItem.contentType,
+                title: queueItem.title,
+                poster: queueItem.poster,
+                releaseDate: queueItem.releaseDate,
+                status: 'WATCHING',
+                startDate: new Date(),
+              },
+              include: {
+                watchedEpisodes: true,
+              },
+            })
+          }
+
+          // Handle TV show episode progress
+          if (queueItem.contentType === 'TV' && queueItem.seasonNumber && queueItem.episodeNumber) {
+            // Mark the specific episode as watched
+            await tx.watchedEpisode.upsert({
+              where: {
+                watchedItemId_seasonNumber_episodeNumber: {
+                  watchedItemId: watchedItem.id,
+                  seasonNumber: queueItem.seasonNumber,
+                  episodeNumber: queueItem.episodeNumber,
+                },
+              },
+              update: {
+                status: 'WATCHED',
+                watchedAt: new Date(),
+              },
+              create: {
+                watchedItemId: watchedItem.id,
+                seasonNumber: queueItem.seasonNumber,
+                episodeNumber: queueItem.episodeNumber,
+                status: 'WATCHED',
+                watchedAt: new Date(),
+              },
+            })
+
+            // Update the watched item's current progress
+            await tx.watchedItem.update({
+              where: { id: watchedItem.id },
+              data: {
+                currentSeason: queueItem.seasonNumber,
+                currentEpisode: queueItem.episodeNumber,
+                status: 'WATCHING',
+              },
+            })
+          }
+          // Handle movie completion
+          else if (queueItem.contentType === 'MOVIE') {
+            await tx.watchedItem.update({
+              where: { id: watchedItem.id },
+              data: {
+                status: 'COMPLETED',
+                finishDate: new Date(),
+                // Set runtime progress to 100% if totalRuntime is known
+                ...(watchedItem.totalRuntime && {
+                  currentRuntime: watchedItem.totalRuntime,
+                }),
+              },
+            })
+          }
+        }
 
         // Get the minimum position of watched items for reordering
         const minPosition = Math.min(...queueItems.map(item => item.position))
