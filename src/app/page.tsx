@@ -16,7 +16,6 @@ import {
   Users,
   Smartphone,
   Database,
-  Shield,
   ArrowRight,
   Star,
   CheckCircle,
