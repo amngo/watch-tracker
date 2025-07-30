@@ -1,18 +1,28 @@
-import { useEffect, useRef, FC } from 'react'
+import { useEffect, useRef, FC, useState } from 'react'
 import { gsap } from 'gsap'
+import { useImagePreloader } from '@/hooks/useImagePreloader'
 
 interface GridMotionProps {
   items?: string[]
   gradientColor?: string
+  onImagesLoaded?: () => void
 }
 
 const GridMotion: FC<GridMotionProps> = ({
   items = [],
   gradientColor = 'black',
+  onImagesLoaded,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null)
   const rowRefs = useRef<(HTMLDivElement | null)[]>([])
   const mouseXRef = useRef<number>(window.innerWidth / 2)
+  const onImagesLoadedRef = useRef(onImagesLoaded)
+  const [isVisible, setIsVisible] = useState(false)
+
+  // Update the ref when onImagesLoaded changes
+  useEffect(() => {
+    onImagesLoadedRef.current = onImagesLoaded
+  }, [onImagesLoaded])
 
   const totalItems = 28
   const defaultItems = Array.from(
@@ -22,7 +32,24 @@ const GridMotion: FC<GridMotionProps> = ({
   const combinedItems =
     items.length > 0 ? items.slice(0, totalItems) : defaultItems
 
+  // Preload all images
+  const { allImagesLoaded, loadingProgress } = useImagePreloader(
+    combinedItems.filter(
+      item => typeof item === 'string' && item.startsWith('http')
+    )
+  )
+
+  // Show component only when all images are loaded
   useEffect(() => {
+    if (allImagesLoaded && !isVisible) {
+      setIsVisible(true)
+      onImagesLoadedRef.current?.()
+    }
+  }, [allImagesLoaded, isVisible])
+
+  useEffect(() => {
+    if (!isVisible) return
+
     gsap.ticker.lagSmoothing(0)
 
     const handleMouseMove = (e: MouseEvent): void => {
@@ -60,10 +87,32 @@ const GridMotion: FC<GridMotionProps> = ({
       window.removeEventListener('mousemove', handleMouseMove)
       removeAnimationLoop()
     }
-  }, [])
+  }, [isVisible])
+
+  // Don't render anything until images are loaded or if there are no images to load
+  if (
+    !allImagesLoaded &&
+    combinedItems.some(
+      item => typeof item === 'string' && item.startsWith('http')
+    )
+  ) {
+    return (
+      <div className="h-full w-full overflow-hidden opacity-30 flex items-center justify-center">
+        <div className="text-white/50 text-center">
+          <div className="animate-pulse mb-2">Loading media...</div>
+          <div className="w-32 h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 ease-out"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div ref={gridRef} className="h-full w-full overflow-hidden opacity-30">
+    <div ref={gridRef} className="h-full w-full overflow-hidden">
       <section
         className="w-full h-screen overflow-hidden relative flex items-center justify-center"
         style={{

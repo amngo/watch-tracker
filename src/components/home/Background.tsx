@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { popularMediaCache } from '@/lib/popular-media'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { FadeInSection } from '../common/staggered-animation'
 
 const GridMotion = dynamic(() => import('../ui/grid-motion'), {
@@ -11,6 +11,7 @@ const GridMotion = dynamic(() => import('../ui/grid-motion'), {
 
 export default function Background() {
   const [items, setItems] = useState<string[]>([])
+  const [isGridReady, setIsGridReady] = useState(false)
 
   useEffect(() => {
     async function loadPopularPosters() {
@@ -21,18 +22,26 @@ export default function Background() {
         }
       } catch (error) {
         console.error('Failed to load popular media posters:', error)
+        // Show grid anyway with default items if API fails
+        setIsGridReady(true)
       }
     }
 
     loadPopularPosters()
   }, [])
+
+  const handleImagesLoaded = () => {
+    setIsGridReady(true)
+  }
+
   return (
-    <AnimatePresence>
-      {items.length > 0 && (
-        <FadeInSection className="absolute inset-0">
-          <GridMotion items={items} />
-        </FadeInSection>
-      )}
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isGridReady ? 0.25 : 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className="absolute inset-0"
+    >
+      <GridMotion items={items} onImagesLoaded={handleImagesLoaded} />
+    </motion.div>
   )
 }
