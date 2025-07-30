@@ -13,6 +13,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -32,6 +33,7 @@ import {
 import { useNavigationCounts } from '@/hooks/use-navigation-counts'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { UpNext } from '@/components/common/up-next'
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -70,6 +72,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
+        {/* Navigation Section */}
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -138,7 +141,11 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
+      </SidebarContent>{' '}
+      {/* Up Next Section */}
+      <SidebarFooter>
+        <UpNext />
+      </SidebarFooter>
     </Sidebar>
   )
 }
