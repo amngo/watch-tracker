@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { popularMediaCache } from '@/lib/popular-media'
-import { AnimatePresence, motion } from 'motion/react'
-import { FadeInSection } from '../common/staggered-animation'
+import { motion } from 'motion/react'
 
 const GridMotion = dynamic(() => import('../ui/grid-motion'), {
   ssr: false,
