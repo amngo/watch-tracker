@@ -430,6 +430,22 @@ export class TMDBService {
     return TMDBSearchResultSchema.parse(data)
   }
 
+  // Get popular movies
+  async getPopularMovies(page = 1): Promise<TMDBSearchResult> {
+    const data = await this.makeRequest('/movie/popular', {
+      page: page.toString(),
+    })
+    return TMDBSearchResultSchema.parse(data)
+  }
+
+  // Get popular TV shows
+  async getPopularTV(page = 1): Promise<TMDBSearchResult> {
+    const data = await this.makeRequest('/tv/popular', {
+      page: page.toString(),
+    })
+    return TMDBSearchResultSchema.parse(data)
+  }
+
   // Get external IDs for a TV show (useful for checking episode schedules)
   async getTVExternalIds(tvId: number): Promise<{
     id: number

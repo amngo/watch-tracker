@@ -6,11 +6,12 @@ import {
   AnimatedSection,
   GradientGlow,
 } from '@/components/common/animated-section'
+import Background from './Background'
 
 export function HeroSection() {
   return (
     <section className="relative px-6 py-12">
-      <div className="mx-auto max-w-6xl text-center">
+      <div className="mx-auto max-w-6xl text-center z-10 relative">
         <AnimatedSection delay={0.1}>
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-800 bg-gray-900/50 px-4 py-2 backdrop-blur-sm">
             <CheckCircle className="h-4 w-4 text-green-400" />
@@ -39,16 +40,16 @@ export function HeroSection() {
             <SignUpButton>
               <Button
                 size="lg"
-                className="group h-12 px-8 bg-white text-black font-semibold hover:bg-gray-100 hover:scale-105 transition-all duration-200"
+                className="group font-semibold hover:scale-105 transition-all duration-200"
               >
                 Start Tracking Free
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </SignUpButton>
             <Button
-              variant="outline"
+              variant="secondary"
               size="lg"
-              className="h-12 px-8 border-gray-700 text-gray-300 hover:border-gray-600 hover:bg-gray-900 hover:scale-105 transition-all duration-200"
+              className="hover:scale-105 transition-all duration-200"
             >
               View Demo
             </Button>
@@ -96,6 +97,7 @@ export function HeroSection() {
           </GradientGlow>
         </AnimatedSection>
       </div>
+      <Background />
     </section>
   )
 }

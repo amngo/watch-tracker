@@ -14,14 +14,10 @@ export function Navigation() {
         </div>
         <div className="items-center gap-4 hidden sm:flex">
           <SignInButton>
-            <Button variant="ghost" className="text-gray-300 hover:text-white">
-              Sign In
-            </Button>
+            <Button variant="ghost">Sign In</Button>
           </SignInButton>
           <SignUpButton>
-            <Button className="bg-white text-black hover:bg-gray-100">
-              Get Started Free
-            </Button>
+            <Button>Get Started Free</Button>
           </SignUpButton>
         </div>
       </div>
