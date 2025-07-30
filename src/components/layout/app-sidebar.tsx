@@ -5,6 +5,7 @@ import {
   Home,
   Library,
   ListOrdered,
+  Play,
   Search,
   Settings,
   User,
@@ -16,7 +17,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
@@ -38,7 +39,6 @@ import { UpNext } from '@/components/common/up-next'
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Search & Add', href: '/search', icon: Search },
-  { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
   {
     name: 'Library',
     href: '/library',
@@ -49,6 +49,7 @@ const navigation: NavigationItem[] = [
       { name: 'TV Shows', href: '/library/tv-shows' },
     ],
   },
+  { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
   { name: 'Releases', href: '/releases', icon: Bell },
   { name: 'Notes', href: '/notes', icon: FileText, badgeKey: 'notes' },
   {
@@ -71,10 +72,17 @@ export function AppSidebar() {
   const pathname = usePathname()
   return (
     <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 h-12">
+          <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-2">
+            <Play className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-lg font-bold">Watch Tracker</span>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         {/* Navigation Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map(item => {
