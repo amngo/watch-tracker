@@ -30,6 +30,12 @@ const SeasonDetailsInputSchema = z.object({
   seasonNumber: z.number(),
 })
 
+const EpisodeDetailsInputSchema = z.object({
+  tvId: z.number(),
+  seasonNumber: z.number(),
+  episodeNumber: z.number(),
+})
+
 export const searchRouter = createTRPCRouter({
   // Public search endpoint - anyone can search for content
   search: publicProcedure
@@ -294,6 +300,21 @@ export const searchRouter = createTRPCRouter({
       try {
         const { tvId, seasonNumber } = input
         return await tmdbService.getTVSeasonDetails(tvId, seasonNumber)
+      } catch (error) {
+        if (error instanceof TMDBError) {
+          throw toTRPCError(createError.externalAPI('TMDB', error.message))
+        }
+        throw toTRPCError(error)
+      }
+    }),
+
+  // Get TV episode details
+  episodeDetails: publicProcedure
+    .input(EpisodeDetailsInputSchema)
+    .query(async ({ input }) => {
+      try {
+        const { tvId, seasonNumber, episodeNumber } = input
+        return await tmdbService.getTVEpisodeDetails(tvId, seasonNumber, episodeNumber)
       } catch (error) {
         if (error instanceof TMDBError) {
           throw toTRPCError(createError.externalAPI('TMDB', error.message))
