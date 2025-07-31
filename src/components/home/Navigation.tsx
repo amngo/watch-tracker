@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
-import { Play } from 'lucide-react'
+import { Github, Play } from 'lucide-react'
+import Link from 'next/link'
 
 export function Navigation() {
   return (
@@ -19,6 +20,11 @@ export function Navigation() {
           <SignUpButton>
             <Button>Get Started Free</Button>
           </SignUpButton>
+          <Button variant="outline" size="lg" asChild>
+            <Link href="https://github.com/amngo/watch-tracker" target="_blank">
+              <Github /> Source Code
+            </Link>
+          </Button>
         </div>
       </div>
     </nav>
