@@ -335,6 +335,11 @@ export interface NavigationItem {
   subItems?: NavigationItem[]
   active?: boolean
   badgeKey?: 'queue' | 'library' | 'notes'
+  tutorial?: {
+    id: string
+    message: string
+    order: number
+  }
 }
 
 // Extended TMDB types for detailed pages

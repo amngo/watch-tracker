@@ -35,10 +35,20 @@ import { useNavigationCounts } from '@/hooks/use-navigation-counts'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { UpNext } from '@/components/common/up-next'
+import { TutorialStep } from '../tutorial/tutorial-step'
 
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Search & Add', href: '/search', icon: Search },
+  {
+    name: 'Search & Add',
+    href: '/search',
+    icon: Search,
+    tutorial: {
+      id: 'search-tutorial',
+      message: 'Search for movies and shows to add to your library.',
+      order: 1,
+    },
+  },
   {
     name: 'Library',
     href: '/library',
@@ -49,9 +59,38 @@ const navigation: NavigationItem[] = [
       { name: 'TV Shows', href: '/library/tv-shows' },
     ],
   },
-  { name: 'Queue', href: '/queue', icon: ListOrdered, badgeKey: 'queue' },
-  { name: 'Releases', href: '/releases', icon: Bell },
-  { name: 'Notes', href: '/notes', icon: FileText, badgeKey: 'notes' },
+  {
+    name: 'Queue',
+    href: '/queue',
+    icon: ListOrdered,
+    badgeKey: 'queue',
+    tutorial: {
+      id: 'queue-tutorial',
+      message: 'View and manage your watch queue.',
+      order: 2,
+    },
+  },
+  {
+    name: 'Releases',
+    href: '/releases',
+    icon: Bell,
+    tutorial: {
+      id: 'releases-tutorial',
+      message: 'Stay updated with upcoming movie and TV show releases.',
+      order: 3,
+    },
+  },
+  {
+    name: 'Notes',
+    href: '/notes',
+    icon: FileText,
+    badgeKey: 'notes',
+    tutorial: {
+      id: 'notes-tutorial',
+      message: 'Keep track of your thoughts and notes.',
+      order: 4,
+    },
+  },
   {
     name: 'Statistics',
     href: '/stats',
@@ -125,6 +164,33 @@ export function AppSidebar() {
                         </CollapsibleContent>
                       </SidebarMenuItem>
                     </Collapsible>
+                  )
+                }
+                if (item.tutorial) {
+                  return (
+                    <TutorialStep
+                      key={item.name}
+                      id={item.tutorial.id}
+                      message={item.tutorial.message}
+                      order={item.tutorial.order}
+                    >
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.href}
+                        >
+                          <Link href={item.href}>
+                            {item.icon && <item.icon />}
+                            <span>{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {item.badgeKey && (
+                          <SidebarMenuBadge>
+                            {counts[item.badgeKey]}
+                          </SidebarMenuBadge>
+                        )}
+                      </SidebarMenuItem>
+                    </TutorialStep>
                   )
                 }
                 return (

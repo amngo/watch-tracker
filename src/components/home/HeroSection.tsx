@@ -46,13 +46,13 @@ export function HeroSection() {
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </SignUpButton>
-            <Button
+            {/* <Button
               variant="secondary"
               size="lg"
               className="hover:scale-105 transition-all duration-200"
             >
               View Demo
-            </Button>
+            </Button> */}
           </div>
         </AnimatedSection>
 
