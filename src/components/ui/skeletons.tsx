@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader } from './card'
 
 // Base skeleton component with better default styling
 export function BaseSkeleton({
@@ -497,6 +498,115 @@ export function TVSeasonEpisodeSkeleton({ className }: { className?: string }) {
             <BaseSkeleton className="h-9 w-32 rounded-md" />
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// TV Episode detail page skeleton
+export function TVEpisodePageSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('animate-pulse space-y-8', className)}>
+      {/* Episode Navigation */}
+      <div className="grid grid-cols-5 gap-4 items-center">
+        <BaseSkeleton className="h-9 col-span-2 rounded-md" />
+        <BaseSkeleton className="h-4 w-24 mx-auto" />
+        <BaseSkeleton className="h-9 col-span-2 rounded-md" />
+      </div>
+
+      {/* Episode Header */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Episode Still */}
+        <div className="lg:col-span-1">
+          <BaseSkeleton className="aspect-video rounded-lg" />
+        </div>
+
+        {/* Episode Info */}
+        <div className="lg:col-span-2 space-y-6">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                {/* Episode Title */}
+                <BaseSkeleton className="h-10 w-3/4 mb-2" />
+                {/* Show name and season */}
+                <BaseSkeleton className="h-6 w-1/2 mb-4" />
+              </div>
+              {/* Spoiler Toggle Button */}
+              <BaseSkeleton className="h-9 w-32 rounded-md ml-4" />
+            </div>
+
+            {/* Episode metadata */}
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <BaseSkeleton className="h-4 w-24 rounded-full" />
+              <BaseSkeleton className="h-4 w-16 rounded-full" />
+              <BaseSkeleton className="h-4 w-20 rounded-full" />
+            </div>
+
+            {/* Episode Overview */}
+            <div className="space-y-2">
+              <BaseSkeleton className="h-4 w-full" />
+              <BaseSkeleton className="h-4 w-full" />
+              <BaseSkeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+
+          {/* User Progress & Actions Card */}
+          <Card>
+            <CardHeader>
+              <BaseSkeleton className="h-5 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <BaseSkeleton className="h-4 w-12" />
+                <BaseSkeleton className="h-5 w-20 rounded-full" />
+              </div>
+              <div className="flex gap-2">
+                <BaseSkeleton className="h-9 flex-1 rounded-md" />
+                <BaseSkeleton className="h-9 flex-1 rounded-md" />
+              </div>
+              <BaseSkeleton className="h-9 w-full rounded-md" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Guest Stars Section */}
+      <div>
+        <BaseSkeleton className="h-8 w-32 mb-6" />
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 flex gap-4">
+                <BaseSkeleton className="w-16 h-24 rounded-lg flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <BaseSkeleton className="h-4 w-full" />
+                  <BaseSkeleton className="h-3 w-3/4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Crew Section */}
+      <div>
+        <BaseSkeleton className="h-8 w-24 mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4 space-y-1">
+                <BaseSkeleton className="h-4 w-32" />
+                <BaseSkeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Back Navigation */}
+      <div className="flex flex-wrap gap-4 pt-8 border-t">
+        <BaseSkeleton className="h-10 w-48 rounded-md" />
+        <BaseSkeleton className="h-10 w-48 rounded-md" />
       </div>
     </div>
   )

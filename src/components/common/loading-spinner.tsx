@@ -5,15 +5,24 @@ interface LoadingSpinnerProps {
   className?: string
 }
 
-export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  size = 'md',
+  className,
+}: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-6 w-6',
-    lg: 'h-8 w-8'
+    lg: 'h-8 w-8',
   }
 
   return (
-    <div className={cn('animate-spin rounded-full border-2 border-primary border-t-transparent', sizeClasses[size], className)} />
+    <div
+      className={cn(
+        'animate-spin rounded-full border-2 border-primary border-t-transparent',
+        sizeClasses[size],
+        className
+      )}
+    />
   )
 }
 
@@ -37,16 +46,22 @@ export function LoadingCard({ className }: { className?: string }) {
   )
 }
 
-export function LoadingText({ lines = 3, className }: { lines?: number; className?: string }) {
+export function LoadingText({
+  lines = 3,
+  className,
+}: {
+  lines?: number
+  className?: string
+}) {
   return (
     <div className={cn('animate-pulse space-y-2', className)}>
       {Array.from({ length: lines }).map((_, i) => (
-        <div 
-          key={i} 
+        <div
+          key={i}
           className={cn(
-            'h-4 bg-muted rounded', 
+            'h-4 bg-muted rounded',
             i === lines - 1 ? 'w-2/3' : 'w-full'
-          )} 
+          )}
         />
       ))}
     </div>
@@ -64,6 +79,7 @@ export {
   GridSkeleton,
   TVSeasonPageSkeleton,
   TVSeasonEpisodeSkeleton,
+  TVEpisodePageSkeleton,
 } from '@/components/ui/skeletons'
 
 export {

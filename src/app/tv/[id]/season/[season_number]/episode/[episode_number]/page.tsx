@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { api } from '@/trpc/react'
-import { LoadingCard } from '@/components/common/loading-spinner'
+import { TVEpisodePageSkeleton } from '@/components/ui/skeletons'
 import { useMedia } from '@/hooks/use-media'
 import { TMDBService } from '@/lib/tmdb'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
@@ -306,17 +306,7 @@ export default function TVEpisodePage() {
   if (isLoading) {
     return (
       <DashboardLayout stats={stats || undefined}>
-        <div className="space-y-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/tv/${tvId}/season/${seasonNumber}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Season
-              </Link>
-            </Button>
-          </div>
-          <LoadingCard />
-        </div>
+        <TVEpisodePageSkeleton />
       </DashboardLayout>
     )
   }
