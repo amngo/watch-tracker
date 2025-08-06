@@ -1,6 +1,5 @@
 import type { WatchedItem, EpisodeWatchStatus } from '@/types'
 import { tmdb } from './tmdb'
-import next from 'next'
 
 export interface EpisodeInfo {
   seasonNumber: number

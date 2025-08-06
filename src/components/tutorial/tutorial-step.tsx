@@ -37,7 +37,7 @@ export const TutorialStep: React.FC<TutorialStepProps> = ({
 
   useEffect(() => {
     // Ensures code only runs in the browser
-    setMounted(true)
+    // setMounted(true)
   }, [])
 
   useLayoutEffect(() => {

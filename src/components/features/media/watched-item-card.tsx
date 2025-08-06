@@ -161,21 +161,21 @@ export function WatchedItemCard({
           )}
 
           {showSelection ? (
-            <div className="flex-shrink-0 pointer-events-none">
+            <div className="pointer-events-none">
               <MediaPoster
                 src={item.poster}
                 alt={item.title}
                 mediaType={item.mediaType}
-                size="md"
+                size="lg"
               />
             </div>
           ) : (
-            <Link href={detailUrl} className="flex-shrink-0">
+            <Link href={detailUrl}>
               <MediaPoster
                 src={item.poster}
                 alt={item.title}
                 mediaType={item.mediaType}
-                size="md"
+                size="lg"
               />
             </Link>
           )}

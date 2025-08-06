@@ -68,7 +68,7 @@ export function WatchedItemCardSkeleton({ className }: { className?: string }) {
     <div className={cn('animate-pulse border rounded-lg', className)}>
       <div className="flex gap-4 p-4">
         {/* Poster */}
-        <MediaPosterSkeleton size="md" />
+        <MediaPosterSkeleton size="lg" />
 
         {/* Content */}
         <div className="flex-1 space-y-3">
@@ -106,7 +106,7 @@ export function TVShowCardSkeleton({ className }: { className?: string }) {
       <div className="p-4">
         <div className="flex gap-4">
           {/* Poster */}
-          <MediaPosterSkeleton size="md" />
+          <MediaPosterSkeleton size="lg" />
 
           {/* Content */}
           <div className="flex-1 min-w-0">
