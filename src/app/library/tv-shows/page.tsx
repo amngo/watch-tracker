@@ -186,6 +186,7 @@ export default function TVShowsPage() {
           <LoadingGrid
             count={6}
             className="grid gap-4"
+            variant="tv"
             showSelection={showBulkMode}
           />
         ) : tvWatchlistItems.length === 0 ? (

@@ -64,9 +64,12 @@ export function MediaCardSkeleton({ className }: { className?: string }) {
 // Watched item card skeleton for dashboard and library pages
 export function WatchedItemCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('animate-pulse', className)}>
+    <div className={cn('animate-pulse border rounded-lg', className)}>
       <div className="flex gap-4 p-4">
+        {/* Poster */}
         <MediaPosterSkeleton size="md" />
+
+        {/* Content */}
         <div className="flex-1 space-y-3">
           <div className="flex items-start justify-between">
             <div className="flex-1 space-y-2">
@@ -79,19 +82,16 @@ export function WatchedItemCardSkeleton({ className }: { className?: string }) {
                 <BaseSkeleton className="h-4 w-16 rounded-full" />
               </div>
             </div>
-
-            {/* Menu button */}
-            <BaseSkeleton className="h-8 w-8 rounded-md" />
           </div>
+
+          {/* Status */}
+          <BaseSkeleton className="h-4 w-24 rounded-full" />
 
           {/* Progress bar */}
           <BaseSkeleton className="h-2 w-full rounded-full" />
 
-          {/* Rating and notes */}
-          <div className="flex items-center gap-2">
-            <BaseSkeleton className="h-6 w-16 rounded-full" />
-            <BaseSkeleton className="h-6 w-12 rounded-full" />
-          </div>
+          {/* Add to Queue button */}
+          <BaseSkeleton className="h-8 w-36 rounded-md" />
         </div>
       </div>
     </div>

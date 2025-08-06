@@ -176,7 +176,7 @@ export default function MoviesPage() {
         </SectionHeader>
 
         {itemsLoading ? (
-          <LoadingGrid count={8} className="grid gap-4" />
+          <LoadingGrid count={8} className="grid gap-4" variant="movie" />
         ) : movieWatchlistItems.length === 0 ? (
           <EmptyState
             icon={Film}

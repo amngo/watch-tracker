@@ -38,10 +38,7 @@ import {
 import { MediaPoster } from '@/components/ui/media-poster'
 import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
-import {
-  StatusBadge,
-  MediaTypeBadge,
-} from '@/components/ui/media-badges'
+import { StatusBadge, MediaTypeBadge } from '@/components/ui/media-badges'
 import { ProgressDisplay } from '@/components/ui/progress-display'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import type { WatchStatus, WatchedItemCardProps } from '@/types'
@@ -135,11 +132,11 @@ export function WatchedItemCard({
   }
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "group transition-all hover:shadow-md p-0",
-        isSelected && "ring-2 ring-primary bg-primary/5",
-        showSelection && "cursor-pointer select-none"
+        'group transition-all hover:shadow-md p-0',
+        isSelected && 'ring-2 ring-primary bg-primary/5',
+        showSelection && 'cursor-pointer select-none'
       )}
       onClick={showSelection ? handleCardClick : undefined}
     >
@@ -147,15 +144,15 @@ export function WatchedItemCard({
         <div className="flex gap-4">
           {/* Selection checkbox */}
           {showSelection && onSelectionChange && (
-            <div 
+            <div
               className="flex-shrink-0 self-start pt-1 z-10"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
               }}
             >
               <Checkbox
                 checked={isSelected}
-                onCheckedChange={(checked) => 
+                onCheckedChange={checked =>
                   onSelectionChange(item.id, Boolean(checked))
                 }
                 aria-label={`Select ${item.title}`}
@@ -205,8 +202,6 @@ export function WatchedItemCard({
                     status={item.status}
                     icon={statusConfig[item.status].icon}
                   />
-
-                  {/* <ReleaseDate date={item.releaseDate} /> */}
                 </div>
               </div>
 
@@ -226,7 +221,9 @@ export function WatchedItemCard({
                     {Object.entries(statusConfig).map(([status, config]) => (
                       <DropdownMenuItem
                         key={status}
-                        onClick={() => handleStatusChange(status as WatchStatus)}
+                        onClick={() =>
+                          handleStatusChange(status as WatchStatus)
+                        }
                         className="flex items-center gap-2"
                       >
                         <config.icon className="h-4 w-4" />
@@ -267,27 +264,6 @@ export function WatchedItemCard({
             />
 
             <div className="flex items-center justify-between mt-3">
-              {/* <div className="flex items-center gap-2">
-                {item.rating ? (
-                  <RatingBadge
-                    rating={item.rating}
-                    onClick={() => setIsEditingRating(true)}
-                    interactive
-                  />
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditingRating(true)}
-                    className="text-muted-foreground"
-                  >
-                    <Star className="h-4 w-4 mr-1" />
-                    Rate
-                  </Button>
-                )}
-                <NotesBadge count={item._count.notes} />
-              </div> */}
-
               {!showSelection && (
                 <AddToQueueButton
                   item={item}
