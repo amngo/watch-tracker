@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ViewingHeatmap } from '@/components/features/stats/viewing-heatmap'
 import { api } from '@/trpc/react'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+import type { TimeRange } from '@/types'
 
 export default function PatternsPage() {
   const [timeRange] = useState<TimeRange>('month')

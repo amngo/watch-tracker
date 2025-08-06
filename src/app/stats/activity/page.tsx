@@ -8,8 +8,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { ActivityChart } from '@/components/features/stats/activity-chart'
 import { api } from '@/trpc/react'
 import type { ChartConfig } from '@/components/ui/chart'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+import type { TimeRange } from '@/types'
 
 const activityChartConfig = {
   completed: {

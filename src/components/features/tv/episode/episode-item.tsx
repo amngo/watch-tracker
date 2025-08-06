@@ -1,7 +1,7 @@
 import { Play, Check, Star, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { formatAirDate, formatRuntime } from '@/lib/constants/formatting'
+import { formatAirDate, formatRuntime } from '@/lib/format'
 import { Episode, getFullImagePath } from 'tmdb-ts'
 import { EPISODE_CONSTANTS } from '@/lib/constants/episode'
 

@@ -7,8 +7,7 @@ import {
 } from '@/components/ui/chart'
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts'
 import type { ChartConfig } from '@/components/ui/chart'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+import type { TimeRange } from '@/types'
 
 interface ActivityData {
   date: string

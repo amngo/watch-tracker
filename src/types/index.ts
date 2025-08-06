@@ -270,3 +270,9 @@ export interface NavigationItem {
     order: number
   }
 }
+
+// Common types that are duplicated across the codebase
+export type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+
+// Re-export search types from search.ts for backwards compatibility
+export type { SortOption, SortDirection, FilterState } from './search'

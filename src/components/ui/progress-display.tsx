@@ -1,9 +1,6 @@
 import { Progress } from '@/components/ui/progress'
-import {
-  calculateProgress,
-  formatEpisodeCount,
-  formatRuntime,
-} from '@/lib/utils'
+import { formatRuntime } from '@/lib/format'
+import { calculateProgress, formatEpisodeCount } from '@/lib/utils'
 import type { WatchStatus } from '@/types'
 
 interface ProgressDisplayProps {

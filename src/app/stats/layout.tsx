@@ -5,8 +5,7 @@ import { StatsHeader } from '@/components/features/stats/stats-header'
 import { KeyMetrics } from '@/components/features/stats/key-metrics'
 import { useState, useMemo } from 'react'
 import { api } from '@/trpc/react'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+import type { TimeRange } from '@/types'
 
 // Constants for watch time estimation
 const AVERAGE_MOVIE_RUNTIME_MINUTES = 120

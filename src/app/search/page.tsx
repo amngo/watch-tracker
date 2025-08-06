@@ -11,17 +11,7 @@ import { useMedia } from '@/hooks/use-media'
 import { useMediaStore } from '@/stores/media-store'
 import { api } from '@/trpc/react'
 import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
-
-type SortOption = 'popularity' | 'vote_average' | 'release_date' | 'title'
-type SortDirection = 'asc' | 'desc'
-
-interface FilterState {
-  mediaType: 'all' | 'movie' | 'tv'
-  minRating: number[]
-  year: string
-  sortBy: SortOption
-  sortDirection: SortDirection
-}
+import type { SortOption, SortDirection, FilterState } from '@/types'
 
 const INITIAL_FILTERS: FilterState = {
   mediaType: 'all',

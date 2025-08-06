@@ -1,7 +1,6 @@
 import { BarChart3 } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+import type { TimeRange } from '@/types'
 
 interface StatsHeaderProps {
   timeRange: TimeRange

@@ -7,8 +7,7 @@ import { GenresChart } from '@/components/features/stats/genres-chart'
 import { DetailedStats } from '@/components/features/stats/detailed-stats'
 import { api } from '@/trpc/react'
 import type { ChartConfig } from '@/components/ui/chart'
-
-type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
+import type { TimeRange } from '@/types'
 
 // Chart configurations
 const overviewChartConfig = {
