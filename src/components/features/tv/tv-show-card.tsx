@@ -1,14 +1,7 @@
 'use client'
 
 import { useState, memo } from 'react'
-import {
-  MoreHorizontal,
-  Edit3,
-  ChevronRight,
-  RefreshCw,
-  RotateCcw,
-  X,
-} from 'lucide-react'
+import { MoreHorizontal, Edit3, RefreshCw, RotateCcw, X } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {

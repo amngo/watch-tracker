@@ -1,7 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, TrendingUp, Clock, CheckCircle, RefreshCw, Loader2 } from 'lucide-react'
+import {
+  Plus,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  RefreshCw,
+  Loader2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { WatchedItemCard } from '@/components/features/media/watched-item-card'
@@ -16,6 +23,7 @@ import { useUI } from '@/hooks/use-ui'
 import { useBackgroundUpdates } from '@/hooks/use-background-updates'
 import { calculateProgress } from '@/lib/utils'
 import type { TMDBMediaItem, WatchedItem } from '@/types'
+import { TVShowCard } from '@/components/features/tv/tv-show-card'
 
 export default function Dashboard() {
   const {
@@ -113,7 +121,6 @@ export default function Dashboard() {
     }
   }
 
-
   return (
     <DashboardLayout stats={stats || undefined}>
       <div className="space-y-8">
@@ -128,7 +135,9 @@ export default function Dashboard() {
 
           <AddMediaModal
             isOpen={isSearchModalOpen}
-            onOpenChange={open => open ? openSearchModal() : closeSearchModal()}
+            onOpenChange={open =>
+              open ? openSearchModal() : closeSearchModal()
+            }
             onAddMedia={handleAddMedia}
             triggerLabel="Add Media"
             dialogTitle="Search & Add Media"
@@ -170,8 +179,8 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <div>
           <SectionHeader title="Recent Activity">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleUpdateAllTVShows}
               disabled={isUpdatingTVShows}
             >
@@ -202,15 +211,26 @@ export default function Dashboard() {
               </Button>
             </EmptyState>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {watchedItems.slice(0, 6).map(item => (
-                <WatchedItemCard
-                  key={item.id}
-                  item={item}
-                  onUpdate={handleUpdateItem}
-                  onDelete={handleDeleteItem}
-                />
-              ))}
+            <div className="grid gap-4">
+              {watchedItems
+                .slice(0, 10)
+                .map(item =>
+                  item.mediaType === 'TV' ? (
+                    <TVShowCard
+                      key={item.id}
+                      item={item}
+                      onUpdate={handleUpdateItem}
+                      onDelete={handleDeleteItem}
+                    />
+                  ) : (
+                    <WatchedItemCard
+                      key={item.id}
+                      item={item}
+                      onUpdate={handleUpdateItem}
+                      onDelete={handleDeleteItem}
+                    />
+                  )
+                )}
             </div>
           )}
         </div>
