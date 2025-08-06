@@ -1,5 +1,6 @@
 import type { WatchedItem, EpisodeWatchStatus } from '@/types'
 import { tmdb } from './tmdb'
+import next from 'next'
 
 export interface EpisodeInfo {
   seasonNumber: number
@@ -288,4 +289,165 @@ export function formatEpisodeReference(
   }
 
   return `Season ${seasonNumber}, Episode ${episodeNumber}`
+}
+
+/**
+ * Determine the next episode to watch based on watched episodes
+ * Handles season boundaries and missing season data
+ */
+export async function getNextEpisodeToWatch(watchedItem: WatchedItem): Promise<{
+  seasonNumber: number
+  episodeNumber: number
+  formatted: string
+} | null> {
+  // If show is completed, there's no next episode
+  if (watchedItem.status === 'COMPLETED') {
+    return null
+  }
+
+  // If no episodes have been watched yet, start from S1E1
+  if (
+    !watchedItem.watchedEpisodes ||
+    watchedItem.watchedEpisodes.length === 0
+  ) {
+    return {
+      seasonNumber: 1,
+      episodeNumber: 1,
+      formatted: 'S1E1',
+    }
+  }
+
+  // Find the highest watched episode
+  const watchedEpisodes = watchedItem.watchedEpisodes.filter(
+    ep => ep.status === 'WATCHED' || ep.status === 'SKIPPED'
+  )
+
+  if (watchedEpisodes.length === 0) {
+    // If episodes exist but none are watched, start from S1E1
+    return {
+      seasonNumber: 1,
+      episodeNumber: 1,
+      formatted: 'S1E1',
+    }
+  }
+
+  // Sort watched episodes to find the latest one
+  const sortedWatched = [...watchedEpisodes].sort((a, b) => {
+    if (a.seasonNumber !== b.seasonNumber) {
+      return a.seasonNumber - b.seasonNumber
+    }
+    return a.episodeNumber - b.episodeNumber
+  })
+
+  const lastWatched = sortedWatched[sortedWatched.length - 1]
+
+  // Try to find the next unwatched episode
+  let nextSeason = lastWatched.seasonNumber
+  let nextEpisode = lastWatched.episodeNumber + 1
+
+  // Fetch season data if available
+  const showDetails = await tmdb.tvShows.details(watchedItem.tmdbId)
+  const seasonData = showDetails.seasons
+
+  console.log('Season Data:', seasonData)
+
+  // If we have season data, use it to check boundaries
+  if (seasonData && seasonData.length > 0) {
+    const currentSeasonData = seasonData.find(
+      s => s.season_number === lastWatched.seasonNumber
+    )
+
+    if (currentSeasonData) {
+      // Check if we've exceeded the episode count for this season
+      if (nextEpisode > currentSeasonData.episode_count) {
+        // Move to the next season
+        nextSeason = lastWatched.seasonNumber + 1
+        nextEpisode = 1
+
+        // Check if this season exists
+        const nextSeasonData = seasonData.find(
+          s => s.season_number === nextSeason
+        )
+
+        if (!nextSeasonData) {
+          // No more seasons available
+          return null
+        }
+      }
+    } else {
+      // Current season data not found, try to be smart about it
+      // Check if there's a watched episode in a higher season
+      const higherSeasonEpisode = watchedEpisodes.find(
+        ep => ep.seasonNumber > lastWatched.seasonNumber
+      )
+
+      if (higherSeasonEpisode) {
+        // There are watched episodes in later seasons, so current season must be complete
+        nextSeason = lastWatched.seasonNumber + 1
+        nextEpisode = 1
+      }
+    }
+  } else {
+    // No season data available, use heuristics
+    // Check if there's already a watched episode with the next episode number
+    const nextEpisodeExists = watchedEpisodes.some(
+      ep => ep.seasonNumber === nextSeason && ep.episodeNumber === nextEpisode
+    )
+
+    if (nextEpisodeExists) {
+      // Find the next unwatched episode in this season
+      const seasonEpisodes = watchedEpisodes
+        .filter(ep => ep.seasonNumber === nextSeason)
+        .map(ep => ep.episodeNumber)
+        .sort((a, b) => a - b)
+
+      // Find the first gap in episode numbers
+      for (let i = 1; i <= Math.max(...seasonEpisodes) + 1; i++) {
+        if (!seasonEpisodes.includes(i)) {
+          nextEpisode = i
+          break
+        }
+      }
+
+      // If all episodes in this season seem watched, try next season
+      if (nextEpisode > Math.max(...seasonEpisodes) + 1) {
+        nextSeason += 1
+        nextEpisode = 1
+      }
+    }
+
+    // Use totalSeasons to check if we've exceeded available seasons
+    if (watchedItem.totalSeasons && nextSeason > watchedItem.totalSeasons) {
+      return null
+    }
+  }
+
+  const formatted = `S${nextSeason}E${nextEpisode}`
+
+  return {
+    seasonNumber: nextSeason,
+    episodeNumber: nextEpisode,
+    formatted,
+  }
+}
+
+/**
+ * Get the next episode to watch using legacy current episode tracking
+ * Fallback for when watchedEpisodes data is not available
+ */
+export function getNextEpisodeLegacy(
+  watchedItem: WatchedItem
+): { seasonNumber: number; episodeNumber: number; formatted: string } | null {
+  if (watchedItem.status === 'COMPLETED') {
+    return null
+  }
+
+  const currentSeason = watchedItem.currentSeason || 1
+  const currentEpisode = watchedItem.currentEpisode || 0
+
+  return {
+    seasonNumber: currentSeason,
+    episodeNumber: currentEpisode + 1,
+    formatted: `S${currentSeason}E${currentEpisode + 1}`,
+  }
 }

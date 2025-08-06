@@ -1,6 +1,5 @@
 'use client'
-
-import { useState, memo } from 'react'
+import { useState, memo, useEffect } from 'react'
 import { MoreHorizontal, Edit3, RefreshCw, RotateCcw, X } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -37,6 +36,7 @@ import { useStatusActions } from '@/hooks/use-status-actions'
 import { STATUS_CONFIG } from '@/lib/constants/status'
 import { ProgressUpdateDialog } from './progress-update-dialog'
 import { cn } from '@/lib/utils'
+import { getNextEpisodeToWatch } from '@/lib/episode-utils'
 
 interface TVShowCardProps extends WatchedItemCardProps {
   showSeasonProgress?: boolean
@@ -59,6 +59,11 @@ function TVShowCardComponent({
 }: TVShowCardProps) {
   const [isEditingProgress, setIsEditingProgress] = useState(false)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
+  const [nextEpisodeData, setNextEpisodeData] = useState<{
+    seasonNumber: number
+    episodeNumber: number
+    formatted: string
+  } | null>()
 
   const { updateTVShowDetails } = useMedia()
   const {
@@ -120,10 +125,18 @@ function TVShowCardComponent({
     return 'In progress'
   }
 
-  const nextEpisode =
-    item.currentSeason && item.currentEpisode
-      ? `S${item.currentSeason}E${item.currentEpisode + 1}`
-      : 'S1E1'
+  // Use the new function to determine next episode with boundary handling
+  useEffect(() => {
+    const fetchNextEpisode = async () => {
+      if (item.mediaType === 'TV' && item.tmdbId) {
+        const nextEpisodeInfo = await getNextEpisodeToWatch(item)
+
+        setNextEpisodeData(nextEpisodeInfo)
+      }
+    }
+
+    fetchNextEpisode()
+  }, [item])
 
   return (
     <Card
@@ -284,20 +297,27 @@ function TVShowCardComponent({
                       <div className="font-medium">
                         {item.totalSeasons || '?'}
                       </div>
-                      <div className="text-muted-foreground">Seasons</div>
+                      <div className="text-muted-foreground">Total Seasons</div>
                     </div>
                     <div className="text-center">
                       <div className="font-medium">
                         {item.totalEpisodes || '?'}
                       </div>
-                      <div className="text-muted-foreground">Episodes</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-primary">
-                        {nextEpisode}
+                      <div className="text-muted-foreground">
+                        Total Episodes
                       </div>
-                      <div className="text-muted-foreground">Up Next</div>
                     </div>
+                    {nextEpisodeData?.formatted && (
+                      <Link
+                        href={`/tv/${item.tmdbId}/season/${nextEpisodeData.seasonNumber}/episode/${nextEpisodeData.episodeNumber}`}
+                        className="text-center"
+                      >
+                        <div className="font-medium text-primary hover:underline">
+                          {nextEpisodeData.formatted}
+                        </div>
+                        <div className="text-muted-foreground">Up Next</div>
+                      </Link>
+                    )}
                   </div>
 
                   {/* Show refresh button if season/episode data is missing */}
