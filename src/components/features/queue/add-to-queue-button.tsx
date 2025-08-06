@@ -18,7 +18,9 @@ import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 interface AddToQueueButtonProps {
   // Can accept either a WatchedItem or TMDB data
   item?: WatchedItem
-  tmdbItem?: TVWithMediaType | MovieWithMediaType
+  tmdbItem?:
+    | Omit<TVWithMediaType, 'adult' | 'genre_ids'>
+    | Omit<MovieWithMediaType, 'adult' | 'genre_ids'>
 
   // For TV shows, allow specific episode selection
   seasonNumber?: number
@@ -198,7 +200,9 @@ export function AddToQueueButton({
 
 // Helper function to convert TMDB item to WatchedItem format
 function convertTMDBToWatchedItem(
-  tmdbItem: TVWithMediaType | MovieWithMediaType
+  tmdbItem:
+    | Omit<TVWithMediaType, 'adult' | 'genre_ids'>
+    | Omit<MovieWithMediaType, 'adult' | 'genre_ids'>
 ): WatchedItem {
   return {
     id: `tmdb-${tmdbItem.id}`,

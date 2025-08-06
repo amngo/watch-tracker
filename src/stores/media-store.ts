@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import type { WatchedItem } from '@/types'
-import { Movie, MovieWithMediaType, TV, TVWithMediaType } from 'tmdb-ts'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 export interface MediaStats {
   totalItems: number

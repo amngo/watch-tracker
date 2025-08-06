@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import {
@@ -20,7 +19,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { api } from '@/trpc/react'
 import { TVEpisodePageSkeleton } from '@/components/ui/skeletons'
 import { useMedia } from '@/hooks/use-media'
@@ -580,34 +578,6 @@ export default function TVEpisodePage() {
                       Add Episode Note
                     </Link>
                   </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Quick Actions for non-tracked shows */}
-            {!userWatchedItem && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Actions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AddToQueueButton
-                    tmdbItem={{
-                      id: parseInt(tvId),
-                      media_type: 'tv',
-                      name: tvShowDetails?.name || 'Unknown Show',
-                      poster_path: tvShowDetails?.poster_path || '',
-                      first_air_date: tvShowDetails?.first_air_date || '',
-                      overview: tvShowDetails?.overview || '',
-                      vote_average: tvShowDetails?.vote_average || 0,
-                      adult: false,
-                      vote_count: 0,
-                    }}
-                    seasonNumber={seasonNumber}
-                    episodeNumber={episodeNumber}
-                    size="sm"
-                    className="w-full"
-                  />
                 </CardContent>
               </Card>
             )}

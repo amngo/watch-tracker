@@ -626,26 +626,18 @@ export default function TVSeasonPage() {
                             )}
 
                           {/* Queue Action */}
-                          <div className="flex justify-end">
+                          {tvShowDetails && (
                             <AddToQueueButton
                               tmdbItem={{
-                                id: parseInt(tvId),
+                                ...tvShowDetails,
                                 media_type: 'tv',
-                                name: tvShowTitle,
-                                poster_path: tvShowDetails?.poster_path || '',
-                                first_air_date:
-                                  tvShowDetails?.first_air_date || '',
-                                overview: tvShowDetails?.overview || '',
-                                vote_average: tvShowDetails?.vote_average || 0,
-                                adult: false,
-                                vote_count: 0,
                               }}
                               seasonNumber={episode.season_number}
                               episodeNumber={episode.episode_number}
                               size="sm"
                               variant="outline"
                             />
-                          </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
