@@ -588,7 +588,7 @@ export default function TVSeasonPage() {
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <h3 className="text-lg font-semibold mb-1">
-                                <Link 
+                                <Link
                                   href={`/tv/${tvId}/season/${seasonNumber}/episode/${episode.episode_number}`}
                                   className="hover:text-primary transition-colors"
                                 >

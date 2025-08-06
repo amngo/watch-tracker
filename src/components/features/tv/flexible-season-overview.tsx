@@ -27,6 +27,7 @@ import type {
   TMDBTVDetailsExtended,
   EpisodeWatchStatus,
 } from '@/types'
+import { cn } from '@/lib/utils'
 
 interface FlexibleSeasonOverviewProps {
   watchedItem: WatchedItem
@@ -132,7 +133,10 @@ function SeasonCard({
 
   return (
     <Card
-      className={`group transition-all hover:shadow-md ${unwatchedCount === 0 ? 'ring-1 ring-green-200' : ''}`}
+      className={cn(
+        'group transition-all hover:shadow-md p-0',
+        unwatchedCount === 0 && 'ring-1 ring-green-200'
+      )}
     >
       <CardContent className="p-4">
         <div className="flex gap-4">

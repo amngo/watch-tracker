@@ -2,7 +2,10 @@ import { Play } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { TMDBService } from '@/lib/tmdb'
 import { cn } from '@/lib/utils'
-import { EPISODE_STATUS_CONFIG, EPISODE_CONSTANTS } from '@/lib/constants/episode'
+import {
+  EPISODE_STATUS_CONFIG,
+  EPISODE_CONSTANTS,
+} from '@/lib/constants/episode'
 
 import { EpisodeMetadata } from './episode-metadata'
 import { EpisodeStatusBadge } from './episode-status-badge'
@@ -42,7 +45,7 @@ export function EpisodeCardList({
 
   return (
     <Card
-      className={`transition-all hover:shadow-sm ${config.bgColor} ${config.borderColor} border-l-4`}
+      className={`group p-0 transition-all hover:shadow-sm ${config.bgColor} ${config.borderColor} border-l-4`}
     >
       <CardContent className="p-4">
         <div className="flex gap-4">
@@ -69,38 +72,42 @@ export function EpisodeCardList({
           {/* Episode Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <div className={cn('min-w-0 flex-1', config.opacity)}>
+              <div
+                className={cn('min-w-0 flex-1 flex flex-col', config.opacity)}
+              >
                 <h4 className="font-medium text-sm leading-tight mb-1">
                   {episode.episode_number}. {episode.name}
                 </h4>
 
                 <EpisodeMetadata episode={episode} className="mb-2" />
-
-                {episode.overview && (
-                  <EpisodeOverview
-                    overview={episode.overview}
-                    status={status}
-                    globalSpoilersVisible={showSpoilers}
-                    individualSpoilerVisible={individualSpoilerVisible}
-                    onToggleIndividualSpoiler={onToggleIndividualSpoiler}
-                    className="line-clamp-2 leading-relaxed"
-                  />
-                )}
+                <EpisodeStatusBadge status={status} className="mb-2" />
               </div>
 
-              {/* Status & Actions */}
+              {/* Actions */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <EpisodeStatusBadge status={status} />
-                <EpisodeActions
-                  status={status}
-                  onStatusChange={onStatusChange}
-                  variant="list"
-                  episode={episode}
-                  watchedItem={watchedItem}
-                  showQueueButton={showQueueButton}
-                />
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <EpisodeActions
+                    status={status}
+                    onStatusChange={onStatusChange}
+                    variant="list"
+                    episode={episode}
+                    watchedItem={watchedItem}
+                    showQueueButton={showQueueButton}
+                  />
+                </div>
               </div>
             </div>
+
+            {episode.overview && (
+              <EpisodeOverview
+                overview={episode.overview}
+                status={status}
+                globalSpoilersVisible={showSpoilers}
+                individualSpoilerVisible={individualSpoilerVisible}
+                onToggleIndividualSpoiler={onToggleIndividualSpoiler}
+                className="line-clamp-2 leading-relaxed"
+              />
+            )}
           </div>
         </div>
       </CardContent>

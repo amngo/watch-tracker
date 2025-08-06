@@ -57,8 +57,6 @@ interface FlexibleEpisodeTrackerProps {
   className?: string
 }
 
-
-
 export function FlexibleEpisodeTracker({
   watchedItem,
   seasonDetails,
@@ -66,7 +64,6 @@ export function FlexibleEpisodeTracker({
   onBulkUpdateEpisodes,
   className,
 }: FlexibleEpisodeTrackerProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [showSpoilers, setShowSpoilers] = useState(false)
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false)
@@ -90,23 +87,26 @@ export function FlexibleEpisodeTracker({
   }, [])
 
   // Custom hooks for state management
-  const {
-    getEpisodeSpoilerVisible,
-    toggleEpisodeSpoiler,
-  } = useEpisodeSpoilerState(watchedItem.id)
+  const { getEpisodeSpoilerVisible, toggleEpisodeSpoiler } =
+    useEpisodeSpoilerState(watchedItem.id)
 
   const {
     getEpisodeStatus,
     handleEpisodeStatusChange,
     handleBulkAction: handleBulkActionHook,
     calculateSeasonProgress,
-  } = useEpisodeActions(watchedItem, onUpdateEpisodeStatus, onBulkUpdateEpisodes)
+  } = useEpisodeActions(
+    watchedItem,
+    onUpdateEpisodeStatus,
+    onBulkUpdateEpisodes
+  )
 
   // Calculate season progress based on watched episodes
   const { watchedCount, skippedCount, totalCount, remainingCount, progress } =
-    useMemo(() => 
-      calculateSeasonProgress(seasonDetails.episodes, seasonNumber),
-    [calculateSeasonProgress, seasonDetails.episodes, seasonNumber])
+    useMemo(
+      () => calculateSeasonProgress(seasonDetails.episodes, seasonNumber),
+      [calculateSeasonProgress, seasonDetails.episodes, seasonNumber]
+    )
 
   const handleBulkAction = (action: EpisodeWatchStatus) => {
     handleBulkActionHook(selectedEpisodes, seasonNumber, action)
@@ -137,17 +137,9 @@ export function FlexibleEpisodeTracker({
   return (
     <div className={className}>
       <Card>
-        <CardHeader
-          className="cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
+        <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
               <CardTitle className="text-lg">{seasonDetails.name}</CardTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">{watchedCount} watched</Badge>
@@ -170,7 +162,9 @@ export function FlexibleEpisodeTracker({
                   size="sm"
                   onClick={e => e.stopPropagation()}
                   title={`${showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'} (Ctrl+S)`}
-                  aria-label={showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'}
+                  aria-label={
+                    showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'
+                  }
                 >
                   {showSpoilers ? (
                     <EyeOff className="h-4 w-4" />
@@ -302,79 +296,89 @@ export function FlexibleEpisodeTracker({
           <Progress value={progress} className="h-2" />
         </CardHeader>
 
-        {isExpanded && (
-          <CardContent className="pt-0">
-            {/* Progress Summary */}
-            <div className="mb-4 p-3 bg-muted/30 rounded-lg">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-lg font-semibold text-green-600">
-                    {watchedCount}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Watched</div>
+        <CardContent className="pt-0">
+          {/* Progress Summary */}
+          <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-lg font-semibold text-green-600">
+                  {watchedCount}
                 </div>
-                {skippedCount > 0 && (
-                  <div>
-                    <div className="text-lg font-semibold text-orange-600">
-                      {skippedCount}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Skipped</div>
-                  </div>
-                )}
+                <div className="text-xs text-muted-foreground">Watched</div>
+              </div>
+              {skippedCount > 0 && (
                 <div>
-                  <div className="text-lg font-semibold">
-                    {remainingCount}
+                  <div className="text-lg font-semibold text-orange-600">
+                    {skippedCount}
                   </div>
-                  <div className="text-xs text-muted-foreground">Remaining</div>
+                  <div className="text-xs text-muted-foreground">Skipped</div>
                 </div>
+              )}
+              <div>
+                <div className="text-lg font-semibold">{remainingCount}</div>
+                <div className="text-xs text-muted-foreground">Remaining</div>
               </div>
             </div>
+          </div>
 
-            {/* Episodes Grid/List */}
-            <div
-              className={`gap-4 ${viewMode === 'grid' ? `grid ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.base} ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.md} ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.lg}` : 'space-y-3'}`}
-            >
-              {seasonDetails.episodes.map(episode => {
-                const episodeStatus = getEpisodeStatus(seasonNumber, episode.episode_number)
-                const individualSpoilerVisible = getEpisodeSpoilerVisible(seasonNumber, episode.episode_number)
+          {/* Episodes Grid/List */}
+          <div
+            className={`gap-4 ${viewMode === 'grid' ? `grid ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.base} ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.md} ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.lg}` : 'space-y-3'}`}
+          >
+            {seasonDetails.episodes.map(episode => {
+              const episodeStatus = getEpisodeStatus(
+                seasonNumber,
+                episode.episode_number
+              )
+              const individualSpoilerVisible = getEpisodeSpoilerVisible(
+                seasonNumber,
+                episode.episode_number
+              )
 
-                return viewMode === 'grid' ? (
-                  <EpisodeCardGrid
-                    key={episode.id}
-                    episode={episode}
-                    status={episodeStatus}
-                    showSpoilers={showSpoilers}
-                    individualSpoilerVisible={individualSpoilerVisible}
-                    onStatusChange={status =>
-                      handleEpisodeStatusChange(seasonNumber, episode.episode_number, status)
-                    }
-                    onToggleIndividualSpoiler={() => 
-                      toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
-                    }
-                    watchedItem={watchedItem}
-                    showQueueButton={true}
-                  />
-                ) : (
-                  <EpisodeCardList
-                    key={episode.id}
-                    episode={episode}
-                    status={episodeStatus}
-                    showSpoilers={showSpoilers}
-                    individualSpoilerVisible={individualSpoilerVisible}
-                    onStatusChange={status =>
-                      handleEpisodeStatusChange(seasonNumber, episode.episode_number, status)
-                    }
-                    onToggleIndividualSpoiler={() => 
-                      toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
-                    }
-                    watchedItem={watchedItem}
-                    showQueueButton={true}
-                  />
-                )
-              })}
-            </div>
-          </CardContent>
-        )}
+              return viewMode === 'grid' ? (
+                <EpisodeCardGrid
+                  key={episode.id}
+                  episode={episode}
+                  status={episodeStatus}
+                  showSpoilers={showSpoilers}
+                  individualSpoilerVisible={individualSpoilerVisible}
+                  onStatusChange={status =>
+                    handleEpisodeStatusChange(
+                      seasonNumber,
+                      episode.episode_number,
+                      status
+                    )
+                  }
+                  onToggleIndividualSpoiler={() =>
+                    toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
+                  }
+                  watchedItem={watchedItem}
+                  showQueueButton={true}
+                />
+              ) : (
+                <EpisodeCardList
+                  key={episode.id}
+                  episode={episode}
+                  status={episodeStatus}
+                  showSpoilers={showSpoilers}
+                  individualSpoilerVisible={individualSpoilerVisible}
+                  onStatusChange={status =>
+                    handleEpisodeStatusChange(
+                      seasonNumber,
+                      episode.episode_number,
+                      status
+                    )
+                  }
+                  onToggleIndividualSpoiler={() =>
+                    toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
+                  }
+                  watchedItem={watchedItem}
+                  showQueueButton={true}
+                />
+              )
+            })}
+          </div>
+        </CardContent>
       </Card>
     </div>
   )

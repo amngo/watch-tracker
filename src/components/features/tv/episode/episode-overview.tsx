@@ -21,10 +21,8 @@ export function EpisodeOverview({
   onToggleIndividualSpoiler,
   className = '',
 }: EpisodeOverviewProps) {
-  const shouldShowSpoilers = 
-    status === 'WATCHED' || 
-    globalSpoilersVisible || 
-    individualSpoilerVisible
+  const shouldShowSpoilers =
+    status === 'WATCHED' || globalSpoilersVisible || individualSpoilerVisible
 
   const showToggle = status !== 'WATCHED'
 

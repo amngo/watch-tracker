@@ -2,7 +2,10 @@ import { Play } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { TMDBService } from '@/lib/tmdb'
 import { cn } from '@/lib/utils'
-import { EPISODE_STATUS_CONFIG, EPISODE_CONSTANTS } from '@/lib/constants/episode'
+import {
+  EPISODE_STATUS_CONFIG,
+  EPISODE_CONSTANTS,
+} from '@/lib/constants/episode'
 
 import { EpisodeMetadata } from './episode-metadata'
 import { EpisodeStatusBadge } from './episode-status-badge'
