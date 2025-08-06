@@ -5,12 +5,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EpisodeItem } from './episode/episode-item'
 import { SeasonProgressHeader } from './episode/season-progress-header'
 import { NextEpisodeBanner } from './episode/next-episode-banner'
-import type { WatchedItem, TMDBSeasonDetailsItem } from '@/types'
+import type { WatchedItem } from '@/types'
+import { SeasonDetails } from 'tmdb-ts'
 
 interface EpisodeTrackerProps {
   watchedItem: WatchedItem
-  seasonDetails: TMDBSeasonDetailsItem
-  onUpdateProgress: (data: { currentSeason: number; currentEpisode: number }) => void
+  seasonDetails: SeasonDetails
+  onUpdateProgress: (data: {
+    currentSeason: number
+    currentEpisode: number
+  }) => void
   className?: string
 }
 
@@ -28,11 +32,14 @@ export function EpisodeTracker({
 
   // Calculate progress for this season
   const isSeasonCompleted = currentSeason > seasonNumber
-  const watchedEpisodesInSeason = isSeasonCompleted 
-    ? seasonDetails.episodes.length 
-    : (currentSeason === seasonNumber ? currentEpisode : 0)
-  
-  const seasonProgress = (watchedEpisodesInSeason / seasonDetails.episodes.length) * 100
+  const watchedEpisodesInSeason = isSeasonCompleted
+    ? seasonDetails.episodes.length
+    : currentSeason === seasonNumber
+      ? currentEpisode
+      : 0
+
+  const seasonProgress =
+    (watchedEpisodesInSeason / seasonDetails.episodes.length) * 100
 
   const isEpisodeWatched = (episodeNumber: number): boolean => {
     if (currentSeason > seasonNumber) return true
@@ -58,8 +65,8 @@ export function EpisodeTracker({
     })
   }
 
-  const nextEpisodeToWatch = seasonDetails.episodes.find(ep => 
-    !isEpisodeWatched(ep.episode_number)
+  const nextEpisodeToWatch = seasonDetails.episodes.find(
+    ep => !isEpisodeWatched(ep.episode_number)
   )
 
   return (
@@ -85,7 +92,7 @@ export function EpisodeTracker({
             )}
 
             <div className="space-y-2">
-              {seasonDetails.episodes.map((episode) => (
+              {seasonDetails.episodes.map(episode => (
                 <EpisodeItem
                   key={episode.id}
                   episode={episode}
@@ -101,7 +108,8 @@ export function EpisodeTracker({
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Season Progress</span>
                 <span className="font-medium">
-                  {watchedEpisodesInSeason} of {seasonDetails.episodes.length} episodes watched
+                  {watchedEpisodesInSeason} of {seasonDetails.episodes.length}{' '}
+                  episodes watched
                 </span>
               </div>
             </div>

@@ -13,16 +13,20 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { QuickEditForm } from './quick-edit-form'
-import type { TMDBSeasonDetailsItem, WatchedItem } from '@/types'
+import type { WatchedItem } from '@/types'
+import { SeasonDetails } from 'tmdb-ts'
 
 interface SeasonProgressHeaderProps {
-  seasonDetails: TMDBSeasonDetailsItem
+  seasonDetails: SeasonDetails
   watchedItem: WatchedItem
   isExpanded: boolean
   watchedEpisodesInSeason: number
   seasonProgress: number
   onToggleExpanded: () => void
-  onUpdateProgress: (data: { currentSeason: number; currentEpisode: number }) => void
+  onUpdateProgress: (data: {
+    currentSeason: number
+    currentEpisode: number
+  }) => void
 }
 
 export function SeasonProgressHeader({
@@ -37,7 +41,7 @@ export function SeasonProgressHeader({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   return (
-    <CardHeader 
+    <CardHeader
       className="cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={onToggleExpanded}
     >
@@ -48,31 +52,32 @@ export function SeasonProgressHeader({
           ) : (
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           )}
-          <CardTitle className="text-lg">
-            {seasonDetails.name}
-          </CardTitle>
+          <CardTitle className="text-lg">{seasonDetails.name}</CardTitle>
           <Badge variant="outline">
             {watchedEpisodesInSeason}/{seasonDetails.episodes.length} episodes
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{Math.round(seasonProgress)}%</span>
+          <span className="text-sm font-medium">
+            {Math.round(seasonProgress)}%
+          </span>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
               >
                 <Edit3 className="h-4 w-4 mr-1" />
                 Quick Edit
               </Button>
             </DialogTrigger>
-            <DialogContent onClick={(e) => e.stopPropagation()}>
+            <DialogContent onClick={e => e.stopPropagation()}>
               <DialogHeader>
                 <DialogTitle>Update Progress</DialogTitle>
                 <DialogDescription>
-                  Set your current season and episode progress for {watchedItem.title}
+                  Set your current season and episode progress for{' '}
+                  {watchedItem.title}
                 </DialogDescription>
               </DialogHeader>
               <QuickEditForm

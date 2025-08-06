@@ -1,11 +1,11 @@
 'use client'
 import { PageTransition } from '@/components/common/page-transition'
-import { Breadcrumb } from '@/components/common/breadcrumb'
 import { Notifications } from '@/components/common/notifications'
 import { UserButton } from '@clerk/nextjs'
 import type { DashboardLayoutProps } from '@/types'
 import { SidebarProvider, SidebarTrigger } from '../ui/sidebar'
 import { AppSidebar } from './app-sidebar'
+import { Breadcrumb } from '../common/breadcrumb'
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (

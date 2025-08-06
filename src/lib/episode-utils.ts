@@ -1,7 +1,5 @@
 import type { WatchedItem, EpisodeWatchStatus } from '@/types'
-import { TMDBService } from './tmdb'
-
-const tmdb = new TMDBService()
+import { tmdb } from './tmdb'
 
 export interface EpisodeInfo {
   seasonNumber: number
@@ -24,13 +22,19 @@ export function calculateFlexibleProgress(
   if (watchedItem.mediaType === 'MOVIE') {
     // For movies, use existing runtime-based calculation
     if (watchedItem.currentRuntime && watchedItem.totalRuntime) {
-      return Math.min((watchedItem.currentRuntime / watchedItem.totalRuntime) * 100, 100)
+      return Math.min(
+        (watchedItem.currentRuntime / watchedItem.totalRuntime) * 100,
+        100
+      )
     }
     return watchedItem.status === 'COMPLETED' ? 100 : 0
   }
 
   // For TV shows, calculate based on watched episodes
-  if (!watchedItem.watchedEpisodes || watchedItem.watchedEpisodes.length === 0) {
+  if (
+    !watchedItem.watchedEpisodes ||
+    watchedItem.watchedEpisodes.length === 0
+  ) {
     // Fallback to legacy calculation
     if (watchedItem.currentEpisode && totalEpisodes) {
       return Math.min((watchedItem.currentEpisode / totalEpisodes) * 100, 100)
@@ -39,14 +43,14 @@ export function calculateFlexibleProgress(
   }
 
   // Count watched and skipped episodes
-  const watchedCount = watchedItem.watchedEpisodes.filter(ep => 
-    ep.status === 'WATCHED' || ep.status === 'SKIPPED'
+  const watchedCount = watchedItem.watchedEpisodes.filter(
+    ep => ep.status === 'WATCHED' || ep.status === 'SKIPPED'
   ).length
 
   const total = totalEpisodes || watchedItem.totalEpisodes || 0
-  
+
   if (total === 0) return 0
-  
+
   return Math.min((watchedCount / total) * 100, 100)
 }
 
@@ -82,7 +86,7 @@ export function calculateSeasonProgress(
       watchedCount: 0,
       skippedCount: 0,
       unwatchedCount: totalEpisodesInSeason,
-      progressPercentage: 0
+      progressPercentage: 0,
     }
   }
 
@@ -90,19 +94,24 @@ export function calculateSeasonProgress(
     ep => ep.seasonNumber === seasonNumber
   )
 
-  const watchedCount = seasonEpisodes.filter(ep => ep.status === 'WATCHED').length
-  const skippedCount = seasonEpisodes.filter(ep => ep.status === 'SKIPPED').length
+  const watchedCount = seasonEpisodes.filter(
+    ep => ep.status === 'WATCHED'
+  ).length
+  const skippedCount = seasonEpisodes.filter(
+    ep => ep.status === 'SKIPPED'
+  ).length
   const unwatchedCount = totalEpisodesInSeason - watchedCount - skippedCount
 
-  const progressPercentage = totalEpisodesInSeason > 0 
-    ? ((watchedCount + skippedCount) / totalEpisodesInSeason) * 100 
-    : 0
+  const progressPercentage =
+    totalEpisodesInSeason > 0
+      ? ((watchedCount + skippedCount) / totalEpisodesInSeason) * 100
+      : 0
 
   return {
     watchedCount,
     skippedCount,
     unwatchedCount,
-    progressPercentage
+    progressPercentage,
   }
 }
 
@@ -116,15 +125,21 @@ export function getNextUnwatchedEpisode(
   if (!watchedItem.watchedEpisodes || !allSeasons.length) return null
 
   // Sort seasons by number
-  const sortedSeasons = allSeasons.sort((a, b) => a.season_number - b.season_number)
+  const sortedSeasons = allSeasons.sort(
+    (a, b) => a.season_number - b.season_number
+  )
 
   for (const season of sortedSeasons) {
     for (let episodeNum = 1; episodeNum <= season.episode_count; episodeNum++) {
-      const status = getEpisodeStatus(watchedItem, season.season_number, episodeNum)
+      const status = getEpisodeStatus(
+        watchedItem,
+        season.season_number,
+        episodeNum
+      )
       if (status === 'UNWATCHED') {
         return {
           seasonNumber: season.season_number,
-          episodeNumber: episodeNum
+          episodeNumber: episodeNum,
         }
       }
     }
@@ -143,7 +158,11 @@ export function isSeasonCompleted(
 ): boolean {
   if (!watchedItem.watchedEpisodes) return false
 
-  const seasonProgress = calculateSeasonProgress(watchedItem, seasonNumber, totalEpisodesInSeason)
+  const seasonProgress = calculateSeasonProgress(
+    watchedItem,
+    seasonNumber,
+    totalEpisodesInSeason
+  )
   return seasonProgress.unwatchedCount === 0
 }
 
@@ -161,8 +180,11 @@ export function getShowStatistics(
   completedSeasons: number
   overallProgress: number
 } {
-  const totalEpisodes = allSeasons.reduce((sum, season) => sum + season.episode_count, 0)
-  
+  const totalEpisodes = allSeasons.reduce(
+    (sum, season) => sum + season.episode_count,
+    0
+  )
+
   if (!watchedItem.watchedEpisodes) {
     return {
       totalEpisodes,
@@ -170,21 +192,26 @@ export function getShowStatistics(
       skippedEpisodes: 0,
       unwatchedEpisodes: totalEpisodes,
       completedSeasons: 0,
-      overallProgress: 0
+      overallProgress: 0,
     }
   }
 
-  const watchedEpisodes = watchedItem.watchedEpisodes.filter(ep => ep.status === 'WATCHED').length
-  const skippedEpisodes = watchedItem.watchedEpisodes.filter(ep => ep.status === 'SKIPPED').length
+  const watchedEpisodes = watchedItem.watchedEpisodes.filter(
+    ep => ep.status === 'WATCHED'
+  ).length
+  const skippedEpisodes = watchedItem.watchedEpisodes.filter(
+    ep => ep.status === 'SKIPPED'
+  ).length
   const unwatchedEpisodes = totalEpisodes - watchedEpisodes - skippedEpisodes
 
-  const completedSeasons = allSeasons.filter(season => 
+  const completedSeasons = allSeasons.filter(season =>
     isSeasonCompleted(watchedItem, season.season_number, season.episode_count)
   ).length
 
-  const overallProgress = totalEpisodes > 0 
-    ? ((watchedEpisodes + skippedEpisodes) / totalEpisodes) * 100 
-    : 0
+  const overallProgress =
+    totalEpisodes > 0
+      ? ((watchedEpisodes + skippedEpisodes) / totalEpisodes) * 100
+      : 0
 
   return {
     totalEpisodes,
@@ -192,7 +219,7 @@ export function getShowStatistics(
     skippedEpisodes,
     unwatchedEpisodes,
     completedSeasons,
-    overallProgress
+    overallProgress,
   }
 }
 
@@ -205,21 +232,25 @@ export async function getEpisodeName(
   episodeNumber: number
 ): Promise<string | null> {
   const cacheKey = `${tmdbId}-${seasonNumber}-${episodeNumber}`
-  
+
   // Check cache first
   if (episodeNameCache.has(cacheKey)) {
     return episodeNameCache.get(cacheKey) || null
   }
 
   try {
-    const episodeDetails = await tmdb.getTVEpisodeDetails(tmdbId, seasonNumber, episodeNumber)
+    const episodeDetails = await tmdb.tvEpisode.details({
+      tvShowID: tmdbId,
+      seasonNumber,
+      episodeNumber,
+    })
     const episodeName = episodeDetails.name
-    
+
     // Cache the result
     if (episodeName) {
       episodeNameCache.set(cacheKey, episodeName)
     }
-    
+
     return episodeName
   } catch (error) {
     console.warn(`Failed to fetch episode name for ${cacheKey}:`, error)
@@ -236,11 +267,11 @@ export function formatEpisodeDisplay(
   episodeName?: string | null
 ): string {
   const episodeCode = `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`
-  
+
   if (episodeName) {
     return `${episodeCode}: ${episodeName}`
   }
-  
+
   return episodeCode
 }
 
@@ -255,6 +286,6 @@ export function formatEpisodeReference(
   if (episodeName) {
     return `${episodeName} (S${seasonNumber}E${episodeNumber})`
   }
-  
+
   return `Season ${seasonNumber}, Episode ${episodeNumber}`
 }

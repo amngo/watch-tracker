@@ -14,33 +14,30 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { MediaSearch } from '@/components/features/search/media-search'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
-import { useUI } from '@/hooks/use-ui'
-import { TMDBService } from '@/lib/tmdb'
 import Link from 'next/link'
-import type { TMDBMovieDetailsExtended, TMDBMediaItem } from '@/types'
+import {
+  AppendToResponse,
+  getFullImagePath,
+  MovieDetails,
+  MovieWithMediaType,
+} from 'tmdb-ts'
 
 export default function MovieDetailPage() {
   const params = useParams()
   const movieId = params.id as string
-  const [movieDetails, setMovieDetails] =
-    useState<TMDBMovieDetailsExtended | null>(null)
+  const [movieDetails, setMovieDetails] = useState<AppendToResponse<
+    MovieDetails,
+    'credits'[],
+    'movie'
+  > | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const { watchedItems, stats, addMedia, setStats, setStatsLoading } =
     useMedia()
-
-  const { isSearchModalOpen, openSearchModal, closeSearchModal } = useUI()
 
   // Fetch user stats
   const { data: statsData, isLoading: statsDataLoading } =
@@ -64,7 +61,7 @@ export default function MovieDetailPage() {
     data: movieDetailsData,
     isLoading: detailsLoading,
     error: detailsError,
-  } = api.search.detailsExtended.useQuery(
+  } = api.search.details.useQuery(
     {
       id: parseInt(movieId),
       type: 'movie',
@@ -76,7 +73,7 @@ export default function MovieDetailPage() {
 
   useEffect(() => {
     if (movieDetailsData) {
-      setMovieDetails(movieDetailsData as TMDBMovieDetailsExtended)
+      setMovieDetails(movieDetailsData)
       setIsLoading(false)
     }
   }, [movieDetailsData])
@@ -92,9 +89,11 @@ export default function MovieDetailPage() {
     setIsLoading(detailsLoading)
   }, [detailsLoading])
 
-  const handleAddToWatchlist = async (media: TMDBMediaItem) => {
-    await addMedia(media)
-    closeSearchModal()
+  const handleAddToWatchlist = async (media: MovieDetails) => {
+    await addMedia({
+      ...media,
+      media_type: 'movie',
+    } as unknown as MovieWithMediaType)
   }
 
   const formatRuntime = (minutes: number | null): string => {
@@ -161,20 +160,24 @@ export default function MovieDetailPage() {
     )
   }
 
-  const backdropUrl = movieDetails.backdrop_path
-    ? TMDBService.getBackdropUrl(movieDetails.backdrop_path, 'w1280')
-    : null
+  const backdropUrl = getFullImagePath(
+    'https://image.tmdb.org/t/p/',
+    'w1280',
+    movieDetails.backdrop_path
+  )
 
-  const posterUrl = movieDetails.poster_path
-    ? TMDBService.getPosterUrl(movieDetails.poster_path, 'w500')
-    : null
+  const posterUrl = getFullImagePath(
+    'https://image.tmdb.org/t/p/',
+    'w500',
+    movieDetails.poster_path || ''
+  )
 
-  const mainCast = movieDetails.credits?.cast.slice(0, 8) || []
-  const director = movieDetails.credits?.crew.find(
+  const mainCast = movieDetails.credits.cast.slice(0, 8) || []
+  const director = movieDetails.credits.crew.find(
     member => member.job === 'Director'
   )
   const writers =
-    movieDetails.credits?.crew
+    movieDetails.credits.crew
       .filter(
         member =>
           member.job === 'Writer' ||
@@ -195,21 +198,10 @@ export default function MovieDetailPage() {
             </Link>
           </Button>
 
-          <Dialog
-            open={isSearchModalOpen}
-            onOpenChange={open => !open && closeSearchModal()}
-          >
-            <Button onClick={openSearchModal}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add to Watchlist
-            </Button>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Search & Add Media</DialogTitle>
-              </DialogHeader>
-              <MediaSearch onAddMedia={handleAddToWatchlist} />
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => handleAddToWatchlist(movieDetails)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add to Watchlist
+          </Button>
         </div>
 
         {/* Hero Section */}
@@ -414,9 +406,10 @@ export default function MovieDetailPage() {
                       <div className="relative rounded-lg overflow-hidden w-16 h-24">
                         <img
                           src={
-                            TMDBService.getPosterUrl(
-                              castMember.profile_path,
-                              'w185'
+                            getFullImagePath(
+                              'https://image.tmdb.org/t/p/',
+                              'w185',
+                              castMember.profile_path
                             ) || ''
                           }
                           alt={castMember.name}
@@ -455,21 +448,6 @@ export default function MovieDetailPage() {
                 {movieDetails.production_companies.map(company => (
                   <Card key={company.id} className="p-0">
                     <CardContent className="p-4 flex flex-col items-center">
-                      {/* {company.logo_path && (
-                        <div className="relative overflow-hidden">
-                          <img
-                            src={
-                              TMDBService.getImageUrl(
-                                company.logo_path,
-                                'original'
-                              ) || ''
-                            }
-                            alt={company.name}
-                            className="object-contain"
-                          />
-                        </div>
-                      )} */}
-
                       <h4 className="font-medium mt-2">{company.name}</h4>
                       <p className="text-sm text-muted-foreground">
                         {company.origin_country}

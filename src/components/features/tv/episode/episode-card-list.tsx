@@ -1,6 +1,5 @@
 import { Play } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { TMDBService } from '@/lib/tmdb'
 import { cn } from '@/lib/utils'
 import {
   EPISODE_STATUS_CONFIG,
@@ -12,11 +11,12 @@ import { EpisodeStatusBadge } from './episode-status-badge'
 import { EpisodeOverview } from './episode-overview'
 import { EpisodeActions } from './episode-actions'
 
-import type { TMDBEpisodeItem, EpisodeWatchStatus, WatchedItem } from '@/types'
+import type { EpisodeWatchStatus, WatchedItem } from '@/types'
 import Link from 'next/link'
+import { Episode, getFullImagePath } from 'tmdb-ts'
 
 interface EpisodeCardListProps {
-  episode: TMDBEpisodeItem
+  episode: Episode
   status: EpisodeWatchStatus
   showSpoilers: boolean
   individualSpoilerVisible: boolean
@@ -40,9 +40,11 @@ export function EpisodeCardList({
   showQueueButton = true,
 }: EpisodeCardListProps) {
   const config = EPISODE_STATUS_CONFIG[status]
-  const stillUrl = episode.still_path
-    ? TMDBService.getImageUrl(episode.still_path, EPISODE_CONSTANTS.IMAGE_SIZE)
-    : null
+  const stillUrl = getFullImagePath(
+    'https://image.tmdb.org/t/p/',
+    EPISODE_CONSTANTS.IMAGE_SIZE,
+    episode.still_path
+  )
 
   return (
     <Card

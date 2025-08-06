@@ -21,12 +21,12 @@ import {
 import { MediaCardSkeleton } from '@/components/ui/skeletons'
 import { MediaResultCard } from './media-result-card'
 import { ActiveFilters } from './active-filters'
-import type { TMDBMediaItem } from '@/types'
 import type { FilterState, SortOption, SortDirection } from '@/types/search'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 interface SearchResultsProps {
   query: string
-  results: TMDBMediaItem[]
+  results: TVWithMediaType[] | MovieWithMediaType[]
   isLoading: boolean
   error: string | null
   appliedFilters: FilterState
@@ -37,8 +37,9 @@ interface SearchResultsProps {
   onApplyFilters: () => void
   getActiveFilterCount: () => number
   onUpdateAppliedSort: (sortBy: SortOption, direction?: SortDirection) => void
-  onAddMedia: (media: TMDBMediaItem) => Promise<void>
-  isItemInWatchlist: (id: number, mediaType: 'movie' | 'tv') => boolean
+  onAddMedia: (media: TVWithMediaType | MovieWithMediaType) => Promise<void>
+  isItemInWatchlist: (id: number) => boolean
+  mediaType: 'movie' | 'tv'
 }
 
 export function SearchResults({
@@ -47,6 +48,7 @@ export function SearchResults({
   isLoading,
   error,
   appliedFilters,
+  mediaType,
   onUpdateFilter,
   onApplyFilters,
   getActiveFilterCount,
@@ -135,10 +137,7 @@ export function SearchResults({
         ) : results.length > 0 ? (
           <div className="grid gap-4">
             {results.map(media => {
-              const isInWatchlist = isItemInWatchlist(
-                media.id,
-                media.media_type
-              )
+              const isInWatchlist = isItemInWatchlist(media.id)
               return (
                 <MediaResultCard
                   key={media.id}

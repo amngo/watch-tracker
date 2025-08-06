@@ -21,22 +21,27 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
-import type { Note, WatchedItem, TMDBTVDetailsExtended } from '@/types'
+import type { Note, WatchedItem } from '@/types'
+import { AppendToResponse, TvShowDetails } from 'tmdb-ts'
 
 export default function TVNotesPage() {
   const params = useParams()
   const tvId = params.id as string
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false)
   const [noteType, setNoteType] = useState<'GENERAL' | 'EPISODE'>('GENERAL')
-  const [tvDetails, setTvDetails] = useState<TMDBTVDetailsExtended | null>(null)
+  const [tvDetails, setTvDetails] = useState<AppendToResponse<
+    TvShowDetails,
+    'credits'[],
+    'tvShow'
+  > | null>(null)
 
-  const { 
-    watchedItems, 
-    stats, 
-    setStats, 
-    setStatsLoading, 
-    setWatchedItems, 
-    setItemsLoading 
+  const {
+    watchedItems,
+    stats,
+    setStats,
+    setStatsLoading,
+    setWatchedItems,
+    setItemsLoading,
   } = useMedia()
 
   // Fetch user stats
@@ -59,7 +64,7 @@ export default function TVNotesPage() {
     data: tvDetailsData,
     isLoading: detailsLoading,
     error: detailsError,
-  } = api.search.detailsExtended.useQuery(
+  } = api.search.tvDetails.useQuery(
     {
       id: parseInt(tvId),
       type: 'tv',
@@ -150,7 +155,7 @@ export default function TVNotesPage() {
 
   useEffect(() => {
     if (tvDetailsData) {
-      setTvDetails(tvDetailsData as TMDBTVDetailsExtended)
+      setTvDetails(tvDetailsData)
     }
   }, [tvDetailsData])
 
@@ -167,12 +172,12 @@ export default function TVNotesPage() {
 
   const formatTimestamp = (timestamp: string | null) => {
     if (!timestamp) return null
-    
+
     // For TV shows, timestamp can be:
     // "S02E05" - episode reference
     // "S02E05 12:34" - episode with time
     // "12:34" - just time (for current episode context)
-    
+
     const episodeMatch = timestamp.match(/^S(\d+)E(\d+)(?:\s+(.+))?$/)
     if (episodeMatch) {
       const [, season, episode, time] = episodeMatch
@@ -182,17 +187,22 @@ export default function TVNotesPage() {
         return `S${season}E${episode}`
       }
     }
-    
+
     // If it's just a time format, return it as is
     const timeMatch = timestamp.match(/^\d+:\d+(?::\d+)?$/)
     if (timeMatch) {
       return timestamp
     }
-    
+
     return timestamp
   }
 
-  if (detailsLoading || generalNotesLoading || episodeNotesLoading || watchedItemsLoading) {
+  if (
+    detailsLoading ||
+    generalNotesLoading ||
+    episodeNotesLoading ||
+    watchedItemsLoading
+  ) {
     return (
       <DashboardLayout stats={stats || undefined}>
         <div className="space-y-8">
@@ -225,7 +235,9 @@ export default function TVNotesPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">TV show not found</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  TV show not found
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   Unable to load TV show details
                 </p>
@@ -255,7 +267,9 @@ export default function TVNotesPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">TV show not in watchlist</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  TV show not in watchlist
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   Add this TV show to your watchlist to create notes
                 </p>
@@ -274,16 +288,19 @@ export default function TVNotesPage() {
   const episodeNotes = episodeNotesData?.notes || []
 
   // Group episode notes by season and episode
-  const groupedEpisodeNotes = episodeNotes.reduce((acc, note) => {
-    if (note.seasonNumber && note.episodeNumber) {
-      const key = `S${note.seasonNumber}E${note.episodeNumber}`
-      if (!acc[key]) {
-        acc[key] = []
+  const groupedEpisodeNotes = episodeNotes.reduce(
+    (acc, note) => {
+      if (note.seasonNumber && note.episodeNumber) {
+        const key = `S${note.seasonNumber}E${note.episodeNumber}`
+        if (!acc[key]) {
+          acc[key] = []
+        }
+        acc[key].push(note)
       }
-      acc[key].push(note)
-    }
-    return acc
-  }, {} as Record<string, Note[]>)
+      return acc
+    },
+    {} as Record<string, Note[]>
+  )
 
   return (
     <DashboardLayout stats={stats || undefined}>
@@ -349,11 +366,14 @@ export default function TVNotesPage() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No general notes yet</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No general notes yet
+                  </h3>
                   <p className="text-muted-foreground mb-4 text-center">
-                    Add notes about the show in general, your thoughts, or overall reactions
+                    Add notes about the show in general, your thoughts, or
+                    overall reactions
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setNoteType('GENERAL')
                       setIsAddNoteModalOpen(true)
@@ -384,7 +404,9 @@ export default function TVNotesPage() {
                         <CardTitle className="flex items-center gap-2">
                           <Tv className="h-4 w-4" />
                           {episodeKey}
-                          <Badge variant="outline">{notes.length} note{notes.length > 1 ? 's' : ''}</Badge>
+                          <Badge variant="outline">
+                            {notes.length} note{notes.length > 1 ? 's' : ''}
+                          </Badge>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -404,11 +426,13 @@ export default function TVNotesPage() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Tv className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No episode notes yet</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No episode notes yet
+                  </h3>
                   <p className="text-muted-foreground mb-4 text-center">
                     Add notes about specific episodes, scenes, or moments
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setNoteType('EPISODE')
                       setIsAddNoteModalOpen(true)

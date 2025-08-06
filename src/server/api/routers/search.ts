@@ -4,12 +4,11 @@ import {
   publicProcedure,
   protectedProcedure,
 } from '@/server/api/trpc'
-import { tmdbService, TMDBError } from '@/lib/tmdb'
 import { createError, toTRPCError } from '@/lib/errors'
 import { withCache, cacheKeys, cacheTTL } from '@/lib/cache'
 import type { Prisma } from '@prisma/client'
-
-
+import { tmdb } from '@/lib/tmdb'
+import { SearchResult } from '@/types'
 
 const SearchInputSchema = z.object({
   query: z
@@ -17,7 +16,7 @@ const SearchInputSchema = z.object({
     .min(1, 'Search query is required')
     .max(100, 'Query too long'),
   page: z.number().min(1).max(500).default(1),
-  type: z.enum(['multi', 'movie', 'tv']).default('multi'),
+  type: z.enum(['movie', 'tv']).default('movie'),
 })
 
 const MediaDetailsInputSchema = z.object({
@@ -38,135 +37,77 @@ const EpisodeDetailsInputSchema = z.object({
 
 export const searchRouter = createTRPCRouter({
   // Public search endpoint - anyone can search for content
-  search: publicProcedure
-    .input(SearchInputSchema)
-    .query(async ({ input }) => {
-      try {
-        // // Apply rate limiting
-        // const searchKey = createSearchRateLimit(ctx)
-        // const searchLimit = rateLimiters.search.check(searchKey)
-        // if (!searchLimit.allowed) {
-        //   throw toTRPCError(createError.rateLimited('Search rate limit exceeded'))
-        // }
+  search: publicProcedure.input(SearchInputSchema).query(async ({ input }) => {
+    try {
+      const { query, page, type } = input
+      const cacheKey = cacheKeys.tmdb.search(query, type, page)
 
-        // const tmdbKey = createTMDBRateLimit(ctx)
-        // const tmdbLimit = rateLimiters.tmdb.check(tmdbKey)
-        // if (!tmdbLimit.allowed) {
-        //   throw toTRPCError(createError.rateLimited('API rate limit exceeded'))
-        // }
+      // Use cache for TMDB search results
+      const results = await withCache.tmdbSearch(
+        cacheKey,
+        async () => {
+          switch (type) {
+            case 'movie':
+              const movies = await tmdb.search.movies({
+                query,
+                page,
+              })
 
-        const { query, page, type } = input
-        const cacheKey = cacheKeys.tmdb.search(query, type, page)
+              // Append media type to each movie result
+              const movieResults = movies.results.map(movie => ({
+                ...movie,
+                media_type: 'movie',
+              }))
 
-        // Use cache for TMDB search results
-        const results = await withCache.tmdbSearch(
-          cacheKey,
-          async () => {
-            switch (type) {
-              case 'movie':
-                return await tmdbService.searchMovies(query, page)
-              case 'tv':
-                return await tmdbService.searchTV(query, page)
-              default:
-                return await tmdbService.searchMulti(query, page)
-            }
-          },
-          cacheTTL.tmdb.search
-        )
+              return {
+                ...movies,
+                results: movieResults,
+              }
+            case 'tv':
+              const tvShows = await tmdb.search.tvShows({
+                query,
+                page,
+              })
+              // Append media type to each TV show result
+              const tvResults = tvShows.results.map(show => ({
+                ...show,
+                media_type: 'tv',
+              }))
+              return {
+                ...tvShows,
+                results: tvResults,
+              }
+          }
+        },
+        cacheTTL.tmdb.search
+      )
 
-        return {
-          ...results,
-          query,
-          type,
-        }
-      } catch (error) {
-        if (error instanceof TMDBError) {
-          throw toTRPCError(createError.externalAPI('TMDB', error.message))
-        }
-        throw toTRPCError(error)
-      }
-    }),
+      return results as SearchResult
+    } catch (error) {
+      throw toTRPCError(error)
+    }
+  }),
 
-  // Get detailed information about a specific movie or TV show
+  // Get detailed information about a specific movie
   details: publicProcedure
     .input(MediaDetailsInputSchema)
     .query(async ({ input }) => {
       try {
-        const { id, type } = input
-
-        if (type === 'movie') {
-          const movie = await tmdbService.getMovieDetails(id)
-          return {
-            ...movie,
-            media_type: 'movie' as const,
-          }
-        } else {
-          const tv = await tmdbService.getTVDetails(id)
-          return {
-            ...tv,
-            media_type: 'tv' as const,
-          }
-        }
+        const { id } = input
+        return await tmdb.movies.details(id, ['credits'])
       } catch (error) {
-        if (error instanceof TMDBError) {
-          throw toTRPCError(createError.externalAPI('TMDB', error.message))
-        }
         throw toTRPCError(error)
       }
     }),
 
-  // Get extended detailed information with genres, companies, etc.
-  detailsExtended: publicProcedure
+  // Get detailed information about a specific TV show
+  tvDetails: publicProcedure
     .input(MediaDetailsInputSchema)
     .query(async ({ input }) => {
       try {
-        const { id, type } = input
-
-        if (type === 'movie') {
-          const [movie, credits] = await Promise.all([
-            tmdbService.getMovieDetailsExtended(id),
-            tmdbService.getMovieCredits(id),
-          ])
-          return {
-            ...movie,
-            media_type: 'movie' as const,
-            credits,
-          }
-        } else {
-          const [tv, credits] = await Promise.all([
-            tmdbService.getTVDetailsExtended(id),
-            tmdbService.getTVCredits(id),
-          ])
-          return {
-            ...tv,
-            media_type: 'tv' as const,
-            credits,
-          }
-        }
+        const { id } = input
+        return await tmdb.tvShows.details(id, ['credits'])
       } catch (error) {
-        if (error instanceof TMDBError) {
-          throw toTRPCError(createError.externalAPI('TMDB', error.message))
-        }
-        throw toTRPCError(error)
-      }
-    }),
-
-  // Get cast and crew information for a movie or TV show
-  credits: publicProcedure
-    .input(MediaDetailsInputSchema)
-    .query(async ({ input }) => {
-      try {
-        const { id, type } = input
-
-        if (type === 'movie') {
-          return await tmdbService.getMovieCredits(id)
-        } else {
-          return await tmdbService.getTVCredits(id)
-        }
-      } catch (error) {
-        if (error instanceof TMDBError) {
-          throw toTRPCError(createError.externalAPI('TMDB', error.message))
-        }
         throw toTRPCError(error)
       }
     }),
@@ -299,11 +240,10 @@ export const searchRouter = createTRPCRouter({
     .query(async ({ input }) => {
       try {
         const { tvId, seasonNumber } = input
-        return await tmdbService.getTVSeasonDetails(tvId, seasonNumber)
+        return await tmdb.tvSeasons.details({ tvShowID: tvId, seasonNumber }, [
+          'credits',
+        ])
       } catch (error) {
-        if (error instanceof TMDBError) {
-          throw toTRPCError(createError.externalAPI('TMDB', error.message))
-        }
         throw toTRPCError(error)
       }
     }),
@@ -314,11 +254,12 @@ export const searchRouter = createTRPCRouter({
     .query(async ({ input }) => {
       try {
         const { tvId, seasonNumber, episodeNumber } = input
-        return await tmdbService.getTVEpisodeDetails(tvId, seasonNumber, episodeNumber)
+        return await tmdb.tvEpisode.details({
+          tvShowID: tvId,
+          seasonNumber,
+          episodeNumber,
+        })
       } catch (error) {
-        if (error instanceof TMDBError) {
-          throw toTRPCError(createError.externalAPI('TMDB', error.message))
-        }
         throw toTRPCError(error)
       }
     }),

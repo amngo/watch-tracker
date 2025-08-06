@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { AddEpisodeNoteButton } from './add-episode-note-button'
-import type { EpisodeWatchStatus, TMDBEpisodeItem, WatchedItem } from '@/types'
+import type { EpisodeWatchStatus, WatchedItem } from '@/types'
+import { Episode } from 'tmdb-ts'
 
 interface EpisodeActionsProps {
   status: EpisodeWatchStatus
@@ -16,7 +17,7 @@ interface EpisodeActionsProps {
   variant?: 'grid' | 'list'
   className?: string
   // Queue functionality props
-  episode?: TMDBEpisodeItem
+  episode?: Episode
   watchedItem?: WatchedItem
   showQueueButton?: boolean
 }

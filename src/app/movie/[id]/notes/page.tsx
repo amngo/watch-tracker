@@ -19,21 +19,26 @@ import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
-import type { Note, WatchedItem, TMDBMovieDetailsExtended } from '@/types'
+import type { Note, WatchedItem } from '@/types'
+import { AppendToResponse, MovieDetails } from 'tmdb-ts'
 
 export default function MovieNotesPage() {
   const params = useParams()
   const movieId = params.id as string
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false)
-  const [movieDetails, setMovieDetails] = useState<TMDBMovieDetailsExtended | null>(null)
+  const [movieDetails, setMovieDetails] = useState<AppendToResponse<
+    MovieDetails,
+    'credits'[],
+    'movie'
+  > | null>(null)
 
-  const { 
-    watchedItems, 
-    stats, 
-    setStats, 
-    setStatsLoading, 
-    setWatchedItems, 
-    setItemsLoading 
+  const {
+    watchedItems,
+    stats,
+    setStats,
+    setStatsLoading,
+    setWatchedItems,
+    setItemsLoading,
   } = useMedia()
 
   // Fetch user stats
@@ -56,7 +61,7 @@ export default function MovieNotesPage() {
     data: movieDetailsData,
     isLoading: detailsLoading,
     error: detailsError,
-  } = api.search.detailsExtended.useQuery(
+  } = api.search.details.useQuery(
     {
       id: parseInt(movieId),
       type: 'movie',
@@ -131,7 +136,7 @@ export default function MovieNotesPage() {
 
   useEffect(() => {
     if (movieDetailsData) {
-      setMovieDetails(movieDetailsData as TMDBMovieDetailsExtended)
+      setMovieDetails(movieDetailsData)
     }
   }, [movieDetailsData])
 
@@ -146,10 +151,10 @@ export default function MovieNotesPage() {
 
   const formatTimestamp = (timestamp: string | null) => {
     if (!timestamp) return null
-    
+
     // For movies, timestamp should be in format "HH:MM:SS" or "MM:SS"
     const timeParts = timestamp.split(':').map(part => parseInt(part, 10))
-    
+
     if (timeParts.length === 2) {
       // MM:SS format
       const [minutes, seconds] = timeParts
@@ -163,7 +168,7 @@ export default function MovieNotesPage() {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`
       }
     }
-    
+
     return timestamp
   }
 
@@ -230,7 +235,9 @@ export default function MovieNotesPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Movie not in watchlist</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Movie not in watchlist
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   Add this movie to your watchlist to create notes
                 </p>

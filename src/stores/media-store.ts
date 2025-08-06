@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
-import type { WatchedItem, TMDBSearchResultItem } from '@/types'
+import type { WatchedItem } from '@/types'
+import { Movie, MovieWithMediaType, TV, TVWithMediaType } from 'tmdb-ts'
 
 export interface MediaStats {
   totalItems: number
@@ -9,12 +10,11 @@ export interface MediaStats {
   totalNotes: number
 }
 
-
 export interface MediaStoreState {
   // Data
   watchedItems: WatchedItem[]
   stats: MediaStats | null
-  searchResults: TMDBSearchResultItem[]
+  searchResults: TVWithMediaType[] | MovieWithMediaType[]
 
   // Loading states
   itemsLoading: boolean
@@ -45,7 +45,7 @@ export interface MediaStoreState {
   setStats: (stats: MediaStats) => void
   updateStats: (updates: Partial<MediaStats>) => void
 
-  setSearchResults: (results: TMDBSearchResultItem[]) => void
+  setSearchResults: (results: TVWithMediaType[] | MovieWithMediaType[]) => void
   clearSearchResults: () => void
 
   // Actions - Loading states
@@ -68,7 +68,7 @@ export interface MediaStoreState {
   getItemById: (id: string) => WatchedItem | undefined
   getItemsByStatus: (status: WatchedItem['status']) => WatchedItem[]
   getItemsByType: (type: WatchedItem['mediaType']) => WatchedItem[]
-  isItemInWatchlist: (tmdbId: number, mediaType: 'movie' | 'tv') => boolean
+  isItemInWatchlist: (tmdbId: number) => boolean
 
   // Bulk operations
   markAsCompleted: (id: string) => void
@@ -170,7 +170,7 @@ export const useMediaStore = create<MediaStoreState>()(
           'media/updateStats'
         ),
 
-      setSearchResults: (results: TMDBSearchResultItem[]) =>
+      setSearchResults: (results: TVWithMediaType[] | MovieWithMediaType[]) =>
         set({ searchResults: results }, false, 'media/setSearchResults'),
 
       clearSearchResults: () =>
@@ -229,12 +229,9 @@ export const useMediaStore = create<MediaStoreState>()(
         return state.watchedItems.filter(item => item.mediaType === type)
       },
 
-      isItemInWatchlist: (tmdbId: number, mediaType: 'movie' | 'tv') => {
+      isItemInWatchlist: (tmdbId: number) => {
         const state = get()
-        const watchlistMediaType = mediaType === 'movie' ? 'MOVIE' : 'TV'
-        return state.watchedItems.some(
-          item => item.tmdbId === tmdbId && item.mediaType === watchlistMediaType
-        )
+        return state.watchedItems.some(item => item.tmdbId === tmdbId)
       },
 
       // Bulk operations

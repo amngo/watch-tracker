@@ -1,15 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { api } from '@/trpc/react'
-import { TMDBService } from '@/lib/tmdb'
-
-
-let tmdbServiceInstance: TMDBService | null = null
-const getTMDBService = () => {
-  if (!tmdbServiceInstance) {
-    tmdbServiceInstance = new TMDBService()
-  }
-  return tmdbServiceInstance
-}
+import { tmdb } from '@/lib/tmdb'
 
 interface BreadcrumbData {
   tvShows: Record<string, string>
@@ -109,8 +100,7 @@ export function useBreadcrumbData() {
     // Create and cache the request
     requestCache.current[cacheKey] = (async () => {
       try {
-        const tmdbService = getTMDBService()
-        const tvDetails = await tmdbService.getTVDetails(parseInt(tvId))
+        const tvDetails = await tmdb.tvShows.details(parseInt(tvId))
         const title = tvDetails.name || `TV Show ${tvId}`
 
         // Update cache
@@ -150,10 +140,7 @@ export function useBreadcrumbData() {
       // Create and cache the request
       requestCache.current[cacheKey] = (async () => {
         try {
-          const tmdbService = getTMDBService()
-          const movieDetails = await tmdbService.getMovieDetails(
-            parseInt(movieId)
-          )
+          const movieDetails = await tmdb.movies.details(parseInt(movieId))
           const title = movieDetails.title || `Movie ${movieId}`
 
           // Update cache
@@ -197,11 +184,10 @@ export function useBreadcrumbData() {
       // Create and cache the request
       requestCache.current[requestCacheKey] = (async () => {
         try {
-          const tmdbService = getTMDBService()
-          const seasonDetails = await tmdbService.getTVSeasonDetails(
-            parseInt(tvId),
-            parseInt(seasonNumber)
-          )
+          const seasonDetails = await tmdb.tvSeasons.details({
+            tvShowID: parseInt(tvId),
+            seasonNumber: parseInt(seasonNumber),
+          })
           const name = seasonDetails.name || `Season ${seasonNumber}`
 
           // Update cache
@@ -232,7 +218,11 @@ export function useBreadcrumbData() {
   )
 
   const getEpisodeName = useCallback(
-    async (tvId: string, seasonNumber: string, episodeNumber: string): Promise<string> => {
+    async (
+      tvId: string,
+      seasonNumber: string,
+      episodeNumber: string
+    ): Promise<string> => {
       const cacheKey = `${tvId}-${seasonNumber}-${episodeNumber}`
 
       // Check cache first
@@ -251,12 +241,11 @@ export function useBreadcrumbData() {
       // Create and cache the request
       requestCache.current[requestCacheKey] = (async () => {
         try {
-          const tmdbService = getTMDBService()
-          const episodeDetails = await tmdbService.getTVEpisodeDetails(
-            parseInt(tvId),
-            parseInt(seasonNumber),
-            parseInt(episodeNumber)
-          )
+          const episodeDetails = await tmdb.tvEpisode.details({
+            tvShowID: parseInt(tvId),
+            seasonNumber: parseInt(seasonNumber),
+            episodeNumber: parseInt(episodeNumber),
+          })
           const name = episodeDetails.name || `Episode ${episodeNumber}`
 
           // Update cache

@@ -7,33 +7,34 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { MediaSearch } from '@/components/features/search/media-search'
 import { FlexibleSeasonOverview } from '@/components/features/tv/flexible-season-overview'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog } from '@/components/ui/dialog'
 import { api } from '@/trpc/react'
 import { LoadingCard } from '@/components/common/loading-spinner'
 import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
-import { TMDBService } from '@/lib/tmdb'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
 import type {
-  TMDBTVDetailsExtended,
-  TMDBMediaItem,
   EpisodeWatchStatus,
   WatchedItem,
   UpdateWatchedItemData,
 } from '@/types'
+import {
+  AppendToResponse,
+  getFullImagePath,
+  TvShowDetails,
+  TVWithMediaType,
+} from 'tmdb-ts'
 
 export default function TVDetailPage() {
   const params = useParams()
   const tvId = params.id as string
-  const [tvDetails, setTvDetails] = useState<TMDBTVDetailsExtended | null>(null)
+  const [tvDetails, setTvDetails] = useState<AppendToResponse<
+    TvShowDetails,
+    'credits'[],
+    'tvShow'
+  > | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -119,7 +120,7 @@ export default function TVDetailPage() {
     data: tvDetailsData,
     isLoading: detailsLoading,
     error: detailsError,
-  } = api.search.detailsExtended.useQuery(
+  } = api.search.tvDetails.useQuery(
     {
       id: parseInt(tvId),
       type: 'tv',
@@ -131,7 +132,7 @@ export default function TVDetailPage() {
 
   useEffect(() => {
     if (tvDetailsData) {
-      setTvDetails(tvDetailsData as TMDBTVDetailsExtended)
+      setTvDetails(tvDetailsData)
       setIsLoading(false)
     }
   }, [tvDetailsData])
@@ -147,8 +148,8 @@ export default function TVDetailPage() {
     setIsLoading(detailsLoading)
   }, [detailsLoading])
 
-  const handleAddToWatchlist = async (media: TMDBMediaItem) => {
-    await addMedia(media)
+  const handleAddToWatchlist = (media: TVWithMediaType) => {
+    addMedia(media)
     closeSearchModal()
   }
 
@@ -302,11 +303,19 @@ export default function TVDetailPage() {
   }
 
   const backdropUrl = tvDetails.backdrop_path
-    ? TMDBService.getBackdropUrl(tvDetails.backdrop_path, 'w1280')
+    ? getFullImagePath(
+        'https://image.tmdb.org/t/p/',
+        'w1280',
+        tvDetails.backdrop_path
+      )
     : null
 
   const posterUrl = tvDetails.poster_path
-    ? TMDBService.getPosterUrl(tvDetails.poster_path, 'w500')
+    ? getFullImagePath(
+        'https://image.tmdb.org/t/p/',
+        'w500',
+        tvDetails.poster_path
+      )
     : null
 
   const mainCast = tvDetails.credits?.cast.slice(0, 8) || []
@@ -327,16 +336,14 @@ export default function TVDetailPage() {
               open={isSearchModalOpen}
               onOpenChange={open => !open && closeSearchModal()}
             >
-              <Button onClick={openSearchModal}>
+              <Button
+                onClick={() =>
+                  handleAddToWatchlist(tvDetails as unknown as TVWithMediaType)
+                }
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add to Watchlist
               </Button>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Search & Add Media</DialogTitle>
-                </DialogHeader>
-                <MediaSearch onAddMedia={handleAddToWatchlist} />
-              </DialogContent>
             </Dialog>
           )}
 
@@ -498,12 +505,11 @@ export default function TVDetailPage() {
                       {castMember.profile_path ? (
                         <div className="relative rounded-lg overflow-hidden w-16 h-auto">
                           <img
-                            src={
-                              TMDBService.getPosterUrl(
-                                castMember.profile_path,
-                                'w185'
-                              ) || ''
-                            }
+                            src={getFullImagePath(
+                              'https://image.tmdb.org/t/p/',
+                              'w185',
+                              castMember.profile_path
+                            )}
                             alt={castMember.name}
                             className="object-cover object-top w-full h-full"
                           />
@@ -582,12 +588,11 @@ export default function TVDetailPage() {
                             {season.poster_path ? (
                               <div className="w-16 h-20 relative rounded overflow-hidden flex-shrink-0">
                                 <img
-                                  src={
-                                    TMDBService.getPosterUrl(
-                                      season.poster_path,
-                                      'w185'
-                                    ) || ''
-                                  }
+                                  src={getFullImagePath(
+                                    'https://image.tmdb.org/t/p/',
+                                    'w185',
+                                    season.poster_path
+                                  )}
                                   alt={season.name}
                                   className="object-cover"
                                 />

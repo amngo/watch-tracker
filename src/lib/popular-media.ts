@@ -1,4 +1,5 @@
-import { tmdbService, TMDBService } from './tmdb'
+import { getFullImagePath } from 'tmdb-ts'
+import { tmdb } from './tmdb'
 
 /**
  * Fetches popular movies and TV shows and returns their poster URLs
@@ -16,10 +17,7 @@ export async function getPopularMediaPosters(
     }
 
     // Fetch popular movies and TV shows in parallel with timeout
-    const fetchPromises = [
-      tmdbService.getPopularMovies(1),
-      tmdbService.getPopularTV(1),
-    ]
+    const fetchPromises = [tmdb.movies.popular(), tmdb.tvShows.popular()]
 
     // Add timeout to prevent hanging requests
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -47,7 +45,11 @@ export async function getPopularMediaPosters(
       if (posterUrls.length >= count) break
 
       if (item.poster_path) {
-        const posterUrl = TMDBService.getPosterUrl(item.poster_path, 'w500')
+        const posterUrl = getFullImagePath(
+          'https://image.tmdb.org/t/p/',
+          'w500',
+          item.poster_path
+        )
         if (posterUrl) {
           posterUrls.push(posterUrl)
         }

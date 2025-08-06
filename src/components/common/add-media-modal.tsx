@@ -7,12 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { TMDBMediaItem } from '@/types'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 interface AddMediaModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  onAddMedia: (media: TMDBMediaItem) => Promise<void>
+  onAddMedia: (media: TVWithMediaType | MovieWithMediaType) => Promise<void>
   triggerLabel?: string
   dialogTitle?: string
   variant?: 'default' | 'outline'
@@ -24,7 +24,7 @@ export function AddMediaModal({
   onAddMedia,
   triggerLabel = 'Add Media',
   dialogTitle = 'Search & Add Media',
-  variant = 'default'
+  variant = 'default',
 }: AddMediaModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

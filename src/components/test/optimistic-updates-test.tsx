@@ -1,13 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useMedia } from '@/hooks/use-media'
-import { useOptimisticStatus, OptimisticIndicator } from '@/components/ui/optimistic-indicator'
+import {
+  useOptimisticStatus,
+  OptimisticIndicator,
+} from '@/components/ui/optimistic-indicator'
 import { OptimisticUpdateBoundary } from '@/components/common/optimistic-update-boundary'
 import { CheckCircle, XCircle, Clock, Play, Trash2 } from 'lucide-react'
+import { MovieWithMediaType } from 'tmdb-ts'
 
 // Mock TMDB media item for testing
 const mockMediaItem = {
@@ -31,19 +35,34 @@ export function OptimisticUpdatesTest() {
   }>({
     create: 'idle',
     update: 'idle',
-    delete: 'idle'
+    delete: 'idle',
   })
 
-  const { status: createStatus, setPending: setCreatePending, setSuccess: setCreateSuccess, setError: setCreateError } = useOptimisticStatus()
-  const { status: updateStatus, setPending: setUpdatePending, setSuccess: setUpdateSuccess, setError: setUpdateError } = useOptimisticStatus()
-  const { status: deleteStatus, setPending: setDeletePending, setSuccess: setDeleteSuccess, setError: setDeleteError } = useOptimisticStatus()
+  const {
+    status: createStatus,
+    setPending: setCreatePending,
+    setSuccess: setCreateSuccess,
+    setError: setCreateError,
+  } = useOptimisticStatus()
+  const {
+    status: updateStatus,
+    setPending: setUpdatePending,
+    setSuccess: setUpdateSuccess,
+    setError: setUpdateError,
+  } = useOptimisticStatus()
+  const {
+    status: deleteStatus,
+    setPending: setDeletePending,
+    setSuccess: setDeleteSuccess,
+    setError: setDeleteError,
+  } = useOptimisticStatus()
 
   const testOptimisticCreate = async () => {
     setCreatePending()
     setTestResults(prev => ({ ...prev, create: 'idle' }))
-    
+
     try {
-      await media.addMedia(mockMediaItem)
+      await media.addMedia(mockMediaItem as MovieWithMediaType)
       setCreateSuccess()
       setTestResults(prev => ({ ...prev, create: 'success' }))
     } catch (_error) {
@@ -54,10 +73,10 @@ export function OptimisticUpdatesTest() {
 
   const testOptimisticUpdate = async () => {
     if (media.watchedItems.length === 0) return
-    
+
     setUpdatePending()
     setTestResults(prev => ({ ...prev, update: 'idle' }))
-    
+
     try {
       const firstItem = media.watchedItems[0]
       await media.markCompleted(firstItem.id)
@@ -71,10 +90,10 @@ export function OptimisticUpdatesTest() {
 
   const testOptimisticDelete = async () => {
     if (media.watchedItems.length === 0) return
-    
+
     setDeletePending()
     setTestResults(prev => ({ ...prev, delete: 'idle' }))
-    
+
     try {
       const firstItem = media.watchedItems[0]
       await media.deleteItem(firstItem.id)
@@ -107,14 +126,18 @@ export function OptimisticUpdatesTest() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Total Items:</span>
-                <span className="ml-2 font-medium">{media.watchedItems.length}</span>
+                <span className="ml-2 font-medium">
+                  {media.watchedItems.length}
+                </span>
               </div>
               <div>
                 <span className="text-muted-foreground">Loading:</span>
-                <span className="ml-2 font-medium">{media.itemsLoading ? 'Yes' : 'No'}</span>
+                <span className="ml-2 font-medium">
+                  {media.itemsLoading ? 'Yes' : 'No'}
+                </span>
               </div>
             </div>
-            
+
             {media.itemsError && (
               <Alert variant="destructive" className="mt-2">
                 <AlertDescription>{media.itemsError}</AlertDescription>
@@ -125,7 +148,7 @@ export function OptimisticUpdatesTest() {
           {/* Test Controls */}
           <div className="space-y-4">
             <h3 className="font-medium">Test Operations</h3>
-            
+
             {/* Create Test */}
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">
@@ -133,10 +156,14 @@ export function OptimisticUpdatesTest() {
                 <OptimisticIndicator status={createStatus} />
               </div>
               <div className="flex items-center gap-2">
-                {testResults.create === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                {testResults.create === 'error' && <XCircle className="h-4 w-4 text-red-500" />}
-                <Button 
-                  onClick={testOptimisticCreate} 
+                {testResults.create === 'success' && (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                )}
+                {testResults.create === 'error' && (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+                <Button
+                  onClick={testOptimisticCreate}
                   size="sm"
                   disabled={createStatus === 'pending'}
                 >
@@ -152,12 +179,19 @@ export function OptimisticUpdatesTest() {
                 <OptimisticIndicator status={updateStatus} />
               </div>
               <div className="flex items-center gap-2">
-                {testResults.update === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                {testResults.update === 'error' && <XCircle className="h-4 w-4 text-red-500" />}
-                <Button 
-                  onClick={testOptimisticUpdate} 
+                {testResults.update === 'success' && (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                )}
+                {testResults.update === 'error' && (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+                <Button
+                  onClick={testOptimisticUpdate}
                   size="sm"
-                  disabled={updateStatus === 'pending' || media.watchedItems.length === 0}
+                  disabled={
+                    updateStatus === 'pending' ||
+                    media.watchedItems.length === 0
+                  }
                 >
                   Test Update
                 </Button>
@@ -171,13 +205,20 @@ export function OptimisticUpdatesTest() {
                 <OptimisticIndicator status={deleteStatus} />
               </div>
               <div className="flex items-center gap-2">
-                {testResults.delete === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                {testResults.delete === 'error' && <XCircle className="h-4 w-4 text-red-500" />}
-                <Button 
-                  onClick={testOptimisticDelete} 
-                  size="sm" 
+                {testResults.delete === 'success' && (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                )}
+                {testResults.delete === 'error' && (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+                <Button
+                  onClick={testOptimisticDelete}
+                  size="sm"
                   variant="destructive"
-                  disabled={deleteStatus === 'pending' || media.watchedItems.length === 0}
+                  disabled={
+                    deleteStatus === 'pending' ||
+                    media.watchedItems.length === 0
+                  }
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Test Delete
@@ -188,16 +229,12 @@ export function OptimisticUpdatesTest() {
 
           {/* Utility Controls */}
           <div className="flex gap-2 pt-4 border-t">
-            <Button 
-              onClick={forceRollback} 
-              variant="outline" 
-              size="sm"
-            >
+            <Button onClick={forceRollback} variant="outline" size="sm">
               Force Rollback
             </Button>
-            <Button 
-              onClick={() => media.resetErrors()} 
-              variant="outline" 
+            <Button
+              onClick={() => media.resetErrors()}
+              variant="outline"
               size="sm"
             >
               Clear Errors
@@ -209,8 +246,11 @@ export function OptimisticUpdatesTest() {
             <div>
               <h3 className="font-medium mb-2">Recent Items</h3>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {media.watchedItems.slice(0, 5).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-2 bg-muted rounded text-sm">
+                {media.watchedItems.slice(0, 5).map(item => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-2 bg-muted rounded text-sm"
+                  >
                     <span className="truncate">{item.title}</span>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />

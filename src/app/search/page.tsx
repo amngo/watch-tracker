@@ -1,18 +1,16 @@
 'use client'
-
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { PageHeader } from '@/components/common/page-header'
 import { SearchInterface } from '@/components/features/search/search-interface'
 import { SearchResults } from '@/components/features/search/search-results'
 import { EmptySearchState } from '@/components/features/search/empty-search-state'
-import { getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { useSearch } from '@/hooks/use-search'
 import { useMedia } from '@/hooks/use-media'
 import { useMediaStore } from '@/stores/media-store'
 import { api } from '@/trpc/react'
-import type { TMDBMediaItem } from '@/types'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 type SortOption = 'popularity' | 'vote_average' | 'release_date' | 'title'
 type SortDirection = 'asc' | 'desc'
@@ -55,68 +53,9 @@ export default function SearchPage() {
   // Fetch user stats
   const { data: stats } = api.user.getStats.useQuery()
 
-  // Filter and sort results
-  const filteredAndSortedResults = useMemo(() => {
-    if (!results.length) return []
-
-    const filtered = results.filter(item => {
-      // Media type filter
-      if (
-        appliedFilters.mediaType !== 'all' &&
-        item.media_type !== appliedFilters.mediaType
-      ) {
-        return false
-      }
-
-      // Rating filter
-      if (item.vote_average < appliedFilters.minRating[0]) {
-        return false
-      }
-
-      // Year filter
-      if (appliedFilters.year) {
-        const releaseDate = getTMDBReleaseDate(item)
-        const releaseYear = releaseDate
-          ? new Date(releaseDate).getFullYear().toString()
-          : ''
-        if (releaseYear !== appliedFilters.year) {
-          return false
-        }
-      }
-
-      return true
-    })
-
-    // Sort results
-    return filtered.sort((a, b) => {
-      let comparison = 0
-
-      switch (appliedFilters.sortBy) {
-        case 'popularity':
-          // TMDB doesn't always provide popularity, so we use vote_count as proxy
-          comparison = (b.vote_count || 0) - (a.vote_count || 0)
-          break
-        case 'vote_average':
-          comparison = b.vote_average - a.vote_average
-          break
-        case 'release_date':
-          const dateA = getTMDBReleaseDate(a)
-          const dateB = getTMDBReleaseDate(b)
-          comparison =
-            dateA && dateB
-              ? new Date(dateB).getTime() - new Date(dateA).getTime()
-              : 0
-          break
-        case 'title':
-          comparison = getTMDBTitle(a).localeCompare(getTMDBTitle(b))
-          break
-      }
-
-      return appliedFilters.sortDirection === 'asc' ? -comparison : comparison
-    })
-  }, [results, appliedFilters])
-
-  const handleAddMedia = async (media: TMDBMediaItem) => {
+  const handleAddMedia = async (
+    media: TVWithMediaType | MovieWithMediaType
+  ) => {
     await addMedia(media)
   }
 
@@ -167,7 +106,6 @@ export default function SearchPage() {
           title="Search & Discover"
           subtitle="Find new movies and TV shows to add to your watchlist"
         />
-        
         <SearchInterface
           searchType={searchType}
           onSetSearchType={setSearchType}
@@ -184,7 +122,8 @@ export default function SearchPage() {
 
         <SearchResults
           query={query}
-          results={filteredAndSortedResults}
+          results={results}
+          mediaType={searchType}
           isLoading={isLoading}
           error={error}
           appliedFilters={appliedFilters}

@@ -5,23 +5,24 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { TMDBService } from '@/lib/tmdb'
 import {
   calculateSeasonProgress,
   getShowStatistics,
   getNextUnwatchedEpisode,
 } from '@/lib/episode-utils'
 import Link from 'next/link'
-import type {
-  WatchedItem,
-  TMDBTVDetailsExtended,
-  EpisodeWatchStatus,
-} from '@/types'
+import type { WatchedItem, EpisodeWatchStatus } from '@/types'
 import { cn } from '@/lib/utils'
+import {
+  AppendToResponse,
+  getFullImagePath,
+  Season,
+  TvShowDetails,
+} from 'tmdb-ts'
 
 interface FlexibleSeasonOverviewProps {
   watchedItem: WatchedItem
-  tvDetails: TMDBTVDetailsExtended
+  tvDetails: AppendToResponse<TvShowDetails, 'credits'[], 'tvShow'>
   onUpdateEpisodeStatus: (
     seasonNumber: number,
     episodeNumber: number,
@@ -38,7 +39,7 @@ interface FlexibleSeasonOverviewProps {
 }
 
 interface SeasonCardProps {
-  season: NonNullable<TMDBTVDetailsExtended['seasons']>[number]
+  season: Season
   watchedItem: WatchedItem
   tvId: string
   onBulkUpdateEpisodes: (
@@ -58,9 +59,11 @@ function SeasonCard({
 }: SeasonCardProps) {
   if (!season) return null
 
-  const posterUrl = season.poster_path
-    ? TMDBService.getPosterUrl(season.poster_path, 'w342')
-    : null
+  const posterUrl = getFullImagePath(
+    'https://image.tmdb.org/t/p/',
+    'w342',
+    season.poster_path || ''
+  )
 
   const formatAirDate = (dateString: string | null): string => {
     if (!dateString) return 'TBA'

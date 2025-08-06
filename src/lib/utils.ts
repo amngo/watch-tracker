@@ -1,7 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import type { WatchStatus, TMDBMediaItem, WatchedItem } from "@/types"
-import { calculateFlexibleProgress } from "./episode-utils"
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import type { WatchStatus, WatchedItem } from '@/types'
+import { calculateFlexibleProgress } from './episode-utils'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -58,7 +59,9 @@ export function calculateProgressFromWatchedItem(
   totalSeasons?: number,
   totalEpisodes?: number
 ): number {
-  return Math.round(calculateFlexibleProgress(watchedItem, totalSeasons, totalEpisodes))
+  return Math.round(
+    calculateFlexibleProgress(watchedItem, totalSeasons, totalEpisodes)
+  )
 }
 
 /**
@@ -76,7 +79,10 @@ export function formatRuntime(minutes: number): string {
 /**
  * Format episode count display
  */
-export function formatEpisodeCount(current?: number | null, total?: number | null): string {
+export function formatEpisodeCount(
+  current?: number | null,
+  total?: number | null
+): string {
   if (!current && !total) return ''
   if (!current) return `/ ${total}`
   if (!total) return `${current}`
@@ -93,13 +99,19 @@ export function convertTMDBMediaType(tmdbType: 'movie' | 'tv'): 'MOVIE' | 'TV' {
 /**
  * Extract title from TMDB media item (handles both movies and TV shows)
  */
-export function getTMDBTitle(media: TMDBMediaItem): string {
+export function getTMDBTitle(
+  media: TVWithMediaType | MovieWithMediaType
+): string {
   return media.media_type === 'movie' ? media.title : media.name
 }
 
 /**
  * Extract release date from TMDB media item (handles both movies and TV shows)
  */
-export function getTMDBReleaseDate(media: TMDBMediaItem): string | null {
-  return media.media_type === 'movie' ? media.release_date || null : media.first_air_date || null
+export function getTMDBReleaseDate(
+  media: TVWithMediaType | MovieWithMediaType
+): string | null {
+  return media.media_type === 'movie'
+    ? media.release_date || null
+    : media.first_air_date || null
 }

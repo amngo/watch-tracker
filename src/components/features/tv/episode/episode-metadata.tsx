@@ -1,18 +1,23 @@
 import { Calendar, Clock, Star } from 'lucide-react'
 import { formatAirDate, formatRuntime, formatVoteAverage } from '@/lib/format'
-import type { TMDBEpisodeItem } from '@/types'
+import { Episode } from 'tmdb-ts'
 
 interface EpisodeMetadataProps {
-  episode: TMDBEpisodeItem
+  episode: Episode
   className?: string
 }
 
 /**
  * Component displaying episode metadata (air date, runtime, rating)
  */
-export function EpisodeMetadata({ episode, className = '' }: EpisodeMetadataProps) {
+export function EpisodeMetadata({
+  episode,
+  className = '',
+}: EpisodeMetadataProps) {
   return (
-    <div className={`flex items-center gap-2 text-xs text-muted-foreground ${className}`}>
+    <div
+      className={`flex items-center gap-2 text-xs text-muted-foreground ${className}`}
+    >
       {episode.air_date && (
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />

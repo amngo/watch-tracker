@@ -3,7 +3,6 @@ import { useUIStore } from '@/stores/ui-store'
 import { useMediaStore } from '@/stores/media-store'
 import { api } from '@/trpc/react'
 import { useDebounce } from './use-debounce'
-import type { TMDBSearchResultItem } from '@/types'
 
 export function useSearch() {
   const ui = useUIStore()
@@ -22,7 +21,7 @@ export function useSearch() {
   // Update store when search results change
   useEffect(() => {
     if (data?.results) {
-      media.setSearchResults(data.results as TMDBSearchResultItem[])
+      media.setSearchResults(data.results)
     }
   }, [data])
 
@@ -54,13 +53,16 @@ export function useSearch() {
     media.setSearchError(null)
   }, [])
 
-  const setSearchType = useCallback((type: 'movie' | 'tv') => {
-    ui.setSearchType(type)
-    // Clear results when switching search type to trigger new search
-    if (debouncedQuery) {
-      media.clearSearchResults()
-    }
-  }, [debouncedQuery])
+  const setSearchType = useCallback(
+    (type: 'movie' | 'tv') => {
+      ui.setSearchType(type)
+      // Clear results when switching search type to trigger new search
+      if (debouncedQuery) {
+        media.clearSearchResults()
+      }
+    },
+    [debouncedQuery]
+  )
 
   const openSearchModal = useCallback(() => {
     ui.openSearchModal()

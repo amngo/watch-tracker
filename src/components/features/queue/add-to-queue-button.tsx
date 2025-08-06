@@ -12,22 +12,23 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import { useQueue } from '@/hooks/use-queue'
-import type { WatchedItem, TMDBMediaItem } from '@/types'
+import type { WatchedItem } from '@/types'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 interface AddToQueueButtonProps {
   // Can accept either a WatchedItem or TMDB data
   item?: WatchedItem
-  tmdbItem?: TMDBMediaItem
-  
+  tmdbItem?: TVWithMediaType | MovieWithMediaType
+
   // For TV shows, allow specific episode selection
   seasonNumber?: number
   episodeNumber?: number
-  
+
   // Styling
   variant?: 'default' | 'outline' | 'ghost'
   size?: 'sm' | 'default' | 'lg'
   className?: string
-  
+
   // Behavior
   showDropdown?: boolean // For TV shows with episode selection
   disabled?: boolean
@@ -56,17 +57,18 @@ export function AddToQueueButton({
   const [isOpen, setIsOpen] = useState(false)
 
   // Determine the content data to use
-  const contentData = item || (tmdbItem ? convertTMDBToWatchedItem(tmdbItem) : null)
-  
+  const contentData =
+    item || (tmdbItem ? convertTMDBToWatchedItem(tmdbItem) : null)
+
   if (!contentData) return null
 
   const isTV = contentData.mediaType === 'TV'
   const contentId = item?.id || `tmdb-${contentData.tmdbId}`
-  
+
   // Check if this specific item/episode is in queue
   const inQueue = isInQueue(contentId, seasonNumber, episodeNumber)
   const queuePosition = getQueuePosition(contentId, seasonNumber, episodeNumber)
-  
+
   const isLoading = isAddingToQueue || isAddingNextEpisode
 
   const handleAddToQueue = () => {
@@ -125,42 +127,46 @@ export function AddToQueueButton({
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Add to Queue</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          
+
           {/* Add entire show */}
-          <DropdownMenuItem
-            onClick={handleAddToQueue}
-            disabled={inQueue}
-          >
+          <DropdownMenuItem onClick={handleAddToQueue} disabled={inQueue}>
             <ListPlus className="mr-2 h-4 w-4" />
             {inQueue ? `In queue (#${queuePosition})` : 'Entire show'}
           </DropdownMenuItem>
-          
+
           {/* Add next episode */}
           {item.currentEpisode !== null && item.currentSeason !== null && (
             <DropdownMenuItem onClick={handleAddNextEpisode}>
               <ListPlus className="mr-2 h-4 w-4" />
               Next episode
               <span className="ml-2 text-xs text-muted-foreground">
-                S{(item.currentSeason + (item.currentEpisode >= (item.totalEpisodes || 50) ? 1 : 0))
-                  .toString().padStart(2, '0')}E{
-                  (item.currentEpisode >= (item.totalEpisodes || 50) ? 1 : item.currentEpisode + 1)
-                    .toString().padStart(2, '0')
-                }
+                S
+                {(
+                  item.currentSeason +
+                  (item.currentEpisode >= (item.totalEpisodes || 50) ? 1 : 0)
+                )
+                  .toString()
+                  .padStart(2, '0')}
+                E
+                {(item.currentEpisode >= (item.totalEpisodes || 50)
+                  ? 1
+                  : item.currentEpisode + 1
+                )
+                  .toString()
+                  .padStart(2, '0')}
               </span>
             </DropdownMenuItem>
           )}
-          
+
           {/* Add specific episode (if season/episode provided) */}
           {seasonNumber && episodeNumber && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleAddToQueue}
-                disabled={inQueue}
-              >
+              <DropdownMenuItem onClick={handleAddToQueue} disabled={inQueue}>
                 <ListPlus className="mr-2 h-4 w-4" />
-                {inQueue ? `Episode in queue (#${queuePosition})` : 
-                 `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`}
+                {inQueue
+                  ? `Episode in queue (#${queuePosition})`
+                  : `S${seasonNumber.toString().padStart(2, '0')}E${episodeNumber.toString().padStart(2, '0')}`}
               </DropdownMenuItem>
             </>
           )}
@@ -191,16 +197,23 @@ export function AddToQueueButton({
 }
 
 // Helper function to convert TMDB item to WatchedItem format
-function convertTMDBToWatchedItem(tmdbItem: TMDBMediaItem): WatchedItem {
+function convertTMDBToWatchedItem(
+  tmdbItem: TVWithMediaType | MovieWithMediaType
+): WatchedItem {
   return {
     id: `tmdb-${tmdbItem.id}`,
     tmdbId: tmdbItem.id,
     mediaType: tmdbItem.media_type === 'movie' ? 'MOVIE' : 'TV',
     title: tmdbItem.media_type === 'movie' ? tmdbItem.title : tmdbItem.name,
     poster: tmdbItem.poster_path || null,
-    releaseDate: tmdbItem.media_type === 'movie' 
-      ? (tmdbItem.release_date ? new Date(tmdbItem.release_date) : null)
-      : (tmdbItem.first_air_date ? new Date(tmdbItem.first_air_date) : null),
+    releaseDate:
+      tmdbItem.media_type === 'movie'
+        ? tmdbItem.release_date
+          ? new Date(tmdbItem.release_date)
+          : null
+        : tmdbItem.first_air_date
+          ? new Date(tmdbItem.first_air_date)
+          : null,
     status: 'PLANNED',
     rating: null,
     currentEpisode: null,

@@ -1,12 +1,12 @@
 import { Play, Check, Star, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { TMDBService } from '@/lib/tmdb'
 import { formatAirDate, formatRuntime } from '@/lib/constants/formatting'
-import type { TMDBEpisodeItem } from '@/types'
+import { Episode, getFullImagePath } from 'tmdb-ts'
+import { EPISODE_CONSTANTS } from '@/lib/constants/episode'
 
 interface EpisodeItemProps {
-  episode: TMDBEpisodeItem
+  episode: Episode
   isWatched: boolean
   isCurrent: boolean
   onMarkWatched: (episodeNumber: number) => void
@@ -20,12 +20,16 @@ export function EpisodeItem({
   onMarkWatched,
   onMarkAsCurrentEpisode,
 }: EpisodeItemProps) {
-  const stillUrl = episode.still_path
-    ? TMDBService.getImageUrl(episode.still_path, 'w500')
-    : null
+  const stillUrl = getFullImagePath(
+    'https://image.tmdb.org/t/p/',
+    EPISODE_CONSTANTS.IMAGE_SIZE,
+    episode.still_path
+  )
 
   return (
-    <Card className={`transition-all ${isCurrent ? 'ring-2 ring-primary' : ''} ${isWatched ? 'opacity-75' : ''}`}>
+    <Card
+      className={`transition-all ${isCurrent ? 'ring-2 ring-primary' : ''} ${isWatched ? 'opacity-75' : ''}`}
+    >
       <CardContent className="p-4">
         <div className="flex gap-4">
           {/* Episode Still */}
@@ -90,8 +94,10 @@ export function EpisodeItem({
                 {!isWatched && (
                   <Button
                     size="sm"
-                    variant={isCurrent ? "default" : "outline"}
-                    onClick={() => onMarkAsCurrentEpisode(episode.episode_number)}
+                    variant={isCurrent ? 'default' : 'outline'}
+                    onClick={() =>
+                      onMarkAsCurrentEpisode(episode.episode_number)
+                    }
                     className="text-xs px-2 py-1 h-auto"
                   >
                     {isCurrent ? 'Current' : 'Set Current'}
@@ -99,7 +105,7 @@ export function EpisodeItem({
                 )}
                 <Button
                   size="sm"
-                  variant={isWatched ? "secondary" : "default"}
+                  variant={isWatched ? 'secondary' : 'default'}
                   onClick={() => onMarkWatched(episode.episode_number)}
                   className="text-xs px-2 py-1 h-auto"
                 >

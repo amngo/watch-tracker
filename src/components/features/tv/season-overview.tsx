@@ -1,13 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Play,
-  Check,
-  ChevronRight,
-  Tv2,
-  Edit3,
-} from 'lucide-react'
+import { Play, Check, ChevronRight, Tv2, Edit3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,25 +16,42 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { TMDBService } from '@/lib/tmdb'
 import Link from 'next/link'
-import type { WatchedItem, TMDBTVDetailsExtended } from '@/types'
+import type { WatchedItem } from '@/types'
+import {
+  AppendToResponse,
+  getFullImagePath,
+  Season,
+  TvShowDetails,
+} from 'tmdb-ts'
 
 interface SeasonOverviewProps {
   watchedItem: WatchedItem
-  tvDetails: TMDBTVDetailsExtended
-  onUpdateProgress: (data: { currentSeason: number; currentEpisode: number }) => void
+  tvDetails: AppendToResponse<TvShowDetails, 'credits'[], 'tvShow'>
+
+  onUpdateProgress: (data: {
+    currentSeason: number
+    currentEpisode: number
+  }) => void
   className?: string
 }
 
 interface SeasonCardProps {
-  season: NonNullable<TMDBTVDetailsExtended['seasons']>[number]
+  season: Season
   watchedItem: WatchedItem
   tvId: string
-  onUpdateProgress: (data: { currentSeason: number; currentEpisode: number }) => void
+  onUpdateProgress: (data: {
+    currentSeason: number
+    currentEpisode: number
+  }) => void
 }
 
-function SeasonCard({ season, watchedItem, tvId, onUpdateProgress }: SeasonCardProps) {
+function SeasonCard({
+  season,
+  watchedItem,
+  tvId,
+  onUpdateProgress,
+}: SeasonCardProps) {
   if (!season) return null
   const currentSeason = watchedItem.currentSeason || 0
   const currentEpisode = watchedItem.currentEpisode || 0
@@ -57,12 +68,17 @@ function SeasonCard({ season, watchedItem, tvId, onUpdateProgress }: SeasonCardP
     watchedEpisodes = currentEpisode
   }
 
-  const seasonProgress = season.episode_count > 0 
-    ? (watchedEpisodes / season.episode_count) * 100 
-    : 0
+  const seasonProgress =
+    season.episode_count > 0
+      ? (watchedEpisodes / season.episode_count) * 100
+      : 0
 
   const posterUrl = season.poster_path
-    ? TMDBService.getPosterUrl(season.poster_path, 'w342')
+    ? getFullImagePath(
+        'https://image.tmdb.org/t/p/',
+        'w342',
+        season.poster_path
+      )
     : null
 
   const formatAirDate = (dateString: string | null): string => {
@@ -74,9 +90,12 @@ function SeasonCard({ season, watchedItem, tvId, onUpdateProgress }: SeasonCardP
   }
 
   const getSeasonStatus = () => {
-    if (isSeasonCompleted) return { label: 'Completed', variant: 'default' as const }
-    if (isSeasonCurrent) return { label: 'Watching', variant: 'secondary' as const }
-    if (isSeasonUpcoming) return { label: 'Not Started', variant: 'outline' as const }
+    if (isSeasonCompleted)
+      return { label: 'Completed', variant: 'default' as const }
+    if (isSeasonCurrent)
+      return { label: 'Watching', variant: 'secondary' as const }
+    if (isSeasonUpcoming)
+      return { label: 'Not Started', variant: 'outline' as const }
     return { label: 'Unknown', variant: 'outline' as const }
   }
 
@@ -91,25 +110,29 @@ function SeasonCard({ season, watchedItem, tvId, onUpdateProgress }: SeasonCardP
 
   const handleMarkCompleted = () => {
     // Check if this is the last season to determine if the entire show should be marked complete
-    const isLastSeason = season.season_number === (watchedItem.totalSeasons || season.season_number)
-    
+    const isLastSeason =
+      season.season_number ===
+      (watchedItem.totalSeasons || season.season_number)
+
     onUpdateProgress({
       currentSeason: season.season_number,
       currentEpisode: season.episode_count,
       // If this is the last season, mark the entire show as completed
-      ...(isLastSeason && { 
+      ...(isLastSeason && {
         status: 'COMPLETED' as const,
-        finishDate: new Date()
-      })
+        finishDate: new Date(),
+      }),
     })
   }
 
   return (
-    <Card className={`group transition-all hover:shadow-md ${isSeasonCurrent ? 'ring-2 ring-primary' : ''}`}>
+    <Card
+      className={`group transition-all hover:shadow-md ${isSeasonCurrent ? 'ring-2 ring-primary' : ''}`}
+    >
       <CardContent className="p-4">
         <div className="flex gap-4">
           {/* Season Poster */}
-          <Link 
+          <Link
             href={`/tv/${tvId}/season/${season.season_number}`}
             className="flex-shrink-0"
           >
@@ -161,9 +184,13 @@ function SeasonCard({ season, watchedItem, tvId, onUpdateProgress }: SeasonCardP
                   )}
                 </div>
               </div>
-              
+
               <Link href={`/tv/${tvId}/season/${season.season_number}`}>
-                <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -232,7 +259,9 @@ export function SeasonOverview({
 }: SeasonOverviewProps) {
   const [isQuickEditOpen, setIsQuickEditOpen] = useState(false)
   const [quickSeason, setQuickSeason] = useState(watchedItem.currentSeason || 1)
-  const [quickEpisode, setQuickEpisode] = useState(watchedItem.currentEpisode || 1)
+  const [quickEpisode, setQuickEpisode] = useState(
+    watchedItem.currentEpisode || 1
+  )
 
   // Filter out special seasons (season 0) and sort by season number
   const mainSeasons = tvDetails.seasons
@@ -247,11 +276,14 @@ export function SeasonOverview({
         .sort((a, b) => a.season_number - b.season_number)
     : []
 
-  const totalEpisodes = mainSeasons.reduce((total, season) => total + season.episode_count, 0)
+  const totalEpisodes = mainSeasons.reduce(
+    (total, season) => total + season.episode_count,
+    0
+  )
   const watchedEpisodes = mainSeasons.reduce((total, season) => {
     const currentSeason = watchedItem.currentSeason || 0
     const currentEpisode = watchedItem.currentEpisode || 0
-    
+
     if (currentSeason > season.season_number) {
       return total + season.episode_count
     } else if (currentSeason === season.season_number) {
@@ -260,7 +292,8 @@ export function SeasonOverview({
     return total
   }, 0)
 
-  const overallProgress = totalEpisodes > 0 ? (watchedEpisodes / totalEpisodes) * 100 : 0
+  const overallProgress =
+    totalEpisodes > 0 ? (watchedEpisodes / totalEpisodes) * 100 : 0
 
   const handleQuickEdit = () => {
     onUpdateProgress({
@@ -270,8 +303,10 @@ export function SeasonOverview({
     setIsQuickEditOpen(false)
   }
 
-  const currentSeasonData = mainSeasons.find(s => s.season_number === watchedItem.currentSeason)
-  const nextEpisode = currentSeasonData 
+  const currentSeasonData = mainSeasons.find(
+    s => s.season_number === watchedItem.currentSeason
+  )
+  const nextEpisode = currentSeasonData
     ? `S${watchedItem.currentSeason}E${(watchedItem.currentEpisode || 0) + 1}`
     : 'S1E1'
 
@@ -298,7 +333,8 @@ export function SeasonOverview({
                 <DialogHeader>
                   <DialogTitle>Update Progress</DialogTitle>
                   <DialogDescription>
-                    Set your current season and episode progress for {watchedItem.title}
+                    Set your current season and episode progress for{' '}
+                    {watchedItem.title}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4">
@@ -310,7 +346,9 @@ export function SeasonOverview({
                       min="1"
                       max={watchedItem.totalSeasons || undefined}
                       value={quickSeason}
-                      onChange={(e) => setQuickSeason(parseInt(e.target.value) || 1)}
+                      onChange={e =>
+                        setQuickSeason(parseInt(e.target.value) || 1)
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -320,7 +358,9 @@ export function SeasonOverview({
                       type="number"
                       min="1"
                       value={quickEpisode}
-                      onChange={(e) => setQuickEpisode(parseInt(e.target.value) || 1)}
+                      onChange={e =>
+                        setQuickEpisode(parseInt(e.target.value) || 1)
+                      }
                     />
                   </div>
                 </div>
@@ -331,9 +371,7 @@ export function SeasonOverview({
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleQuickEdit}>
-                    Update Progress
-                  </Button>
+                  <Button onClick={handleQuickEdit}>Update Progress</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -346,7 +384,8 @@ export function SeasonOverview({
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Overall Progress</span>
                 <span className="font-medium">
-                  {watchedEpisodes}/{totalEpisodes} episodes ({Math.round(overallProgress)}%)
+                  {watchedEpisodes}/{totalEpisodes} episodes (
+                  {Math.round(overallProgress)}%)
                 </span>
               </div>
               <Progress value={overallProgress} className="h-2" />
@@ -355,12 +394,20 @@ export function SeasonOverview({
             {/* Current Progress Info */}
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-lg font-semibold">{watchedItem.currentSeason || 0}</div>
-                <div className="text-xs text-muted-foreground">Current Season</div>
+                <div className="text-lg font-semibold">
+                  {watchedItem.currentSeason || 0}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Current Season
+                </div>
               </div>
               <div>
-                <div className="text-lg font-semibold">{watchedItem.currentEpisode || 0}</div>
-                <div className="text-xs text-muted-foreground">Current Episode</div>
+                <div className="text-lg font-semibold">
+                  {watchedItem.currentEpisode || 0}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Current Episode
+                </div>
               </div>
               <div>
                 <div className="text-lg font-semibold">{nextEpisode}</div>
@@ -375,7 +422,7 @@ export function SeasonOverview({
       <div>
         <h3 className="text-lg font-semibold mb-4">Seasons</h3>
         <div className="space-y-3">
-          {mainSeasons.map((season) => (
+          {mainSeasons.map(season => (
             <SeasonCard
               key={season.id}
               season={season}
@@ -392,7 +439,7 @@ export function SeasonOverview({
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-4">Specials</h3>
           <div className="space-y-3">
-            {specialSeasons.map((season) => (
+            {specialSeasons.map(season => (
               <SeasonCard
                 key={season.id}
                 season={season}

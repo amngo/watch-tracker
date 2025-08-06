@@ -12,7 +12,8 @@ import { cn, getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
 import { useSearch } from '@/hooks/use-search'
 import { useMediaStore } from '@/stores/media-store'
 import { useEffect } from 'react'
-import type { MediaSearchProps, TMDBMediaItem } from '@/types'
+import type { MediaSearchProps } from '@/types'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
   const {
@@ -28,7 +29,7 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
 
   const { isItemInWatchlist } = useMediaStore()
 
-  const handleAddMedia = (media: TMDBMediaItem) => {
+  const handleAddMedia = (media: TVWithMediaType | MovieWithMediaType) => {
     onAddMedia(media)
     clearSearch()
   }
@@ -92,10 +93,7 @@ export function MediaSearch({ onAddMedia, className }: MediaSearchProps) {
               ) : results.length > 0 ? (
                 <div className="space-y-3">
                   {results.map(media => {
-                    const isInWatchlist = isItemInWatchlist(
-                      media.id,
-                      media.media_type
-                    )
+                    const isInWatchlist = isItemInWatchlist(media.id)
                     return (
                       <Card
                         key={media.id}

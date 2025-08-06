@@ -24,17 +24,21 @@ import { AddToQueueButton } from '@/components/features/queue/add-to-queue-butto
 import { api } from '@/trpc/react'
 import { TVEpisodePageSkeleton } from '@/components/ui/skeletons'
 import { useMedia } from '@/hooks/use-media'
-import { TMDBService } from '@/lib/tmdb'
+
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
 import type {
-  TMDBTVDetailsExtended,
-  TMDBSeasonDetailsItem,
   EpisodeWatchStatus,
   WatchedItem,
   UpdateWatchedItemData,
 } from '@/types'
-import type { TMDBEpisode, TMDBCastMember, TMDBCrewMember } from '@/lib/tmdb'
+import {
+  AppendToResponse,
+  Episode,
+  getFullImagePath,
+  SeasonDetails,
+  TvShowDetails,
+} from 'tmdb-ts'
 
 export default function TVEpisodePage() {
   const params = useParams()
@@ -42,11 +46,17 @@ export default function TVEpisodePage() {
   const seasonNumber = parseInt(params.season_number as string)
   const episodeNumber = parseInt(params.episode_number as string)
 
-  const [episodeDetails, setEpisodeDetails] = useState<TMDBEpisode | null>(null)
-  const [tvShowDetails, setTvShowDetails] =
-    useState<TMDBTVDetailsExtended | null>(null)
-  const [seasonDetails, setSeasonDetails] =
-    useState<TMDBSeasonDetailsItem | null>(null)
+  const [episodeDetails, setEpisodeDetails] = useState<Episode | null>(null)
+  const [tvShowDetails, setTvShowDetails] = useState<AppendToResponse<
+    TvShowDetails,
+    'credits'[],
+    'tvShow'
+  > | null>(null)
+  const [seasonDetails, setSeasonDetails] = useState<AppendToResponse<
+    SeasonDetails,
+    'credits'[],
+    'tvShow'
+  > | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [spoilerMode, setSpoilerMode] = useState(false)
@@ -84,7 +94,7 @@ export default function TVEpisodePage() {
     )?.status || 'UNWATCHED'
 
   // Fetch TV show detailed information
-  const { data: tvDetailsData } = api.search.detailsExtended.useQuery(
+  const { data: tvDetailsData } = api.search.tvDetails.useQuery(
     {
       id: parseInt(tvId),
       type: 'tv',
@@ -177,7 +187,7 @@ export default function TVEpisodePage() {
   // Set TV show details
   useEffect(() => {
     if (tvDetailsData) {
-      const tvData = tvDetailsData as TMDBTVDetailsExtended
+      const tvData = tvDetailsData
       setTvShowDetails(tvData)
     }
   }, [tvDetailsData])
@@ -185,14 +195,14 @@ export default function TVEpisodePage() {
   // Set season details
   useEffect(() => {
     if (seasonDetailsData) {
-      setSeasonDetails(seasonDetailsData as TMDBSeasonDetailsItem)
+      setSeasonDetails(seasonDetailsData)
     }
   }, [seasonDetailsData])
 
   // Set episode details
   useEffect(() => {
     if (episodeDetailsData) {
-      setEpisodeDetails(episodeDetailsData as TMDBEpisode)
+      setEpisodeDetails(episodeDetailsData as Episode)
       setIsLoading(false)
     }
   }, [episodeDetailsData])
@@ -346,7 +356,11 @@ export default function TVEpisodePage() {
   }
 
   const stillUrl = episodeDetails.still_path
-    ? TMDBService.getImageUrl(episodeDetails.still_path, 'w500')
+    ? getFullImagePath(
+        'https://image.tmdb.org/t/p/',
+        'w500',
+        episodeDetails.still_path
+      )
     : null
 
   return (
@@ -582,9 +596,9 @@ export default function TVEpisodePage() {
                       id: parseInt(tvId),
                       media_type: 'tv',
                       name: tvShowDetails?.name || 'Unknown Show',
-                      poster_path: tvShowDetails?.poster_path,
-                      first_air_date: tvShowDetails?.first_air_date,
-                      overview: tvShowDetails?.overview,
+                      poster_path: tvShowDetails?.poster_path || '',
+                      first_air_date: tvShowDetails?.first_air_date || '',
+                      overview: tvShowDetails?.overview || '',
                       vote_average: tvShowDetails?.vote_average || 0,
                       adult: false,
                       vote_count: 0,
@@ -606,42 +620,39 @@ export default function TVEpisodePage() {
             <div>
               <h2 className="text-2xl font-bold mb-6">Guest Stars</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {episodeDetails.guest_stars
-                  .slice(0, 8)
-                  .map((guest: TMDBCastMember) => (
-                    <Card key={guest.id}>
-                      <CardContent className="p-4 flex gap-4">
-                        {guest.profile_path ? (
-                          <div className="relative rounded-lg overflow-hidden w-16 h-auto">
-                            <img
-                              src={
-                                TMDBService.getPosterUrl(
-                                  guest.profile_path,
-                                  'w185'
-                                ) || ''
-                              }
-                              alt={guest.name}
-                              className="object-cover object-top w-full h-full"
-                            />
-                          </div>
-                        ) : (
-                          <div className="bg-muted rounded-lg flex items-center justify-center w-16 h-auto">
-                            <span className="text-muted-foreground text-xs">
-                              No Photo
-                            </span>
-                          </div>
-                        )}
-                        <div>
-                          <h4 className="font-medium text-sm leading-tight mb-1">
-                            {guest.name}
-                          </h4>
-                          <p className="text-xs text-muted-foreground leading-tight">
-                            {guest.character}
-                          </p>
+                {episodeDetails.guest_stars.slice(0, 8).map(guest => (
+                  <Card key={guest.id}>
+                    <CardContent className="p-4 flex gap-4">
+                      {guest.profile_path ? (
+                        <div className="relative rounded-lg overflow-hidden w-16 h-auto">
+                          <img
+                            src={getFullImagePath(
+                              'https://image.tmdb.org/t/p/',
+                              'w185',
+                              guest.profile_path
+                            )}
+                            alt={guest.name}
+                            className="object-cover object-top w-full h-full"
+                          />
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      ) : (
+                        <div className="bg-muted rounded-lg flex items-center justify-center w-16 h-auto">
+                          <span className="text-muted-foreground text-xs">
+                            No Photo
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium text-sm leading-tight mb-1">
+                          {guest.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground leading-tight">
+                          {guest.character}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           )}
@@ -652,13 +663,13 @@ export default function TVEpisodePage() {
             <h2 className="text-2xl font-bold mb-6">Crew</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {episodeDetails.crew
-                .filter((member: TMDBCrewMember) =>
+                .filter(member =>
                   ['Director', 'Writer', 'Executive Producer'].includes(
                     member.job
                   )
                 )
                 .slice(0, 6)
-                .map((crewMember: TMDBCrewMember) => (
+                .map(crewMember => (
                   <Card key={`${crewMember.id}-${crewMember.job}`}>
                     <CardContent className="p-4">
                       <h4 className="font-medium text-sm">{crewMember.name}</h4>

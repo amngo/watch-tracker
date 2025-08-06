@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { tmdbService } from '@/lib/tmdb'
 import type { Prisma } from '@prisma/client'
+import { tmdb } from '@/lib/tmdb'
 
 const MediaTypeEnum = z.enum(['MOVIE', 'TV'])
 const WatchStatusEnum = z.enum([
@@ -146,33 +146,37 @@ export const watchedItemRouter = createTRPCRouter({
 
       // Handle automatic episode marking when TV show is marked as COMPLETED
       if (
-        updateData.status === 'COMPLETED' && 
-        currentItem.mediaType === 'TV' && 
+        updateData.status === 'COMPLETED' &&
+        currentItem.mediaType === 'TV' &&
         currentItem.status !== 'COMPLETED' &&
         !watchedEpisodes // Only auto-generate if no explicit episodes provided
       ) {
         try {
           // Fetch TV show details to get all seasons and episodes
-          const tvDetails = await tmdbService.getTVDetailsExtended(currentItem.tmdbId)
-          
+          const tvDetails = await tmdb.tvShows.details(currentItem.tmdbId)
+
           if (tvDetails.seasons && tvDetails.seasons.length > 0) {
             // Generate watched episodes for all seasons/episodes
             const allEpisodes: Array<{
-              seasonNumber: number;
-              episodeNumber: number;
-              status: 'WATCHED';
-              watchedAt: Date;
-              watchedItemId: string;
+              seasonNumber: number
+              episodeNumber: number
+              status: 'WATCHED'
+              watchedAt: Date
+              watchedItemId: string
             }> = []
 
             // Fetch detailed season information for each season to get episode counts
             for (const season of tvDetails.seasons) {
               // Skip season 0 (specials) unless it's the only season
-              if (season.season_number === 0 && tvDetails.seasons.length > 1) continue
+              if (season.season_number === 0 && tvDetails.seasons.length > 1)
+                continue
 
               try {
-                const seasonDetails = await tmdbService.getTVSeasonDetails(currentItem.tmdbId, season.season_number)
-                
+                const seasonDetails = await tmdb.tvSeasons.details({
+                  tvShowID: currentItem.tmdbId,
+                  seasonNumber: season.season_number,
+                })
+
                 // Add all episodes from this season using actual episode data
                 for (const episode of seasonDetails.episodes) {
                   allEpisodes.push({
@@ -184,9 +188,16 @@ export const watchedItemRouter = createTRPCRouter({
                   })
                 }
               } catch (seasonError) {
-                console.warn(`Failed to fetch season ${season.season_number} details for TV show ${currentItem.tmdbId}:`, seasonError)
+                console.warn(
+                  `Failed to fetch season ${season.season_number} details for TV show ${currentItem.tmdbId}:`,
+                  seasonError
+                )
                 // Fallback: use episode_count from basic season info
-                for (let episodeNum = 1; episodeNum <= season.episode_count; episodeNum++) {
+                for (
+                  let episodeNum = 1;
+                  episodeNum <= season.episode_count;
+                  episodeNum++
+                ) {
                   allEpisodes.push({
                     seasonNumber: season.season_number,
                     episodeNumber: episodeNum,
@@ -210,7 +221,10 @@ export const watchedItemRouter = createTRPCRouter({
             }
           }
         } catch (tmdbError) {
-          console.error(`Failed to fetch TV show details for completion marking:`, tmdbError)
+          console.error(
+            `Failed to fetch TV show details for completion marking:`,
+            tmdbError
+          )
           // Don't fail the status update if TMDB fetch fails
           // The user can manually mark episodes later
         }
@@ -289,8 +303,8 @@ export const watchedItemRouter = createTRPCRouter({
 
       try {
         // Fetch detailed information from TMDB
-        const tvDetails = await tmdbService.getTVDetailsExtended(watchedItem.tmdbId)
-        
+        const tvDetails = await tmdb.tvShows.details(watchedItem.tmdbId)
+
         // Update the watched item with season and episode counts
         return ctx.db.watchedItem.update({
           where: {
@@ -335,10 +349,7 @@ export const watchedItemRouter = createTRPCRouter({
       }
 
       if (input.onlyMissingData && !input.forceUpdate) {
-        where.OR = [
-          { totalSeasons: null },
-          { totalEpisodes: null },
-        ]
+        where.OR = [{ totalSeasons: null }, { totalEpisodes: null }]
       }
 
       // Get all TV shows for the user based on criteria
@@ -352,18 +363,27 @@ export const watchedItemRouter = createTRPCRouter({
 
       for (let i = 0; i < tvShows.length; i += batchSize) {
         const batch = tvShows.slice(i, i + batchSize)
-        
-        const batchPromises = batch.map(async (tvShow) => {
+
+        const batchPromises = batch.map(async tvShow => {
           try {
-            const tvDetails = await tmdbService.getTVDetailsExtended(tvShow.tmdbId)
-            
+            const tvDetails = await tmdb.tvShows.details(tvShow.tmdbId)
+
             // Calculate total runtime if not present
             let totalRuntime = tvShow.totalRuntime
-            if (!totalRuntime && tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0 && tvDetails.number_of_episodes) {
-              const avgEpisodeRuntime = tvDetails.episode_run_time.reduce((a, b) => a + b, 0) / tvDetails.episode_run_time.length
-              totalRuntime = Math.round(avgEpisodeRuntime * tvDetails.number_of_episodes)
+            if (
+              !totalRuntime &&
+              tvDetails.episode_run_time &&
+              tvDetails.episode_run_time.length > 0 &&
+              tvDetails.number_of_episodes
+            ) {
+              const avgEpisodeRuntime =
+                tvDetails.episode_run_time.reduce((a, b) => a + b, 0) /
+                tvDetails.episode_run_time.length
+              totalRuntime = Math.round(
+                avgEpisodeRuntime * tvDetails.number_of_episodes
+              )
             }
-            
+
             const updatedItem = await ctx.db.watchedItem.update({
               where: { id: tvShow.id },
               data: {
@@ -372,12 +392,16 @@ export const watchedItemRouter = createTRPCRouter({
                 totalRuntime: totalRuntime || null,
               },
             })
-            
+
             successfulUpdates++
             return updatedItem
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-            console.error(`Failed to update TV show ${tvShow.id} (${tvShow.title}):`, errorMessage)
+            const errorMessage =
+              error instanceof Error ? error.message : 'Unknown error'
+            console.error(
+              `Failed to update TV show ${tvShow.id} (${tvShow.title}):`,
+              errorMessage
+            )
             errors.push(`${tvShow.title}: ${errorMessage}`)
             failedUpdates++
             return null
@@ -386,7 +410,7 @@ export const watchedItemRouter = createTRPCRouter({
 
         // Wait for current batch to complete before starting next
         await Promise.allSettled(batchPromises)
-        
+
         // Add small delay between batches to respect TMDB rate limits
         if (i + batchSize < tvShows.length) {
           await new Promise(resolve => setTimeout(resolve, 500))
@@ -598,18 +622,27 @@ export const watchedItemRouter = createTRPCRouter({
 
       for (let i = 0; i < tvShows.length; i += batchSize) {
         const batch = tvShows.slice(i, i + batchSize)
-        
-        const batchPromises = batch.map(async (tvShow) => {
+
+        const batchPromises = batch.map(async tvShow => {
           try {
-            const tvDetails = await tmdbService.getTVDetailsExtended(tvShow.tmdbId)
-            
+            const tvDetails = await tmdb.tvShows.details(tvShow.tmdbId)
+
             // Calculate total runtime if not present
             let totalRuntime = tvShow.totalRuntime
-            if (!totalRuntime && tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0 && tvDetails.number_of_episodes) {
-              const avgEpisodeRuntime = tvDetails.episode_run_time.reduce((a, b) => a + b, 0) / tvDetails.episode_run_time.length
-              totalRuntime = Math.round(avgEpisodeRuntime * tvDetails.number_of_episodes)
+            if (
+              !totalRuntime &&
+              tvDetails.episode_run_time &&
+              tvDetails.episode_run_time.length > 0 &&
+              tvDetails.number_of_episodes
+            ) {
+              const avgEpisodeRuntime =
+                tvDetails.episode_run_time.reduce((a, b) => a + b, 0) /
+                tvDetails.episode_run_time.length
+              totalRuntime = Math.round(
+                avgEpisodeRuntime * tvDetails.number_of_episodes
+              )
             }
-            
+
             await ctx.db.watchedItem.update({
               where: { id: tvShow.id },
               data: {
@@ -618,11 +651,15 @@ export const watchedItemRouter = createTRPCRouter({
                 totalRuntime: totalRuntime || null,
               },
             })
-            
+
             successfulUpdates++
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-            console.error(`Failed to update TV show ${tvShow.id} (${tvShow.title}):`, errorMessage)
+            const errorMessage =
+              error instanceof Error ? error.message : 'Unknown error'
+            console.error(
+              `Failed to update TV show ${tvShow.id} (${tvShow.title}):`,
+              errorMessage
+            )
             errors.push(`${tvShow.title}: ${errorMessage}`)
             failedUpdates++
           }
@@ -630,7 +667,7 @@ export const watchedItemRouter = createTRPCRouter({
 
         // Wait for current batch to complete
         await Promise.allSettled(batchPromises)
-        
+
         // Add delay between batches
         if (i + batchSize < tvShows.length) {
           await new Promise(resolve => setTimeout(resolve, 500))

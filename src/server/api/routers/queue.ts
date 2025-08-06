@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { TRPCError } from '@trpc/server'
-import { TMDBService } from '@/lib/tmdb'
+import { tmdb } from '@/lib/tmdb'
 
 export const queueRouter = createTRPCRouter({
   // Get user's queue
@@ -72,12 +72,11 @@ export const queueRouter = createTRPCRouter({
         !episodeName
       ) {
         try {
-          const tmdb = new TMDBService()
-          const episodeData = await tmdb.getTVEpisodeDetails(
-            input.tmdbId,
-            input.seasonNumber,
-            input.episodeNumber
-          )
+          const episodeData = await tmdb.tvEpisode.details({
+            tvShowID: input.tmdbId,
+            seasonNumber: input.seasonNumber,
+            episodeNumber: input.episodeNumber,
+          })
           episodeName = episodeData.name
         } catch (error) {
           // If TMDB fetch fails, continue without episode name
@@ -296,7 +295,11 @@ export const queueRouter = createTRPCRouter({
         }
 
         // Handle TV show episode progress
-        if (queueItem.contentType === 'TV' && queueItem.seasonNumber && queueItem.episodeNumber) {
+        if (
+          queueItem.contentType === 'TV' &&
+          queueItem.seasonNumber &&
+          queueItem.episodeNumber
+        ) {
           // Mark the specific episode as watched
           await tx.watchedEpisode.upsert({
             where: {
@@ -426,7 +429,11 @@ export const queueRouter = createTRPCRouter({
       // In a real app, you'd fetch this from TMDB API
       const maxEpisodesPerSeason = 50
 
-      if (nextEpisode > maxEpisodesPerSeason && input.totalSeasons && nextSeason < input.totalSeasons) {
+      if (
+        nextEpisode > maxEpisodesPerSeason &&
+        input.totalSeasons &&
+        nextSeason < input.totalSeasons
+      ) {
         nextSeason += 1
         nextEpisode = 1
       }
@@ -548,7 +555,11 @@ export const queueRouter = createTRPCRouter({
           }
 
           // Handle TV show episode progress
-          if (queueItem.contentType === 'TV' && queueItem.seasonNumber && queueItem.episodeNumber) {
+          if (
+            queueItem.contentType === 'TV' &&
+            queueItem.seasonNumber &&
+            queueItem.episodeNumber
+          ) {
             // Mark the specific episode as watched
             await tx.watchedEpisode.upsert({
               where: {

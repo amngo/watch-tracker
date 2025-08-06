@@ -4,12 +4,12 @@ import { MediaPoster } from '@/components/ui/media-poster'
 import { MediaTypeBadge, VoteAverageBadge } from '@/components/ui/media-badges'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { getTMDBTitle, getTMDBReleaseDate } from '@/lib/utils'
-import type { TMDBMediaItem } from '@/types'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 interface MediaResultCardProps {
-  media: TMDBMediaItem
+  media: TVWithMediaType | MovieWithMediaType
   isInWatchlist: boolean
-  onAddMedia: (media: TMDBMediaItem) => Promise<void>
+  onAddMedia: (media: TVWithMediaType | MovieWithMediaType) => Promise<void>
 }
 
 export function MediaResultCard({
@@ -53,7 +53,7 @@ export function MediaResultCard({
                 >
                   {isInWatchlist ? '✓ Added' : '+ Add'}
                 </Button>
-                
+
                 <AddToQueueButton
                   tmdbItem={media}
                   size="sm"

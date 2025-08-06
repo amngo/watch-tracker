@@ -1,13 +1,16 @@
 import { Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { TMDBEpisodeItem } from '@/types'
+import { Episode } from 'tmdb-ts'
 
 interface NextEpisodeBannerProps {
-  nextEpisode: TMDBEpisodeItem
+  nextEpisode: Episode
   onStartWatching: (episodeNumber: number) => void
 }
 
-export function NextEpisodeBanner({ nextEpisode, onStartWatching }: NextEpisodeBannerProps) {
+export function NextEpisodeBanner({
+  nextEpisode,
+  onStartWatching,
+}: NextEpisodeBannerProps) {
   return (
     <div className="mb-4 p-3 bg-primary/5 rounded-lg border">
       <div className="flex items-center gap-2 mb-2">

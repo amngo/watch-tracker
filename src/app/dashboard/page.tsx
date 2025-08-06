@@ -22,8 +22,9 @@ import { useMedia } from '@/hooks/use-media'
 import { useUI } from '@/hooks/use-ui'
 import { useBackgroundUpdates } from '@/hooks/use-background-updates'
 import { calculateProgress } from '@/lib/utils'
-import type { TMDBMediaItem, WatchedItem } from '@/types'
+import type { WatchedItem } from '@/types'
 import { TVShowCard } from '@/components/features/tv/tv-show-card'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 export default function Dashboard() {
   const {
@@ -99,7 +100,9 @@ export default function Dashboard() {
     setItemsLoading(itemsDataLoading)
   }, [recentItems, itemsDataLoading, setWatchedItems, setItemsLoading])
 
-  const handleAddMedia = async (media: TMDBMediaItem) => {
+  const handleAddMedia = async (
+    media: TVWithMediaType | MovieWithMediaType
+  ) => {
     await addMedia(media)
     closeSearchModal()
   }

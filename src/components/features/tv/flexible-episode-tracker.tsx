@@ -19,15 +19,12 @@ import { useEpisodeActions } from '@/hooks/use-episode-actions'
 import { formatPercentage } from '@/lib/format'
 import { EpisodeCardList } from './episode'
 
-import type {
-  WatchedItem,
-  TMDBSeasonDetailsItem,
-  EpisodeWatchStatus,
-} from '@/types'
+import type { WatchedItem, EpisodeWatchStatus } from '@/types'
+import { SeasonDetails } from 'tmdb-ts'
 
 interface FlexibleEpisodeTrackerProps {
   watchedItem: WatchedItem
-  seasonDetails: TMDBSeasonDetailsItem
+  seasonDetails: SeasonDetails
   onUpdateEpisodeStatus: (
     seasonNumber: number,
     episodeNumber: number,

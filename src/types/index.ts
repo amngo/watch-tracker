@@ -1,3 +1,14 @@
+import {
+  AppendToResponse,
+  Movie,
+  MovieDetails,
+  MovieWithMediaType,
+  Search,
+  TV,
+  TvShowDetails,
+  TVWithMediaType,
+} from 'tmdb-ts'
+
 // Core domain types
 export interface WatchedItem {
   id: string
@@ -96,114 +107,32 @@ export interface UserStats {
   totalHoursWatched?: number
 }
 
-// TMDB API types (these match TMDB's actual response format)
-export interface TMDBMovieItem {
-  id: number
+export interface ExtendedMovieDetails
+  extends AppendToResponse<MovieDetails, 'credits'[], 'movie'> {
   media_type: 'movie'
-  title: string
-  poster_path?: string | null
-  release_date?: string
-  overview?: string | null
-  vote_average: number
-  adult: boolean
-  vote_count: number
 }
 
-export interface TMDBTVItem {
-  id: number
+export interface ExtendedTvShowDetails
+  extends AppendToResponse<TvShowDetails, 'credits'[], 'tvShow'> {
   media_type: 'tv'
-  name: string
-  poster_path?: string | null
-  first_air_date?: string | null
-  overview?: string | null
-  vote_average: number
-  adult: boolean
-  vote_count: number
 }
 
-export interface TMDBPersonItem {
-  id: number
-  media_type: 'person'
-  name: string
-  profile_path?: string | null
-  popularity: number
-  adult: boolean
-  gender?: number | null
-  known_for_department?: string | null
-  // Person items don't have vote_average, so we make it optional for the union
-  vote_average?: never
+export interface MovieSearchResult extends Search<Movie> {
+  results: MovieWithMediaType[]
 }
 
-export type TMDBSearchResultItem = TMDBMovieItem | TMDBTVItem
+export interface TvSearchResult extends Search<TV> {
+  results: TVWithMediaType[]
+}
+
+export type SearchResult = MovieSearchResult | TvSearchResult
 
 // Helper type for media items only (excluding person results)
-export type TMDBMediaItem = TMDBMovieItem | TMDBTVItem
-
-// Episode and Season types
-export interface TMDBEpisodeItem {
-  air_date: string | null
-  episode_number: number
-  id: number
-  name: string
-  overview: string
-  production_code: string | null
-  runtime: number | null
-  season_number: number
-  show_id: number
-  still_path: string | null
-  vote_average: number
-  vote_count: number
-  crew?: Array<{
-    adult: boolean
-    gender: number | null
-    id: number
-    known_for_department: string
-    name: string
-    original_name: string
-    popularity: number
-    profile_path: string | null
-    credit_id: string
-    department: string
-    job: string
-  }>
-  guest_stars?: Array<{
-    adult: boolean
-    gender: number | null
-    id: number
-    known_for_department: string
-    name: string
-    original_name: string
-    popularity: number
-    profile_path: string | null
-    cast_id?: number
-    character: string
-    credit_id: string
-    order: number
-  }>
-}
-
-export interface TMDBSeasonDetailsItem {
-  _id: string
-  air_date: string | null
-  episodes: TMDBEpisodeItem[]
-  name: string
-  overview: string
-  id: number
-  poster_path: string | null
-  season_number: number
-  vote_average?: number
-}
-
-export interface TMDBSearchResponse {
-  page: number
-  results: TMDBSearchResultItem[]
-  total_pages: number
-  total_results: number
-}
+export type TMDBMediaItem = ExtendedMovieDetails | ExtendedTvShowDetails
 
 // Component prop types
 export interface MediaSearchProps {
-  onAddMedia: (media: TMDBMediaItem) => void
+  onAddMedia: (media: TVWithMediaType | MovieWithMediaType) => void
   className?: string
 }
 
@@ -340,94 +269,4 @@ export interface NavigationItem {
     message: string
     order: number
   }
-}
-
-// Extended TMDB types for detailed pages
-export interface TMDBGenre {
-  id: number
-  name: string
-}
-
-export interface TMDBProductionCompany {
-  id: number
-  logo_path?: string | null
-  name: string
-  origin_country: string
-}
-
-export interface TMDBCastMember {
-  id: number
-  name: string
-  character: string
-  profile_path?: string | null
-  order: number
-  known_for_department: string
-}
-
-export interface TMDBCrewMember {
-  id: number
-  name: string
-  job: string
-  department: string
-  profile_path?: string | null
-  known_for_department: string
-}
-
-export interface TMDBCredits {
-  cast: TMDBCastMember[]
-  crew: TMDBCrewMember[]
-}
-
-export interface TMDBMovieDetailsExtended extends TMDBMovieItem {
-  belongs_to_collection?: {
-    id: number
-    name: string
-    poster_path?: string | null
-    backdrop_path?: string | null
-  } | null
-  budget?: number
-  genres?: TMDBGenre[]
-  homepage?: string | null
-  imdb_id?: string | null
-  production_companies?: TMDBProductionCompany[]
-  revenue?: number
-  runtime?: number | null
-  status?: string
-  tagline?: string | null
-  backdrop_path?: string | null
-  credits?: TMDBCredits
-}
-
-export interface TMDBTVDetailsExtended extends TMDBTVItem {
-  created_by?: Array<{
-    id: number
-    name: string
-    profile_path?: string | null
-  }>
-  episode_run_time?: number[]
-  genres?: TMDBGenre[]
-  homepage?: string | null
-  number_of_episodes?: number
-  number_of_seasons?: number
-  last_air_date?: string | null
-  seasons?: Array<{
-    air_date?: string | null
-    episode_count: number
-    id: number
-    name: string
-    overview: string
-    poster_path?: string | null
-    season_number: number
-  }>
-  status?: string
-  tagline?: string | null
-  type?: string
-  backdrop_path?: string | null
-  credits?: TMDBCredits
-  networks?: Array<{
-    id: number
-    name: string
-    logo_path?: string | null
-    origin_country: string
-  }>
 }

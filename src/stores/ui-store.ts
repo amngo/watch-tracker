@@ -1,34 +1,34 @@
+import { Movie, TV } from 'tmdb-ts'
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
-import type { TMDBSearchResultItem } from '@/types'
 
 export interface UIStoreState {
   // Modal states
   isSearchModalOpen: boolean
   isProfileModalOpen: boolean
   isSettingsModalOpen: boolean
-  
+
   // Loading states
   isLoading: boolean
   loadingMessage: string | null
-  
+
   // Search state
   searchQuery: string
-  searchResults: TMDBSearchResultItem[]
+  searchResults: TV[] | Movie[]
   searchLoading: boolean
   searchType: 'movie' | 'tv'
-  
+
   // Filters and sorting
   viewMode: 'grid' | 'list'
   sortBy: 'title' | 'dateAdded' | 'dateWatched' | 'rating' | 'progress'
   sortOrder: 'asc' | 'desc'
   filterStatus: 'all' | 'watching' | 'completed' | 'paused' | 'planned'
   filterType: 'all' | 'movie' | 'tv'
-  
+
   // UI preferences
   sidebarCollapsed: boolean
   theme: 'light' | 'dark' | 'system'
-  
+
   // Actions
   openSearchModal: () => void
   closeSearchModal: () => void
@@ -36,25 +36,25 @@ export interface UIStoreState {
   closeProfileModal: () => void
   openSettingsModal: () => void
   closeSettingsModal: () => void
-  
+
   setLoading: (loading: boolean, message?: string) => void
-  
+
   setSearchQuery: (query: string) => void
-  setSearchResults: (results: TMDBSearchResultItem[]) => void
+  setSearchResults: (results: TV[] | Movie[]) => void
   setSearchLoading: (loading: boolean) => void
   setSearchType: (type: 'movie' | 'tv') => void
   clearSearch: () => void
-  
+
   setViewMode: (mode: 'grid' | 'list') => void
   setSortBy: (sortBy: UIStoreState['sortBy']) => void
   setSortOrder: (order: 'asc' | 'desc') => void
   setFilterStatus: (status: UIStoreState['filterStatus']) => void
   setFilterType: (type: UIStoreState['filterType']) => void
-  
+
   toggleSidebar: () => void
   setSidebarCollapsed: (collapsed: boolean) => void
   setTheme: (theme: UIStoreState['theme']) => void
-  
+
   reset: () => void
 }
 
@@ -63,24 +63,24 @@ const initialState = {
   isSearchModalOpen: false,
   isProfileModalOpen: false,
   isSettingsModalOpen: false,
-  
+
   // Loading states
   isLoading: false,
   loadingMessage: null,
-  
+
   // Search state
   searchQuery: '',
   searchResults: [],
   searchLoading: false,
   searchType: 'movie' as const,
-  
+
   // Filters and sorting
   viewMode: 'grid' as const,
   sortBy: 'dateAdded' as const,
   sortOrder: 'desc' as const,
   filterStatus: 'all' as const,
   filterType: 'all' as const,
-  
+
   // UI preferences
   sidebarCollapsed: false,
   theme: 'system' as const,
@@ -94,19 +94,19 @@ export const useUIStore = create<UIStoreState>()(
       // Modal actions
       openSearchModal: () =>
         set({ isSearchModalOpen: true }, false, 'ui/openSearchModal'),
-      
+
       closeSearchModal: () =>
         set({ isSearchModalOpen: false }, false, 'ui/closeSearchModal'),
-      
+
       openProfileModal: () =>
         set({ isProfileModalOpen: true }, false, 'ui/openProfileModal'),
-      
+
       closeProfileModal: () =>
         set({ isProfileModalOpen: false }, false, 'ui/closeProfileModal'),
-      
+
       openSettingsModal: () =>
         set({ isSettingsModalOpen: true }, false, 'ui/openSettingsModal'),
-      
+
       closeSettingsModal: () =>
         set({ isSettingsModalOpen: false }, false, 'ui/closeSettingsModal'),
 
@@ -122,7 +122,7 @@ export const useUIStore = create<UIStoreState>()(
       setSearchQuery: (query: string) =>
         set({ searchQuery: query }, false, 'ui/setSearchQuery'),
 
-      setSearchResults: (results: TMDBSearchResultItem[]) =>
+      setSearchResults: (results: TV[] | Movie[]) =>
         set({ searchResults: results }, false, 'ui/setSearchResults'),
 
       setSearchLoading: (loading: boolean) =>
@@ -156,7 +156,11 @@ export const useUIStore = create<UIStoreState>()(
 
       // UI preference actions
       toggleSidebar: () =>
-        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }), false, 'ui/toggleSidebar'),
+        set(
+          state => ({ sidebarCollapsed: !state.sidebarCollapsed }),
+          false,
+          'ui/toggleSidebar'
+        ),
 
       setSidebarCollapsed: (collapsed: boolean) =>
         set({ sidebarCollapsed: collapsed }, false, 'ui/setSidebarCollapsed'),

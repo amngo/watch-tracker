@@ -11,7 +11,8 @@ import {
   calculateProgress,
   calculateProgressFromWatchedItem,
 } from '@/lib/utils'
-import type { TMDBMediaItem, WatchedItem } from '@/types'
+import type { WatchedItem } from '@/types'
+import { MovieWithMediaType, TVWithMediaType } from 'tmdb-ts'
 
 export default function LibraryLayout({
   children,
@@ -96,7 +97,9 @@ export default function LibraryLayout({
     setItemsLoading(itemsDataLoading)
   }, [allItems, itemsDataLoading, setWatchedItems, setItemsLoading])
 
-  const handleAddMedia = async (media: TMDBMediaItem) => {
+  const handleAddMedia = async (
+    media: TVWithMediaType | MovieWithMediaType
+  ) => {
     await addMedia(media)
     closeSearchModal()
   }

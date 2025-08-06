@@ -1,8 +1,12 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { tmdbService, type TMDBTVDetails } from '@/lib/tmdb'
 import { startOfDay, isBefore, parseISO } from 'date-fns'
-import type { WatchedItem as PrismaWatchedItem, WatchedEpisode } from '@prisma/client'
+import type {
+  WatchedItem as PrismaWatchedItem,
+  WatchedEpisode,
+} from '@prisma/client'
+import { tmdb } from '@/lib/tmdb'
+import { TvShowDetails } from 'tmdb-ts'
 
 export interface ReleaseEvent {
   id: string
@@ -56,7 +60,7 @@ export const releasesRouter = createTRPCRouter({
             const tvReleases = await getUpcomingTVEpisodes(item, startDate)
             releases.push(...tvReleases)
           } else if (item.mediaType === 'MOVIE') {
-            const movieDetails = await tmdbService.getMovieDetails(item.tmdbId)
+            const movieDetails = await tmdb.movies.details(item.tmdbId)
             if (movieDetails && movieDetails.release_date) {
               const releaseDate = parseISO(movieDetails.release_date)
               if (releaseDate >= startOfDay(startDate)) {
@@ -122,7 +126,7 @@ export const releasesRouter = createTRPCRouter({
             const tvReleases = await getUpcomingTVEpisodes(item, startDate)
             releases.push(...tvReleases)
           } else if (item.mediaType === 'MOVIE') {
-            const movieDetails = await tmdbService.getMovieDetails(item.tmdbId)
+            const movieDetails = await tmdb.movies.details(item.tmdbId)
             if (movieDetails && movieDetails.release_date) {
               const releaseDate = parseISO(movieDetails.release_date)
               if (releaseDate >= startOfDay(startDate)) {
@@ -167,15 +171,15 @@ async function getUpcomingTVEpisodes(
 
   try {
     // Get TV show details to check for next_episode_to_air
-    const tvDetails = await tmdbService.getTVDetailsExtended(watchedItem.tmdbId)
+    const tvDetails = await tmdb.tvShows.details(watchedItem.tmdbId)
 
     if (tvDetails.seasons) {
       await Promise.all(
         tvDetails.seasons.map(async season => {
-          const seasonDetails = await tmdbService.getTVSeasonDetails(
-            watchedItem.tmdbId,
-            season.season_number
-          )
+          const seasonDetails = await tmdb.tvSeasons.details({
+            tvShowID: watchedItem.tmdbId,
+            seasonNumber: season.season_number,
+          })
 
           // Process each episode in the season
           seasonDetails.episodes.forEach(episode => {
@@ -227,7 +231,7 @@ async function getUpcomingTVEpisodes(
 async function getFallbackUpcomingEpisodes(
   watchedItem: PrismaWatchedItem & { watchedEpisodes: WatchedEpisode[] },
   startDate: Date,
-  tvDetails: TMDBTVDetails
+  tvDetails: TvShowDetails
 ): Promise<ReleaseEvent[]> {
   const releases: ReleaseEvent[] = []
 
@@ -265,10 +269,10 @@ async function getFallbackUpcomingEpisodes(
 
       try {
         // Get detailed season information
-        const seasonDetails = await tmdbService.getTVSeasonDetails(
-          watchedItem.tmdbId,
-          season.season_number
-        )
+        const seasonDetails = await tmdb.tvSeasons.details({
+          tvShowID: watchedItem.tmdbId,
+          seasonNumber: season.season_number,
+        })
 
         // Filter episodes based on our current position
         const episodesToCheck = seasonDetails.episodes

@@ -20,27 +20,32 @@ import { AddToQueueButton } from '@/components/features/queue/add-to-queue-butto
 import { api } from '@/trpc/react'
 import { TVSeasonPageSkeleton } from '@/components/ui/skeletons'
 import { useMedia } from '@/hooks/use-media'
-import { TMDBService } from '@/lib/tmdb'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
 import Link from 'next/link'
 import type {
-  TMDBSeasonDetailsItem,
-  TMDBEpisodeItem,
-  TMDBTVDetailsExtended,
   EpisodeWatchStatus,
   WatchedItem,
   UpdateWatchedItemData,
 } from '@/types'
+import {
+  AppendToResponse,
+  Episode,
+  getFullImagePath,
+  SeasonDetails,
+  TvShowDetails,
+} from 'tmdb-ts'
 
 export default function TVSeasonPage() {
   const params = useParams()
   const tvId = params.id as string
   const seasonNumber = parseInt(params.season_number as string)
 
-  const [seasonDetails, setSeasonDetails] =
-    useState<TMDBSeasonDetailsItem | null>(null)
-  const [tvShowDetails, setTvShowDetails] =
-    useState<TMDBTVDetailsExtended | null>(null)
+  const [seasonDetails, setSeasonDetails] = useState<SeasonDetails | null>(null)
+  const [tvShowDetails, setTvShowDetails] = useState<AppendToResponse<
+    TvShowDetails,
+    'credits'[],
+    'tvShow'
+  > | null>(null)
   const [tvShowTitle, setTvShowTitle] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +77,7 @@ export default function TVSeasonPage() {
   )
 
   // Fetch TV show detailed information (including seasons list)
-  const { data: tvDetailsData } = api.search.detailsExtended.useQuery(
+  const { data: tvDetailsData } = api.search.tvDetails.useQuery(
     {
       id: parseInt(tvId),
       type: 'tv',
@@ -149,7 +154,11 @@ export default function TVSeasonPage() {
   // Set TV show details and title
   useEffect(() => {
     if (tvDetailsData) {
-      const tvData = tvDetailsData as TMDBTVDetailsExtended
+      const tvData = tvDetailsData as AppendToResponse<
+        TvShowDetails,
+        'credits'[],
+        'tvShow'
+      >
       setTvShowDetails(tvData)
       setTvShowTitle(tvData.name || 'Unknown Show')
     }
@@ -158,7 +167,13 @@ export default function TVSeasonPage() {
   // Set season details
   useEffect(() => {
     if (seasonDetailsData) {
-      setSeasonDetails(seasonDetailsData as TMDBSeasonDetailsItem)
+      setSeasonDetails(
+        seasonDetailsData as AppendToResponse<
+          SeasonDetails,
+          'credits'[],
+          'tvShow'
+        >
+      )
       setIsLoading(false)
     }
   }, [seasonDetailsData])
@@ -364,7 +379,11 @@ export default function TVSeasonPage() {
   }
 
   const posterUrl = seasonDetails.poster_path
-    ? TMDBService.getPosterUrl(seasonDetails.poster_path, 'w500')
+    ? getFullImagePath(
+        'https://image.tmdb.org/t/p/',
+        'w500',
+        seasonDetails.poster_path
+      )
     : null
 
   return (
@@ -457,14 +476,14 @@ export default function TVSeasonPage() {
                     {seasonDetails.episodes.length} episodes
                   </span>
                 </div>
-                {seasonDetails.vote_average && (
+                {/* {seasonDetails.vote_average && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
                       {seasonDetails.vote_average.toFixed(1)}/10
                     </span>
                   </div>
-                )}
+                )} */}
               </div>
 
               {seasonDetails.overview && (
@@ -491,9 +510,13 @@ export default function TVSeasonPage() {
           <div>
             <h2 className="text-2xl font-bold mb-6">Episodes</h2>
             <div className="space-y-4">
-              {seasonDetails.episodes.map((episode: TMDBEpisodeItem) => {
+              {seasonDetails.episodes.map((episode: Episode) => {
                 const stillUrl = episode.still_path
-                  ? TMDBService.getImageUrl(episode.still_path, 'w500')
+                  ? getFullImagePath(
+                      'https://image.tmdb.org/t/p/',
+                      'w500',
+                      episode.still_path
+                    )
                   : null
 
                 return (
@@ -609,9 +632,10 @@ export default function TVSeasonPage() {
                                 id: parseInt(tvId),
                                 media_type: 'tv',
                                 name: tvShowTitle,
-                                poster_path: tvShowDetails?.poster_path,
-                                first_air_date: tvShowDetails?.first_air_date,
-                                overview: tvShowDetails?.overview,
+                                poster_path: tvShowDetails?.poster_path || '',
+                                first_air_date:
+                                  tvShowDetails?.first_air_date || '',
+                                overview: tvShowDetails?.overview || '',
                                 vote_average: tvShowDetails?.vote_average || 0,
                                 adult: false,
                                 vote_count: 0,
