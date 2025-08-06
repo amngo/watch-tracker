@@ -43,8 +43,10 @@ export default function TVEpisodePage() {
   const episodeNumber = parseInt(params.episode_number as string)
 
   const [episodeDetails, setEpisodeDetails] = useState<TMDBEpisode | null>(null)
-  const [tvShowDetails, setTvShowDetails] = useState<TMDBTVDetailsExtended | null>(null)
-  const [seasonDetails, setSeasonDetails] = useState<TMDBSeasonDetailsItem | null>(null)
+  const [tvShowDetails, setTvShowDetails] =
+    useState<TMDBTVDetailsExtended | null>(null)
+  const [seasonDetails, setSeasonDetails] =
+    useState<TMDBSeasonDetailsItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [spoilerMode, setSpoilerMode] = useState(false)
@@ -75,9 +77,11 @@ export default function TVEpisodePage() {
   )
 
   // Get the current episode's watch status
-  const currentEpisodeWatchStatus = userWatchedItem?.watchedEpisodes?.find(
-    ep => ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
-  )?.status || 'UNWATCHED'
+  const currentEpisodeWatchStatus =
+    userWatchedItem?.watchedEpisodes?.find(
+      ep =>
+        ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
+    )?.status || 'UNWATCHED'
 
   // Fetch TV show detailed information
   const { data: tvDetailsData } = api.search.detailsExtended.useQuery(
@@ -113,7 +117,11 @@ export default function TVEpisodePage() {
       episodeNumber: episodeNumber,
     },
     {
-      enabled: !!tvId && !isNaN(parseInt(tvId)) && !isNaN(seasonNumber) && !isNaN(episodeNumber),
+      enabled:
+        !!tvId &&
+        !isNaN(parseInt(tvId)) &&
+        !isNaN(seasonNumber) &&
+        !isNaN(episodeNumber),
     }
   )
 
@@ -227,8 +235,12 @@ export default function TVEpisodePage() {
       }
     }
 
-    const episodes = seasonDetails.episodes.sort((a, b) => a.episode_number - b.episode_number)
-    const currentIndex = episodes.findIndex(ep => ep.episode_number === episodeNumber)
+    const episodes = seasonDetails.episodes.sort(
+      (a, b) => a.episode_number - b.episode_number
+    )
+    const currentIndex = episodes.findIndex(
+      ep => ep.episode_number === episodeNumber
+    )
 
     const hasPrevious = currentIndex > 0
     const hasNext = currentIndex < episodes.length - 1
@@ -239,7 +251,8 @@ export default function TVEpisodePage() {
     return { hasPrevious, hasNext, previousEpisode, nextEpisode }
   }
 
-  const { hasPrevious, hasNext, previousEpisode, nextEpisode } = getEpisodeNavigation()
+  const { hasPrevious, hasNext, previousEpisode, nextEpisode } =
+    getEpisodeNavigation()
 
   const handleUpdateEpisodeStatus = async (status: EpisodeWatchStatus) => {
     if (!userWatchedItem) return
@@ -248,7 +261,8 @@ export default function TVEpisodePage() {
 
     // Find existing episode or create new one
     const existingIndex = updatedWatchedEpisodes.findIndex(
-      ep => ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
+      ep =>
+        ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber
     )
 
     if (existingIndex >= 0) {
@@ -322,12 +336,16 @@ export default function TVEpisodePage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Episode not found</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Episode not found
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   {error || 'Unable to load episode details'}
                 </p>
                 <Button asChild>
-                  <Link href={`/tv/${tvId}/season/${seasonNumber}`}>Return to Season</Link>
+                  <Link href={`/tv/${tvId}/season/${seasonNumber}`}>
+                    Return to Season
+                  </Link>
                 </Button>
               </div>
             </CardContent>
@@ -428,7 +446,7 @@ export default function TVEpisodePage() {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Spoiler Toggle */}
                 <Button
                   variant="outline"
@@ -504,16 +522,28 @@ export default function TVEpisodePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant={currentEpisodeWatchStatus === 'WATCHED' ? 'default' : 'outline'}>
+                    <span className="text-sm text-muted-foreground">
+                      Status
+                    </span>
+                    <Badge
+                      variant={
+                        currentEpisodeWatchStatus === 'WATCHED'
+                          ? 'default'
+                          : 'outline'
+                      }
+                    >
                       {currentEpisodeWatchStatus}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant={currentEpisodeWatchStatus === 'WATCHED' ? 'default' : 'outline'}
+                      variant={
+                        currentEpisodeWatchStatus === 'WATCHED'
+                          ? 'default'
+                          : 'outline'
+                      }
                       onClick={() => handleUpdateEpisodeStatus('WATCHED')}
                       className="flex-1"
                     >
@@ -522,7 +552,11 @@ export default function TVEpisodePage() {
                     </Button>
                     <Button
                       size="sm"
-                      variant={currentEpisodeWatchStatus === 'UNWATCHED' ? 'default' : 'outline'}
+                      variant={
+                        currentEpisodeWatchStatus === 'UNWATCHED'
+                          ? 'default'
+                          : 'outline'
+                      }
                       onClick={() => handleUpdateEpisodeStatus('UNWATCHED')}
                       className="flex-1"
                     >
@@ -577,44 +611,50 @@ export default function TVEpisodePage() {
         </div>
 
         {/* Guest Stars */}
-        {episodeDetails.guest_stars && episodeDetails.guest_stars.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Guest Stars</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {episodeDetails.guest_stars.slice(0, 8).map((guest: TMDBCastMember) => (
-                <Card key={guest.id}>
-                  <CardContent className="p-4 flex gap-4">
-                    {guest.profile_path ? (
-                      <div className="relative rounded-lg overflow-hidden w-16 h-auto">
-                        <img
-                          src={
-                            TMDBService.getPosterUrl(guest.profile_path, 'w185') || ''
-                          }
-                          alt={guest.name}
-                          className="object-cover object-top w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="bg-muted rounded-lg flex items-center justify-center w-16 h-auto">
-                        <span className="text-muted-foreground text-xs">
-                          No Photo
-                        </span>
-                      </div>
-                    )}
-                    <div>
-                      <h4 className="font-medium text-sm leading-tight mb-1">
-                        {guest.name}
-                      </h4>
-                      <p className="text-xs text-muted-foreground leading-tight">
-                        {guest.character}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {episodeDetails.guest_stars &&
+          episodeDetails.guest_stars.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Guest Stars</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                {episodeDetails.guest_stars
+                  .slice(0, 8)
+                  .map((guest: TMDBCastMember) => (
+                    <Card key={guest.id}>
+                      <CardContent className="p-4 flex gap-4">
+                        {guest.profile_path ? (
+                          <div className="relative rounded-lg overflow-hidden w-16 h-auto">
+                            <img
+                              src={
+                                TMDBService.getPosterUrl(
+                                  guest.profile_path,
+                                  'w185'
+                                ) || ''
+                              }
+                              alt={guest.name}
+                              className="object-cover object-top w-full h-full"
+                            />
+                          </div>
+                        ) : (
+                          <div className="bg-muted rounded-lg flex items-center justify-center w-16 h-auto">
+                            <span className="text-muted-foreground text-xs">
+                              No Photo
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-medium text-sm leading-tight mb-1">
+                            {guest.name}
+                          </h4>
+                          <p className="text-xs text-muted-foreground leading-tight">
+                            {guest.character}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Episode Crew */}
         {episodeDetails.crew && episodeDetails.crew.length > 0 && (
@@ -622,13 +662,19 @@ export default function TVEpisodePage() {
             <h2 className="text-2xl font-bold mb-6">Crew</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {episodeDetails.crew
-                .filter((member: TMDBCrewMember) => ['Director', 'Writer', 'Executive Producer'].includes(member.job))
+                .filter((member: TMDBCrewMember) =>
+                  ['Director', 'Writer', 'Executive Producer'].includes(
+                    member.job
+                  )
+                )
                 .slice(0, 6)
                 .map((crewMember: TMDBCrewMember) => (
                   <Card key={`${crewMember.id}-${crewMember.job}`}>
                     <CardContent className="p-4">
                       <h4 className="font-medium text-sm">{crewMember.name}</h4>
-                      <p className="text-xs text-muted-foreground">{crewMember.job}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {crewMember.job}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}

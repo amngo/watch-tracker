@@ -13,6 +13,7 @@ import { EpisodeOverview } from './episode-overview'
 import { EpisodeActions } from './episode-actions'
 
 import type { TMDBEpisodeItem, EpisodeWatchStatus, WatchedItem } from '@/types'
+import Link from 'next/link'
 
 interface EpisodeCardListProps {
   episode: TMDBEpisodeItem
@@ -56,17 +57,21 @@ export function EpisodeCardList({
               config.opacity
             )}
           >
-            {stillUrl ? (
-              <img
-                src={stillUrl}
-                alt={episode.name}
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <div className="bg-muted flex items-center justify-center w-full h-full">
-                <Play className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
+            <Link
+              href={`/tv/${watchedItem?.tmdbId}/season/${episode.season_number}/episode/${episode.episode_number}`}
+            >
+              {stillUrl ? (
+                <img
+                  src={stillUrl}
+                  alt={episode.name}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="bg-muted flex items-center justify-center w-full h-full">
+                  <Play className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+            </Link>
           </div>
 
           {/* Episode Info */}
@@ -75,9 +80,15 @@ export function EpisodeCardList({
               <div
                 className={cn('min-w-0 flex-1 flex flex-col', config.opacity)}
               >
-                <h4 className="font-medium text-sm leading-tight mb-1">
-                  {episode.episode_number}. {episode.name}
-                </h4>
+                {/* Episode Title */}
+                <Link
+                  href={`/tv/${watchedItem?.tmdbId}/season/${episode.season_number}/episode/${episode.episode_number}`}
+                  className="hover:underline"
+                >
+                  <h4 className="font-medium text-sm leading-tight mb-1">
+                    {episode.episode_number}. {episode.name}
+                  </h4>
+                </Link>
 
                 <EpisodeMetadata episode={episode} className="mb-2" />
                 <EpisodeStatusBadge status={status} className="mb-2" />

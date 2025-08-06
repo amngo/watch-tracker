@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import {
-  ArrowLeft,
   Star,
   Calendar,
   Clock,
@@ -13,13 +12,13 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { FlexibleEpisodeTracker } from '@/components/features/tv/flexible-episode-tracker'
 import { AddToQueueButton } from '@/components/features/queue/add-to-queue-button'
 import { api } from '@/trpc/react'
-import { LoadingCard } from '@/components/common/loading-spinner'
+import { TVSeasonPageSkeleton } from '@/components/ui/skeletons'
 import { useMedia } from '@/hooks/use-media'
 import { TMDBService } from '@/lib/tmdb'
 import { calculateProgressFromWatchedItem } from '@/lib/utils'
@@ -339,21 +338,7 @@ export default function TVSeasonPage() {
   if (isLoading) {
     return (
       <DashboardLayout stats={stats || undefined}>
-        <div className="space-y-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/tv/${tvId}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Show
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <LoadingCard key={i} />
-            ))}
-          </div>
-        </div>
+        <TVSeasonPageSkeleton />
       </DashboardLayout>
     )
   }
@@ -361,29 +346,19 @@ export default function TVSeasonPage() {
   if (error || !seasonDetails) {
     return (
       <DashboardLayout stats={stats || undefined}>
-        <div className="space-y-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/tv/${tvId}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Show
-              </Link>
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Season not found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {error || 'Unable to load season details'}
-                </p>
-                <Button asChild>
-                  <Link href={`/tv/${tvId}`}>Return to Show</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Season not found</h3>
+              <p className="text-muted-foreground mb-4">
+                {error || 'Unable to load season details'}
+              </p>
+              <Button asChild>
+                <Link href={`/tv/${tvId}`}>Return to Show</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </DashboardLayout>
     )
   }
@@ -498,47 +473,6 @@ export default function TVSeasonPage() {
                 </p>
               )}
             </div>
-
-            {/* User Progress */}
-            {userWatchedItem && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Progress</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Status
-                    </span>
-                    <Badge variant="outline">{userWatchedItem.status}</Badge>
-                  </div>
-                  {userWatchedItem.currentSeason &&
-                    userWatchedItem.currentEpisode && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Current Episode
-                        </span>
-                        <span className="text-sm font-medium">
-                          S{userWatchedItem.currentSeason}E
-                          {userWatchedItem.currentEpisode}
-                        </span>
-                      </div>
-                    )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Season Progress
-                    </span>
-                    <span className="text-sm font-medium">
-                      {(userWatchedItem.currentSeason ?? 0) === seasonNumber
-                        ? `${userWatchedItem.currentEpisode ?? 0}/${seasonDetails.episodes.length}`
-                        : (userWatchedItem.currentSeason ?? 0) > seasonNumber
-                          ? `${seasonDetails.episodes.length}/${seasonDetails.episodes.length} (Completed)`
-                          : '0/' + seasonDetails.episodes.length}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
 

@@ -1,21 +1,8 @@
 'use client'
-
 import { useState, useMemo, useEffect } from 'react'
-import {
-  ChevronDown,
-  ChevronRight,
-  Edit3,
-  Eye,
-  EyeOff,
-  Grid3X3,
-  List,
-  Check,
-  SkipForward,
-  Clock,
-} from 'lucide-react'
+import { Edit3, Eye, EyeOff, Check, SkipForward, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import {
   Dialog,
@@ -30,8 +17,7 @@ import { Toggle } from '@/components/ui/toggle'
 import { useEpisodeSpoilerState } from '@/hooks/use-episode-spoiler-state'
 import { useEpisodeActions } from '@/hooks/use-episode-actions'
 import { formatPercentage } from '@/lib/format'
-import { EPISODE_CONSTANTS } from '@/lib/constants/episode'
-import { EpisodeCardGrid, EpisodeCardList } from './episode'
+import { EpisodeCardList } from './episode'
 
 import type {
   WatchedItem,
@@ -64,7 +50,6 @@ export function FlexibleEpisodeTracker({
   onBulkUpdateEpisodes,
   className,
 }: FlexibleEpisodeTrackerProps) {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [showSpoilers, setShowSpoilers] = useState(false)
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false)
   const [selectedEpisodes, setSelectedEpisodes] = useState<Set<number>>(
@@ -137,17 +122,10 @@ export function FlexibleEpisodeTracker({
   return (
     <div className={className}>
       <Card>
-        <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+        <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <CardTitle className="text-lg">{seasonDetails.name}</CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{watchedCount} watched</Badge>
-                {skippedCount > 0 && (
-                  <Badge variant="secondary">{skippedCount} skipped</Badge>
-                )}
-                <Badge variant="outline">{totalCount} total</Badge>
-              </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
@@ -155,12 +133,11 @@ export function FlexibleEpisodeTracker({
               </span>
 
               {/* View Controls */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1">
                 <Toggle
                   pressed={showSpoilers}
                   onPressedChange={setShowSpoilers}
                   size="sm"
-                  onClick={e => e.stopPropagation()}
                   title={`${showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'} (Ctrl+S)`}
                   aria-label={
                     showSpoilers ? 'Hide all spoilers' : 'Show all spoilers'
@@ -173,36 +150,14 @@ export function FlexibleEpisodeTracker({
                   )}
                 </Toggle>
 
-                <Toggle
-                  pressed={viewMode === 'grid'}
-                  onPressedChange={pressed =>
-                    setViewMode(pressed ? 'grid' : 'list')
-                  }
-                  size="sm"
-                  onClick={e => e.stopPropagation()}
-                >
-                  {viewMode === 'grid' ? (
-                    <Grid3X3 className="h-4 w-4" />
-                  ) : (
-                    <List className="h-4 w-4" />
-                  )}
-                </Toggle>
-
                 <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
                   <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={e => {
-                        e.stopPropagation()
-                        setIsBulkEditOpen(true)
-                      }}
-                    >
+                    <Button size="sm" variant="outline">
                       <Edit3 className="h-4 w-4 mr-1" />
                       Bulk Edit
                     </Button>
                   </DialogTrigger>
-                  <DialogContent onClick={e => e.stopPropagation()}>
+                  <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Bulk Episode Actions</DialogTitle>
                       <DialogDescription>
@@ -269,21 +224,21 @@ export function FlexibleEpisodeTracker({
                         <div className="flex gap-2">
                           <Button onClick={() => handleBulkAction('WATCHED')}>
                             <Check className="h-4 w-4 mr-1" />
-                            Mark as Watched
+                            Watched
                           </Button>
                           <Button
                             variant="outline"
                             onClick={() => handleBulkAction('SKIPPED')}
                           >
                             <SkipForward className="h-4 w-4 mr-1" />
-                            Mark as Skipped
+                            Skipped
                           </Button>
                           <Button
                             variant="outline"
                             onClick={() => handleBulkAction('UNWATCHED')}
                           >
                             <Clock className="h-4 w-4 mr-1" />
-                            Mark as Unwatched
+                            Unwatched
                           </Button>
                         </div>
                       )}
@@ -306,14 +261,12 @@ export function FlexibleEpisodeTracker({
                 </div>
                 <div className="text-xs text-muted-foreground">Watched</div>
               </div>
-              {skippedCount > 0 && (
-                <div>
-                  <div className="text-lg font-semibold text-orange-600">
-                    {skippedCount}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Skipped</div>
+              <div>
+                <div className="text-lg font-semibold text-orange-600">
+                  {skippedCount}
                 </div>
-              )}
+                <div className="text-xs text-muted-foreground">Skipped</div>
+              </div>
               <div>
                 <div className="text-lg font-semibold">{remainingCount}</div>
                 <div className="text-xs text-muted-foreground">Remaining</div>
@@ -322,9 +275,7 @@ export function FlexibleEpisodeTracker({
           </div>
 
           {/* Episodes Grid/List */}
-          <div
-            className={`gap-4 ${viewMode === 'grid' ? `grid ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.base} ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.md} ${EPISODE_CONSTANTS.GRID_BREAKPOINTS.lg}` : 'space-y-3'}`}
-          >
+          <div className={`gap-4 space-y-3`}>
             {seasonDetails.episodes.map(episode => {
               const episodeStatus = getEpisodeStatus(
                 seasonNumber,
@@ -335,27 +286,7 @@ export function FlexibleEpisodeTracker({
                 episode.episode_number
               )
 
-              return viewMode === 'grid' ? (
-                <EpisodeCardGrid
-                  key={episode.id}
-                  episode={episode}
-                  status={episodeStatus}
-                  showSpoilers={showSpoilers}
-                  individualSpoilerVisible={individualSpoilerVisible}
-                  onStatusChange={status =>
-                    handleEpisodeStatusChange(
-                      seasonNumber,
-                      episode.episode_number,
-                      status
-                    )
-                  }
-                  onToggleIndividualSpoiler={() =>
-                    toggleEpisodeSpoiler(seasonNumber, episode.episode_number)
-                  }
-                  watchedItem={watchedItem}
-                  showQueueButton={true}
-                />
-              ) : (
+              return (
                 <EpisodeCardList
                   key={episode.id}
                   episode={episode}

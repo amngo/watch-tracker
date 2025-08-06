@@ -1,20 +1,10 @@
 'use client'
-
 import { useState } from 'react'
-import { Check, Clock, ChevronRight, Tv2, BarChart3 } from 'lucide-react'
+import { Check, Clock, ChevronRight, Tv2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
 import { TMDBService } from '@/lib/tmdb'
 import {
   calculateSeasonProgress,
@@ -302,82 +292,6 @@ export function FlexibleSeasonOverview({
     <div className={className}>
       {/* Overall Progress Header */}
       <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">
-                Flexible Season Progress
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Track episodes in any order across all {mainSeasons.length}{' '}
-                seasons
-              </p>
-            </div>
-            <Dialog open={isStatsOpen} onOpenChange={setIsStatsOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  View Stats
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Viewing Statistics</DialogTitle>
-                  <DialogDescription>
-                    Your progress through {watchedItem.title}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Overall Progress</Label>
-                      <div className="text-2xl font-bold">
-                        {Math.round(showStats.overallProgress)}%
-                      </div>
-                      <Progress
-                        value={showStats.overallProgress}
-                        className="h-2"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Completed Seasons</Label>
-                      <div className="text-2xl font-bold">
-                        {showStats.completedSeasons}/{mainSeasons.length}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-green-600">
-                        {showStats.watchedEpisodes}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Watched
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-orange-600">
-                        {showStats.skippedEpisodes}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Skipped
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-semibold">
-                        {showStats.unwatchedEpisodes}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Remaining
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {/* Overall Progress Bar */}

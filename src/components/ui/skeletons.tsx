@@ -390,3 +390,114 @@ export function PageHeaderSkeleton({ className }: { className?: string }) {
     </div>
   )
 }
+
+// TV Season page skeleton
+export function TVSeasonPageSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('animate-pulse space-y-8', className)}>
+      {/* Season Navigation */}
+      <div className="grid grid-cols-5 gap-4 items-center">
+        <BaseSkeleton className="h-9 col-span-2 rounded-md" />
+        <BaseSkeleton className="h-4 w-20 mx-auto" />
+        <BaseSkeleton className="h-9 col-span-2 rounded-md" />
+      </div>
+
+      {/* Season Header */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Season Poster */}
+        <div className="lg:col-span-1">
+          <BaseSkeleton className="aspect-[2/3] rounded-lg" />
+        </div>
+
+        {/* Season Info */}
+        <div className="lg:col-span-3 space-y-6">
+          <div>
+            {/* Title */}
+            <BaseSkeleton className="h-10 w-3/4 mb-2" />
+
+            {/* Meta info */}
+            <div className="flex flex-wrap items-center gap-4 mb-4">
+              <BaseSkeleton className="h-5 w-24 rounded-full" />
+              <BaseSkeleton className="h-5 w-20 rounded-full" />
+              <BaseSkeleton className="h-5 w-16 rounded-full" />
+            </div>
+
+            {/* Overview */}
+            <div className="space-y-2">
+              <BaseSkeleton className="h-4 w-full" />
+              <BaseSkeleton className="h-4 w-full" />
+              <BaseSkeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Episodes List */}
+      <div>
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <TVSeasonEpisodeSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// TV Season Episode card skeleton
+export function TVSeasonEpisodeSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'animate-pulse border rounded-lg overflow-hidden',
+        className
+      )}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
+        {/* Episode Still */}
+        <div className="md:col-span-1">
+          <BaseSkeleton className="aspect-video w-full" />
+        </div>
+
+        {/* Episode Details */}
+        <div className="md:col-span-3 p-6">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              {/* Episode title */}
+              <BaseSkeleton className="h-5 w-3/4 mb-3" />
+
+              {/* Meta info */}
+              <div className="flex flex-wrap items-center gap-4 mb-3">
+                <BaseSkeleton className="h-4 w-24" />
+                <BaseSkeleton className="h-4 w-16" />
+                <BaseSkeleton className="h-4 w-20" />
+              </div>
+            </div>
+          </div>
+
+          {/* Episode Overview */}
+          <div className="mb-4 space-y-2">
+            <BaseSkeleton className="h-3 w-full" />
+            <BaseSkeleton className="h-3 w-full" />
+            <BaseSkeleton className="h-3 w-2/3" />
+          </div>
+
+          {/* Guest Stars */}
+          <div className="mb-4">
+            <BaseSkeleton className="h-4 w-24 mb-2" />
+            <div className="flex flex-wrap gap-2">
+              <BaseSkeleton className="h-6 w-20 rounded-full" />
+              <BaseSkeleton className="h-6 w-24 rounded-full" />
+              <BaseSkeleton className="h-6 w-16 rounded-full" />
+            </div>
+          </div>
+
+          {/* Queue Action */}
+          <div className="flex justify-end">
+            <BaseSkeleton className="h-9 w-32 rounded-md" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

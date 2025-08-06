@@ -62,6 +62,8 @@ export {
   EpisodeCardSkeleton,
   NoteCardSkeleton,
   GridSkeleton,
+  TVSeasonPageSkeleton,
+  TVSeasonEpisodeSkeleton,
 } from '@/components/ui/skeletons'
 
 export {
@@ -72,6 +74,7 @@ export {
   StatsPageLoading,
   MediaDetailLoading,
   EpisodeTrackerLoading,
+  TVSeasonLoading,
   NotesPageLoading,
   ProfilePageLoading,
   ListLoading,

@@ -11,6 +11,7 @@ import {
   PageHeaderSkeleton,
   TableSkeleton,
   FormSkeleton,
+  TVSeasonPageSkeleton,
 } from '@/components/ui/skeletons'
 
 // Dashboard loading states
@@ -24,7 +25,11 @@ export function DashboardStatsLoading({ className }: { className?: string }) {
   )
 }
 
-export function DashboardRecentItemsLoading({ className }: { className?: string }) {
+export function DashboardRecentItemsLoading({
+  className,
+}: {
+  className?: string
+}) {
   return (
     <div className={cn('space-y-4', className)}>
       {Array.from({ length: 3 }).map((_, i) => (
@@ -65,13 +70,13 @@ export function StatsPageLoading({ className }: { className?: string }) {
     <div className={cn('space-y-6', className)}>
       <PageHeaderSkeleton />
       <DashboardStatsLoading />
-      
+
       {/* Chart placeholders */}
       <div className="grid gap-6 md:grid-cols-2">
         <ChartSkeleton />
         <ChartSkeleton />
       </div>
-      
+
       <ChartSkeleton height="h-[400px]" />
     </div>
   )
@@ -104,7 +109,7 @@ export function MediaDetailLoading({ className }: { className?: string }) {
           </div>
         </div>
       </div>
-      
+
       {/* Tabs section */}
       <div className="animate-pulse">
         <div className="flex gap-4 border-b mb-6">
@@ -112,7 +117,7 @@ export function MediaDetailLoading({ className }: { className?: string }) {
           <div className="h-10 bg-muted rounded w-24" />
           <div className="h-10 bg-muted rounded w-16" />
         </div>
-        
+
         {/* Tab content */}
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -135,12 +140,17 @@ export function EpisodeTrackerLoading({ className }: { className?: string }) {
   )
 }
 
+// TV Season page loading state
+export function TVSeasonLoading({ className }: { className?: string }) {
+  return <TVSeasonPageSkeleton className={className} />
+}
+
 // Notes page loading state
 export function NotesPageLoading({ className }: { className?: string }) {
   return (
     <div className={cn('space-y-6', className)}>
       <PageHeaderSkeleton />
-      
+
       {/* Filter tabs */}
       <div className="animate-pulse">
         <div className="flex gap-4">
@@ -149,7 +159,7 @@ export function NotesPageLoading({ className }: { className?: string }) {
           <div className="h-10 bg-muted rounded w-18" />
         </div>
       </div>
-      
+
       {/* Notes grid */}
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -165,7 +175,7 @@ export function ProfilePageLoading({ className }: { className?: string }) {
   return (
     <div className={cn('space-y-6', className)}>
       <PageHeaderSkeleton />
-      
+
       <div className="grid gap-6 md:grid-cols-2">
         <FormSkeleton fields={5} />
         <div className="space-y-4">
@@ -179,14 +189,14 @@ export function ProfilePageLoading({ className }: { className?: string }) {
 }
 
 // Generic loading states for common patterns
-export function ListLoading({ 
-  items = 5, 
+export function ListLoading({
+  items = 5,
   SkeletonComponent = WatchedItemCardSkeleton,
-  className 
-}: { 
+  className,
+}: {
   items?: number
   SkeletonComponent?: React.ComponentType<{ className?: string }>
-  className?: string 
+  className?: string
 }) {
   return (
     <div className={cn('space-y-4', className)}>
@@ -197,18 +207,18 @@ export function ListLoading({
   )
 }
 
-export function CardsGridLoading({ 
-  items = 6, 
+export function CardsGridLoading({
+  items = 6,
   SkeletonComponent = MediaCardSkeleton,
-  className 
-}: { 
+  className,
+}: {
   items?: number
   SkeletonComponent?: React.ComponentType<{ className?: string }>
-  className?: string 
+  className?: string
 }) {
   return (
-    <GridSkeleton 
-      items={items} 
+    <GridSkeleton
+      items={items}
       SkeletonComponent={SkeletonComponent}
       className={className}
     />
@@ -216,20 +226,14 @@ export function CardsGridLoading({
 }
 
 // Table loading with customizable columns and rows
-export function DataTableLoading({ 
+export function DataTableLoading({
   rows = 10,
   columns = 5,
-  className 
-}: { 
+  className,
+}: {
   rows?: number
   columns?: number
-  className?: string 
+  className?: string
 }) {
-  return (
-    <TableSkeleton 
-      rows={rows} 
-      columns={columns} 
-      className={className} 
-    />
-  )
+  return <TableSkeleton rows={rows} columns={columns} className={className} />
 }
