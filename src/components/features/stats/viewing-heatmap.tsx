@@ -27,41 +27,45 @@ export function ViewingHeatmap({ data }: ViewingHeatmapProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="grid grid-cols-8 gap-1 text-xs">
-            <div></div>
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center p-1 font-medium">
-                {day}
-              </div>
-            ))}
-
-            {Array.from({ length: 24 }, (_, hour) => (
-              <div key={hour} className="contents">
-                <div className="text-right p-1 text-muted-foreground">
-                  {hour.toString().padStart(2, '0')}
+          <div className="overflow-x-auto">
+            <div className="grid grid-cols-[auto_repeat(24,1fr)] gap-1 text-xs min-w-max">
+              <div></div>
+              {/* Hour labels as column headers */}
+              {Array.from({ length: 24 }, (_, hour) => (
+                <div key={hour} className="text-center p-1 font-medium">
+                  {hour.toString()}
                 </div>
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => {
-                  const activity =
-                    data.find(d => d.day === day && d.hour === hour)
-                      ?.activity || 0
+              ))}
 
-                  return (
-                    <div
-                      key={`${day}-${hour}`}
-                      className={cn(
-                        'aspect-square rounded-sm border border-border',
-                        activity === 0 && 'bg-muted/20',
-                        activity === 1 && 'bg-primary/20',
-                        activity === 2 && 'bg-primary/40',
-                        activity === 3 && 'bg-primary/60',
-                        activity >= 4 && 'bg-primary/80'
-                      )}
-                      title={`${day} ${hour}:00 - Activity: ${activity}`}
-                    />
-                  )
-                })}
-              </div>
-            ))}
+              {/* Days as rows */}
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="contents">
+                  <div className="text-right p-1 font-medium text-muted-foreground whitespace-nowrap">
+                    {day}
+                  </div>
+                  {Array.from({ length: 24 }, (_, hour) => {
+                    const activity =
+                      data.find(d => d.day === day && d.hour === hour)
+                        ?.activity || 0
+
+                    return (
+                      <div
+                        key={`${day}-${hour}`}
+                        className={cn(
+                          'aspect-square rounded-xs border border-border',
+                          activity === 0 && 'bg-muted/20',
+                          activity === 1 && 'bg-primary/20',
+                          activity === 2 && 'bg-primary/40',
+                          activity === 3 && 'bg-primary/60',
+                          activity >= 4 && 'bg-primary/80'
+                        )}
+                        title={`${day} ${hour}:00 - Activity: ${activity}`}
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center justify-between text-xs text-muted-foreground">

@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ViewingHeatmap } from '@/components/features/stats/viewing-heatmap'
 import { api } from '@/trpc/react'
+import { formatRuntime } from '@/lib/format'
 import type { TimeRange } from '@/types'
 
 export default function PatternsPage() {
   const [timeRange] = useState<TimeRange>('month')
 
-  const { data: activityData } = api.stats.activity.useQuery({
+  // Activity data can be used for additional analytics in the future
+  const { data: _activityData } = api.stats.activity.useQuery({
     timeRange,
     groupBy:
       timeRange === 'week' ? 'day' : timeRange === 'month' ? 'day' : 'month',
@@ -20,30 +22,15 @@ export default function PatternsPage() {
     timeRange,
   })
 
-  // Generate heatmap data (simplified version)
+  const { data: patternsData } = api.stats.viewingPatterns.useQuery({
+    timeRange,
+  })
+
+  // Use real viewing patterns data
   const heatmapData = useMemo(() => {
-    if (!activityData) return []
-
-    const data = []
-    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    const hours = Array.from({ length: 24 }, (_, i) => i)
-
-    // Generate mock data for demonstration
-    // In a real implementation, you'd track actual viewing times
-    for (const day of daysOfWeek) {
-      for (const hour of hours) {
-        const activity = Math.floor(Math.random() * 5) // 0-4 scale
-        data.push({
-          day,
-          hour,
-          activity,
-          dayIndex: daysOfWeek.indexOf(day),
-        })
-      }
-    }
-
-    return data
-  }, [activityData])
+    if (!patternsData?.heatmapData) return []
+    return patternsData.heatmapData
+  }, [patternsData])
 
   return (
     <div className="space-y-6">
@@ -57,15 +44,15 @@ export default function PatternsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span>Peak Viewing Time</span>
-              <Badge>8-10 PM</Badge>
+              <Badge>{patternsData?.stats.peakHour || 'N/A'}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>Favorite Day</span>
-              <Badge>Saturday</Badge>
+              <Badge>{patternsData?.stats.peakDay || 'N/A'}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>Binge Sessions</span>
-              <Badge>12 this month</Badge>
+              <Badge>{patternsData?.stats.bingeSessions || 0} this {timeRange}</Badge>
             </div>
           </CardContent>
         </Card>
@@ -77,11 +64,11 @@ export default function PatternsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span>Avg Episode Length</span>
-              <Badge>45 min</Badge>
+              <Badge>{formatRuntime(patternsData?.stats.avgEpisodeLength || 45)}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>Avg Movie Length</span>
-              <Badge>2h 15m</Badge>
+              <Badge>{formatRuntime(patternsData?.stats.avgMovieLength || 120)}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span>Completion Rate</span>
