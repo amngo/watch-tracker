@@ -79,7 +79,6 @@ function TVShowCardComponent({
     requiresConfirmation: true,
   })
 
-
   const handleProgressUpdate = (season: number, episode: number) => {
     onUpdate(item.id, {
       currentSeason: season,
@@ -128,18 +127,17 @@ function TVShowCardComponent({
     return 'In progress'
   }
 
-
   const nextEpisode =
     item.currentSeason && item.currentEpisode
       ? `S${item.currentSeason}E${item.currentEpisode + 1}`
       : 'S1E1'
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "group transition-all hover:shadow-md p-0",
-        isSelected && "ring-2 ring-primary bg-primary/5",
-        showSelection && "cursor-pointer select-none"
+        'group transition-all hover:shadow-md p-0',
+        isSelected && 'ring-2 ring-primary bg-primary/5',
+        showSelection && 'cursor-pointer select-none'
       )}
       onClick={showSelection ? handleCardClick : undefined}
     >
@@ -147,15 +145,15 @@ function TVShowCardComponent({
         <div className="flex gap-4">
           {/* Selection checkbox */}
           {showSelection && onSelectionChange && (
-            <div 
+            <div
               className="flex-shrink-0 self-start pt-1 z-10"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
               }}
             >
               <Checkbox
                 checked={isSelected}
-                onCheckedChange={(checked) => 
+                onCheckedChange={checked =>
                   onSelectionChange(item.id, Boolean(checked))
                 }
                 aria-label={`Select ${item.title}`}
@@ -228,7 +226,9 @@ function TVShowCardComponent({
                     {Object.entries(STATUS_CONFIG).map(([status, config]) => (
                       <DropdownMenuItem
                         key={status}
-                        onClick={() => handleStatusChange(status as WatchStatus)}
+                        onClick={() =>
+                          handleStatusChange(status as WatchStatus)
+                        }
                         className="flex items-center gap-2"
                       >
                         <config.icon className="h-4 w-4" />
@@ -308,7 +308,8 @@ function TVShowCardComponent({
                   </div>
 
                   {/* Show refresh button if season/episode data is missing */}
-                  {!showSelection && showRefreshButton &&
+                  {!showSelection &&
+                    showRefreshButton &&
                     (!item.totalSeasons || !item.totalEpisodes) && (
                       <div className="flex justify-center mt-2">
                         <Button
@@ -322,31 +323,6 @@ function TVShowCardComponent({
                         </Button>
                       </div>
                     )}
-                </div>
-              )}
-
-              {/* Quick Actions - Hidden during selection mode */}
-              {!showSelection && (
-                <div className="flex items-center justify-between pt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsEditingProgress(true)}
-                    className="text-xs px-2 py-1 h-auto"
-                  >
-                    <Edit3 className="h-3 w-3 mr-1" />
-                    Update Progress
-                  </Button>
-                  <Link href={detailUrl}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs px-2 py-1 h-auto"
-                    >
-                      View Seasons
-                      <ChevronRight className="h-3 w-3 ml-1" />
-                    </Button>
-                  </Link>
                 </div>
               )}
             </div>
@@ -363,12 +339,17 @@ function TVShowCardComponent({
       />
 
       {/* Completion Confirmation Dialog */}
-      <AlertDialog open={isCompletionDialogOpen} onOpenChange={setIsCompletionDialogOpen}>
+      <AlertDialog
+        open={isCompletionDialogOpen}
+        onOpenChange={setIsCompletionDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Mark Show as Complete?</AlertDialogTitle>
             <AlertDialogDescription>
-              Marking &quot;{item.title}&quot; as complete will automatically mark all seasons and episodes as watched. This action will update your overall progress to 100%. Are you sure you want to continue?
+              Marking &quot;{item.title}&quot; as complete will automatically
+              mark all seasons and episodes as watched. This action will update
+              your overall progress to 100%. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -386,12 +367,18 @@ function TVShowCardComponent({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Show Progress?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will reset &quot;{item.title}&quot; back to planned status and mark all episodes as unwatched. Your progress will be set to 0% and all episode tracking will be cleared. This action cannot be undone.
+              This will reset &quot;{item.title}&quot; back to planned status
+              and mark all episodes as unwatched. Your progress will be set to
+              0% and all episode tracking will be cleared. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleConfirmReset}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Yes, Reset Progress
             </AlertDialogAction>
           </AlertDialogFooter>

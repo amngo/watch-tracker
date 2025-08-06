@@ -14,10 +14,10 @@ import { useUI } from '@/hooks/use-ui'
 import type { WatchedItem } from '@/types'
 
 export default function MoviesPage() {
-  const { 
-    watchedItems, 
-    itemsLoading, 
-    updateItem, 
+  const {
+    watchedItems,
+    itemsLoading,
+    updateItem,
     deleteItem,
     bulkUpdateStatus,
     bulkDelete,
@@ -41,10 +41,8 @@ export default function MoviesPage() {
 
   // Selection handlers
   const handleSelectionChange = useCallback((id: string, selected: boolean) => {
-    setSelectedIds(prev => 
-      selected 
-        ? [...prev, id]
-        : prev.filter(selectedId => selectedId !== id)
+    setSelectedIds(prev =>
+      selected ? [...prev, id] : prev.filter(selectedId => selectedId !== id)
     )
   }, [])
 
@@ -64,32 +62,41 @@ export default function MoviesPage() {
   }, [showBulkMode])
 
   // Bulk action handlers
-  const handleBulkUpdateStatus = useCallback(async (
-    ids: string[], 
-    status: Parameters<typeof bulkUpdateStatus>[1],
-    options?: Parameters<typeof bulkUpdateStatus>[2]
-  ) => {
-    await bulkUpdateStatus(ids, status, options)
-    setSelectedIds([])
-  }, [bulkUpdateStatus])
+  const handleBulkUpdateStatus = useCallback(
+    async (
+      ids: string[],
+      status: Parameters<typeof bulkUpdateStatus>[1],
+      options?: Parameters<typeof bulkUpdateStatus>[2]
+    ) => {
+      await bulkUpdateStatus(ids, status, options)
+      setSelectedIds([])
+    },
+    [bulkUpdateStatus]
+  )
 
-  const handleBulkDelete = useCallback(async (ids: string[]) => {
-    await bulkDelete(ids)
-    setSelectedIds([])
-  }, [bulkDelete])
+  const handleBulkDelete = useCallback(
+    async (ids: string[]) => {
+      await bulkDelete(ids)
+      setSelectedIds([])
+    },
+    [bulkDelete]
+  )
 
-  const handleBulkUpdateRating = useCallback(async (ids: string[], rating: number | null) => {
-    await bulkUpdateRating(ids, rating)
-    setSelectedIds([])
-  }, [bulkUpdateRating])
+  const handleBulkUpdateRating = useCallback(
+    async (ids: string[], rating: number | null) => {
+      await bulkUpdateRating(ids, rating)
+      setSelectedIds([])
+    },
+    [bulkUpdateRating]
+  )
 
-  const handleBulkUpdateDates = useCallback(async (
-    ids: string[], 
-    options: Parameters<typeof bulkUpdateDates>[1]
-  ) => {
-    await bulkUpdateDates(ids, options)
-    setSelectedIds([])
-  }, [bulkUpdateDates])
+  const handleBulkUpdateDates = useCallback(
+    async (ids: string[], options: Parameters<typeof bulkUpdateDates>[1]) => {
+      await bulkUpdateDates(ids, options)
+      setSelectedIds([])
+    },
+    [bulkUpdateDates]
+  )
 
   const handleUpdateItem = async (id: string, data: Partial<WatchedItem>) => {
     await updateItem(id, data)
@@ -99,7 +106,11 @@ export default function MoviesPage() {
     await deleteItem(id)
   }
 
-  const isLoading = isBulkUpdatingStatus || isBulkDeleting || isBulkUpdatingRating || isBulkUpdatingDates
+  const isLoading =
+    isBulkUpdatingStatus ||
+    isBulkDeleting ||
+    isBulkUpdatingRating ||
+    isBulkUpdatingDates
 
   return (
     <div className="space-y-8">
@@ -135,8 +146,7 @@ export default function MoviesPage() {
         <StatsCard
           title="Planned"
           value={
-            movieWatchlistItems.filter(item => item.status === 'PLANNED')
-              .length
+            movieWatchlistItems.filter(item => item.status === 'PLANNED').length
           }
           description="Want to watch"
           icon={Film}
@@ -150,12 +160,12 @@ export default function MoviesPage() {
           <div className="flex items-center gap-2">
             {movieWatchlistItems.length > 0 && (
               <Button
-                variant={showBulkMode ? "default" : "outline"}
+                variant={showBulkMode ? 'default' : 'outline'}
                 size="sm"
                 onClick={toggleBulkMode}
               >
                 <CheckSquare className="h-4 w-4 mr-2" />
-                {showBulkMode ? "Exit Select" : "Select"}
+                {showBulkMode ? 'Exit Select' : 'Select'}
               </Button>
             )}
             <Button variant="outline" onClick={openSearchModal}>
@@ -166,10 +176,7 @@ export default function MoviesPage() {
         </SectionHeader>
 
         {itemsLoading ? (
-          <LoadingGrid
-            count={8}
-            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          />
+          <LoadingGrid count={8} className="grid gap-4" />
         ) : movieWatchlistItems.length === 0 ? (
           <EmptyState
             icon={Film}
@@ -198,7 +205,7 @@ export default function MoviesPage() {
             />
 
             {/* Movie Grid */}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="grid gap-4">
               {movieWatchlistItems.map(item => (
                 <WatchedItemCard
                   key={item.id}

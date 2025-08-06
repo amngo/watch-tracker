@@ -1,18 +1,17 @@
-import { WatchedItemCardSkeleton } from '@/components/ui/skeletons'
+import { TVShowCardSkeleton } from '@/components/ui/skeletons'
+import { cn } from '@/lib/utils'
 
 interface LoadingGridProps {
   count?: number
   className?: string
+  showSelection?: boolean
 }
 
-export function LoadingGrid({
-  count = 6,
-  className = 'space-y-4',
-}: LoadingGridProps) {
+export function LoadingGrid({ count = 6, className }: LoadingGridProps) {
   return (
-    <div className={className}>
+    <div className={cn('space-y-4', className)}>
       {[...Array(count)].map((_, i) => (
-        <WatchedItemCardSkeleton key={i} />
+        <TVShowCardSkeleton key={i} />
       ))}
     </div>
   )

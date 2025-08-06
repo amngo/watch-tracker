@@ -24,7 +24,6 @@ import { ActiveFilters } from './active-filters'
 import type { TMDBMediaItem } from '@/types'
 import type { FilterState, SortOption, SortDirection } from '@/types/search'
 
-
 interface SearchResultsProps {
   query: string
   results: TMDBMediaItem[]
@@ -124,7 +123,7 @@ export function SearchResults({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4">
             {[...Array(6)].map((_, i) => (
               <MediaCardSkeleton key={i} />
             ))}
@@ -134,7 +133,7 @@ export function SearchResults({
             <p className="text-muted-foreground">Error searching: {error}</p>
           </div>
         ) : results.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4">
             {results.map(media => {
               const isInWatchlist = isItemInWatchlist(
                 media.id,

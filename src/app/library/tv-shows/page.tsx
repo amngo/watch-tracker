@@ -14,10 +14,10 @@ import { useUI } from '@/hooks/use-ui'
 import type { WatchedItem } from '@/types'
 
 export default function TVShowsPage() {
-  const { 
-    watchedItems, 
-    itemsLoading, 
-    updateItem, 
+  const {
+    watchedItems,
+    itemsLoading,
+    updateItem,
     deleteItem,
     bulkUpdateStatus,
     bulkDelete,
@@ -41,10 +41,8 @@ export default function TVShowsPage() {
 
   // Selection handlers
   const handleSelectionChange = useCallback((id: string, selected: boolean) => {
-    setSelectedIds(prev => 
-      selected 
-        ? [...prev, id]
-        : prev.filter(selectedId => selectedId !== id)
+    setSelectedIds(prev =>
+      selected ? [...prev, id] : prev.filter(selectedId => selectedId !== id)
     )
   }, [])
 
@@ -64,37 +62,49 @@ export default function TVShowsPage() {
   }, [showBulkMode])
 
   // Bulk action handlers
-  const handleBulkUpdateStatus = useCallback(async (
-    ids: string[], 
-    status: Parameters<typeof bulkUpdateStatus>[1],
-    options?: Parameters<typeof bulkUpdateStatus>[2]
-  ) => {
-    await bulkUpdateStatus(ids, status, options)
-    setSelectedIds([])
-  }, [bulkUpdateStatus])
+  const handleBulkUpdateStatus = useCallback(
+    async (
+      ids: string[],
+      status: Parameters<typeof bulkUpdateStatus>[1],
+      options?: Parameters<typeof bulkUpdateStatus>[2]
+    ) => {
+      await bulkUpdateStatus(ids, status, options)
+      setSelectedIds([])
+    },
+    [bulkUpdateStatus]
+  )
 
-  const handleBulkDelete = useCallback(async (ids: string[]) => {
-    await bulkDelete(ids)
-    setSelectedIds([])
-  }, [bulkDelete])
+  const handleBulkDelete = useCallback(
+    async (ids: string[]) => {
+      await bulkDelete(ids)
+      setSelectedIds([])
+    },
+    [bulkDelete]
+  )
 
-  const handleBulkUpdateRating = useCallback(async (ids: string[], rating: number | null) => {
-    await bulkUpdateRating(ids, rating)
-    setSelectedIds([])
-  }, [bulkUpdateRating])
+  const handleBulkUpdateRating = useCallback(
+    async (ids: string[], rating: number | null) => {
+      await bulkUpdateRating(ids, rating)
+      setSelectedIds([])
+    },
+    [bulkUpdateRating]
+  )
 
-  const handleBulkUpdateDates = useCallback(async (
-    ids: string[], 
-    options: Parameters<typeof bulkUpdateDates>[1]
-  ) => {
-    await bulkUpdateDates(ids, options)
-    setSelectedIds([])
-  }, [bulkUpdateDates])
+  const handleBulkUpdateDates = useCallback(
+    async (ids: string[], options: Parameters<typeof bulkUpdateDates>[1]) => {
+      await bulkUpdateDates(ids, options)
+      setSelectedIds([])
+    },
+    [bulkUpdateDates]
+  )
 
-  const handleBulkUpdateTVShowDetails = useCallback(async (ids: string[]) => {
-    await bulkUpdateTVShowDetails(ids)
-    setSelectedIds([])
-  }, [bulkUpdateTVShowDetails])
+  const handleBulkUpdateTVShowDetails = useCallback(
+    async (ids: string[]) => {
+      await bulkUpdateTVShowDetails(ids)
+      setSelectedIds([])
+    },
+    [bulkUpdateTVShowDetails]
+  )
 
   const handleUpdateItem = async (id: string, data: Partial<WatchedItem>) => {
     await updateItem(id, data)
@@ -104,7 +114,12 @@ export default function TVShowsPage() {
     await deleteItem(id)
   }
 
-  const isLoading = isBulkUpdatingStatus || isBulkDeleting || isBulkUpdatingRating || isBulkUpdatingDates || isBulkUpdatingTVShowDetails
+  const isLoading =
+    isBulkUpdatingStatus ||
+    isBulkDeleting ||
+    isBulkUpdatingRating ||
+    isBulkUpdatingDates ||
+    isBulkUpdatingTVShowDetails
 
   return (
     <div className="space-y-8">
@@ -119,21 +134,27 @@ export default function TVShowsPage() {
         />
         <StatsCard
           title="Completed"
-          value={tvWatchlistItems.filter(item => item.status === 'COMPLETED').length}
+          value={
+            tvWatchlistItems.filter(item => item.status === 'COMPLETED').length
+          }
           description="Shows finished"
           icon={Tv}
           isLoading={itemsLoading}
         />
         <StatsCard
           title="Watching"
-          value={tvWatchlistItems.filter(item => item.status === 'WATCHING').length}
+          value={
+            tvWatchlistItems.filter(item => item.status === 'WATCHING').length
+          }
           description="Currently watching"
           icon={Tv}
           isLoading={itemsLoading}
         />
         <StatsCard
           title="Planned"
-          value={tvWatchlistItems.filter(item => item.status === 'PLANNED').length}
+          value={
+            tvWatchlistItems.filter(item => item.status === 'PLANNED').length
+          }
           description="Want to watch"
           icon={Tv}
           isLoading={itemsLoading}
@@ -146,12 +167,12 @@ export default function TVShowsPage() {
           <div className="flex items-center gap-2">
             {tvWatchlistItems.length > 0 && (
               <Button
-                variant={showBulkMode ? "default" : "outline"}
+                variant={showBulkMode ? 'default' : 'outline'}
                 size="sm"
                 onClick={toggleBulkMode}
               >
                 <CheckSquare className="h-4 w-4 mr-2" />
-                {showBulkMode ? "Exit Select" : "Select"}
+                {showBulkMode ? 'Exit Select' : 'Select'}
               </Button>
             )}
             <Button variant="outline" onClick={openSearchModal}>
@@ -162,7 +183,11 @@ export default function TVShowsPage() {
         </SectionHeader>
 
         {itemsLoading ? (
-          <LoadingGrid count={6} className="grid gap-4 md:grid-cols-1 lg:grid-cols-2" />
+          <LoadingGrid
+            count={6}
+            className="grid gap-4"
+            showSelection={showBulkMode}
+          />
         ) : tvWatchlistItems.length === 0 ? (
           <EmptyState
             icon={Tv}
@@ -192,7 +217,7 @@ export default function TVShowsPage() {
             />
 
             {/* TV Show Grid */}
-            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+            <div className="grid gap-4">
               {tvWatchlistItems.map(item => (
                 <TVShowCard
                   key={item.id}
