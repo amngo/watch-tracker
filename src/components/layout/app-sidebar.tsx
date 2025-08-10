@@ -7,8 +7,6 @@ import {
   ListOrdered,
   Play,
   Search,
-  Settings,
-  User,
 } from 'lucide-react'
 
 import {
@@ -102,8 +100,8 @@ const navigation: NavigationItem[] = [
       { name: 'Achievements', href: '/stats/achievements' },
     ],
   },
-  { name: 'Profile', href: '/profile', icon: User },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  //   { name: 'Profile', href: '/profile', icon: User },
+  //   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export function AppSidebar() {
